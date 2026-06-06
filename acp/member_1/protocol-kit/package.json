@@ -1,0 +1,22 @@
+{
+  "name": "acp-sea-bridge-protocol-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.2",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "preview": "tsx preview-server.ts",
+    "verify": "tsc --noEmit && vitest run"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  }
+}
