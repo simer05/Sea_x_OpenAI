@@ -7,61 +7,50 @@
     <link rel="stylesheet" href="/seller-dashboard/src/app/globals.css" />
   </head>
   <body>
-    <div class="seller-console">
-      <aside class="seller-sidebar" aria-label="Shopee seller navigation">
+    <div class="seller-console two-mode-console">
+      <aside class="seller-sidebar" aria-label="Seller intelligence navigation">
+        <div class="seller-utility">
+          <span>Seller Centre</span>
+          <span>Mock Shopee SG</span>
+          <span class="seller-utility-spacer"></span>
+          <span>Notifications</span>
+          <span>Help</span>
+          <span>English</span>
+        </div>
+
         <div class="shopee-lockup">
-          <button class="icon-button" type="button" aria-label="Menu">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-          <div class="shopee-logo" aria-label="Shopee">
-            <span class="bag-mark">S</span>
-            <strong>Shopee</strong>
+          <div class="shopee-logo" aria-label="Shopee Seller">
+            <span class="bag-mark">A</span>
+            <strong>Shopee Seller</strong>
+          </div>
+          <div class="seller-search-shell" aria-label="Seller workspace context">
+            <span>Seller Perspective</span>
+            <strong id="seller-perspective-copy">Optimize live listings, reviews, and campaign spend</strong>
           </div>
         </div>
 
-        <nav class="side-nav">
-          <a href="#"><span class="nav-icon home"></span>Overview</a>
-          <a href="#" class="open"><span class="nav-icon analytics"></span>Product Analytics</a>
-          <button class="side-subnav" type="button" data-mode="pre">Pre-Launch</button>
-          <button class="side-subnav active" type="button" data-mode="post">Post-Launch</button>
-          <a href="#"><span class="nav-icon trend"></span>Performance Trends</a>
-          <a href="#"><span class="nav-icon competitor"></span>Competitor Insights</a>
-          <a href="#"><span class="nav-icon market"></span>Market Insights</a>
-          <a href="#"><span class="nav-icon search"></span>Search Insights</a>
-          <a href="#"><span class="nav-icon report"></span>Reports</a>
-          <a href="#"><span class="nav-icon alert"></span>Alerts</a>
-          <a href="#"><span class="nav-icon gear"></span>Settings</a>
+        <nav class="side-nav compact-nav" aria-label="Workflow">
+          <button class="mode-nav" type="button" data-mode="pre">
+            <strong>Pre-Launch</strong>
+            <span>Validate a new product idea</span>
+          </button>
+          <button class="mode-nav active" type="button" data-mode="post">
+            <strong>Post-Launch</strong>
+            <span>Improve live Shopee items</span>
+          </button>
         </nav>
-
-        <section class="sidebar-card product-switcher" aria-label="Seller existing products">
-          <div class="sidebar-card-title">
-            <span>Seller Existing Products</span>
-            <strong id="sidebar-product-count">3</strong>
-          </div>
-          <div id="product-list" class="product-list"></div>
-        </section>
       </aside>
 
       <main class="seller-main">
         <header class="global-bar">
           <div class="brand-area">
             <span class="adapt-mark"></span>
-            <strong>AdaptLink</strong>
-            <span>Seller Intelligence</span>
+            <strong id="workspace-title">Post-Launch Seller Intelligence</strong>
           </div>
           <div class="store-area">
-            <button class="notify-button" type="button" aria-label="Notifications">
-              <span class="bell-shape"></span>
-              <b>3</b>
-            </button>
-            <div class="store-card">
-              <span class="store-icon"></span>
-              <div>
-                <strong>My Home Living Store</strong>
-                <small>Shopee Mall</small>
-              </div>
+            <div class="openai-pill" aria-label="Powered by OpenAI">
+              <span class="openai-logo" aria-hidden="true"></span>
+              <strong>OpenAI-ready insights</strong>
             </div>
           </div>
         </header>
@@ -69,33 +58,28 @@
         <div class="dashboard-content">
           <section class="page-head">
             <div>
-              <h1 id="page-title">Post-Launch Product Intelligence</h1>
-              <p id="page-copy">Track performance, benchmark competitors, and optimize existing listings for growth.</p>
+              <h1 id="page-title">Post-Launch Product Dashboard</h1>
+              <p id="page-copy">Choose a live seller product to generate product health, market trend, competitor, review, and action dashboards.</p>
             </div>
-            <div class="head-actions">
+            <div class="head-actions" id="post-head-actions">
               <label class="range-picker">
                 <span class="calendar-icon"></span>
                 <select id="timeframe-select" aria-label="Select timeframe"></select>
               </label>
-              <div class="openai-pill" aria-label="Powered by OpenAI">
-                <span class="openai-logo" aria-hidden="true"></span>
-                <strong>Powered by OpenAI</strong>
-              </div>
             </div>
           </section>
 
-          <section class="mode-switch" aria-label="Analysis stage">
-            <button class="mode-button" type="button" data-mode="pre">
-              <span>Pre-Launch</span>
-              <strong>Validate new product idea</strong>
-            </button>
-            <button class="mode-button active" type="button" data-mode="post">
-              <span>Post-Launch</span>
-              <strong>Improve existing product</strong>
-            </button>
-          </section>
-
           <section id="post-view" class="analysis-view">
+            <section class="seller-product-grid" aria-label="Seller live Shopee products">
+              <div class="product-grid-heading">
+                <div>
+                  <h2>Seller Live Shopee Items</h2>
+                  <p>Select an item to expand market evaluation metrics.</p>
+                </div>
+                <span id="sidebar-product-count">3</span>
+              </div>
+              <div id="product-list" class="live-product-cards"></div>
+            </section>
             <section class="kpi-grid" aria-label="Post-launch key metrics">
               <article class="kpi-card accent-orange">
                 <div class="kpi-top"><span class="kpi-icon sales"></span><span>Sales</span></div>
@@ -240,44 +224,56 @@
           </section>
 
           <section id="pre-view" class="analysis-view hidden">
-            <section class="pre-grid">
+            <section class="pre-workspace">
               <article class="panel pre-input-panel">
                 <div class="panel-heading">
-                  <h2>Pre-Launch Product Input</h2>
-                  <span>Agent-ready</span>
+                  <h2>New Product Details</h2>
+                  <span>Editable seller review</span>
                 </div>
-                <form id="pre-form" class="pre-form">
+                <form id="pre-form" class="pre-form live-pre-form">
                   <label>
                     Product idea
                     <select id="pre-idea"></select>
                   </label>
                   <label>
                     Product title
-                    <input id="pre-title" required />
+                    <input id="pre-title" placeholder="e.g. Purple iPhone 15 case with strap" required />
                   </label>
                   <label>
                     Shopee category
-                    <input id="pre-category" required />
+                    <input id="pre-category" placeholder="Type or choose category path" required />
                   </label>
-                  <div class="form-split">
+                  <div class="form-pair">
                     <label>
-                      Target price
-                      <input id="pre-price" type="number" min="0" step="0.1" required />
+                      Selling price
+                      <input id="pre-price" type="number" min="0" step="0.1" placeholder="SGD" required />
                     </label>
                     <label>
-                      Initial stock
-                      <input id="pre-stock" type="number" min="0" step="1" required />
+                      Initial launch stock
+                      <input id="pre-stock" type="number" min="0" step="1" placeholder="Units seller plans to list" required />
                     </label>
                   </div>
                   <label>
                     Key features
-                    <textarea id="pre-features" rows="4"></textarea>
+                    <textarea id="pre-features" rows="4" placeholder="Comma-separated features"></textarea>
                   </label>
                   <button class="primary-button" type="submit">Run Pre-Launch Analysis</button>
                 </form>
               </article>
 
-              <article class="panel pre-decision-panel">
+              <article class="panel empty-state-panel" id="pre-empty-panel">
+                <div class="empty-state upload-empty-state">
+                  <span class="empty-icon">+</span>
+                  <h2>No pre-launch product loaded</h2>
+                  <p>Upload a product photo here. OpenAI will fill the editable form with suggested title, category, price, target region, features, description, and keywords.</p>
+                  <span class="image-upload-card">
+                    <strong>Upload Product Photo</strong>
+                    <span>No image added yet</span>
+                  </span>
+                </div>
+              </article>
+
+              <article class="panel pre-decision-panel hidden" id="pre-decision-panel">
                 <div class="panel-heading">
                   <h2>Launch Decision</h2>
                   <span id="pre-confidence">--</span>
@@ -292,7 +288,7 @@
                 </div>
               </article>
 
-              <article class="panel pre-metrics-panel">
+              <article class="panel pre-metrics-panel hidden pre-result-panel">
                 <div class="panel-heading">
                   <h2>Market Readiness</h2>
                   <span>Before launch</span>
@@ -300,7 +296,7 @@
                 <div id="pre-metrics" class="pre-metrics"></div>
               </article>
 
-              <article class="panel pre-comparison-panel">
+              <article class="panel pre-comparison-panel hidden pre-result-panel">
                 <div class="panel-heading">
                   <h2>Competitor Snapshot</h2>
                   <span id="pre-market-badge">Shopee SG</span>
@@ -308,7 +304,7 @@
                 <div id="pre-comparison" class="benchmark-table"></div>
               </article>
 
-              <article class="panel pre-margin-panel">
+              <article class="panel pre-margin-panel hidden pre-result-panel">
                 <div class="panel-heading">
                   <h2>Price, Cost & Stock Plan</h2>
                   <span id="pre-margin-badge">--</span>
@@ -316,7 +312,7 @@
                 <div id="pre-margin" class="margin-grid"></div>
               </article>
 
-              <article class="panel pre-readiness-panel">
+              <article class="panel pre-readiness-panel hidden pre-result-panel">
                 <div class="panel-heading">
                   <h2>Listing Readiness</h2>
                   <span id="pre-readiness-badge">--</span>
@@ -324,7 +320,7 @@
                 <div id="pre-readiness" class="readiness-list"></div>
               </article>
 
-              <article class="panel pre-actions-panel">
+              <article class="panel pre-actions-panel hidden pre-result-panel">
                 <div class="panel-heading">
                   <h2>Launch Action Plan</h2>
                   <span id="pre-action-count">--</span>

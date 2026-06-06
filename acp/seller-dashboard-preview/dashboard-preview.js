@@ -290,7 +290,8 @@ const state = {
   mode: "post",
   productIndex: 0,
   timeframeIndex: 1,
-  preIdeaIndex: 2
+  preIdeaIndex: 2,
+  preAnalyzed: false
 };
 
 function init() {
@@ -310,6 +311,7 @@ function init() {
   });
   byId("pre-form").addEventListener("submit", (event) => {
     event.preventDefault();
+    state.preAnalyzed = true;
     renderPre();
   });
 
@@ -333,30 +335,39 @@ function render() {
   });
   byId("post-view").classList.toggle("hidden", state.mode !== "post");
   byId("pre-view").classList.toggle("hidden", state.mode !== "pre");
-  byId("page-title").textContent = state.mode === "post" ? "Post-Launch Product Intelligence" : "Pre-Launch Product Intelligence";
+  byId("post-head-actions").classList.toggle("hidden", state.mode !== "post");
+  text("workspace-title", state.mode === "post" ? "Post-Launch Seller Intelligence" : "Pre-Launch Seller Intelligence");
+  text("seller-perspective-copy", state.mode === "post"
+    ? "Optimize live listings, reviews, and campaign spend"
+    : "Validate new listing ideas before launch");
+  byId("page-title").textContent = state.mode === "post" ? "Post-Launch Product Dashboard" : "Pre-Launch Product Validation";
   byId("page-copy").textContent =
     state.mode === "post"
-      ? "Track performance, benchmark competitors, and optimize existing listings for growth."
-      : "Validate product ideas before launch with market, margin, competitor, and readiness analysis.";
+      ? "Choose a live seller product to generate product health, market trend, competitor, review, and action dashboards."
+      : "Enter a new product idea to estimate launch fit, comparison pressure, Singapore target area, and initial stock size.";
   renderProductList();
   if (state.mode === "post") {
     renderPost();
-  } else {
+  } else if (state.preAnalyzed) {
     renderPre();
+  } else {
+    togglePrePanels(false);
   }
 }
 
 function renderProductList() {
-  byId("sidebar-product-count").textContent = String(products.length);
+  byId("sidebar-product-count").textContent = `${products.length} live items`;
   html(
     "product-list",
     products
       .map((item, index) => {
         const product = item.product;
         const isActive = state.mode === "post" && index === state.productIndex;
-        return `<button class="product-option ${isActive ? "active" : ""}" type="button" data-product-index="${index}">
+        return `<button class="live-product-card ${isActive ? "active" : ""}" type="button" data-product-index="${index}">
           ${productImage(item.imageKind, product.title)}
-          <span><strong>${escapeHtml(shortProductName(product.title))}</strong><small>${escapeHtml(product.productId)}</small></span>
+          <span><strong>${escapeHtml(product.title)}</strong><small>${escapeHtml(product.productId)} · ${escapeHtml(product.category)}</small></span>
+          <b>${currency(product.price)}</b>
+          <em>${product.orders} orders</em>
         </button>`;
       })
       .join("")
@@ -572,6 +583,12 @@ function renderImprovementAreas(input, health, actions) {
   );
 }
 
+function togglePrePanels(showResults) {
+  byId("pre-empty-panel").classList.toggle("hidden", showResults);
+  byId("pre-decision-panel").classList.toggle("hidden", !showResults);
+  document.querySelectorAll(".pre-result-panel").forEach((panel) => panel.classList.toggle("hidden", !showResults));
+}
+
 function renderPre() {
   const input = readPreForm();
   const analysis = analyzePre(input);
@@ -625,6 +642,7 @@ function renderPre() {
       .map((action, index) => `<div class="action-item"><span class="action-number">${index + 1}</span><p>${escapeHtml(action)}</p><b class="${index === 0 ? "high" : "medium"}">${index === 0 ? "High" : "Medium"}</b></div>`)
       .join("")
   );
+  togglePrePanels(true);
 }
 
 function hydratePreForm(idea) {
