@@ -3,226 +3,297 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AdaptLink Post-Launch Seller Preview</title>
+    <title>AdaptLink Seller Intelligence</title>
     <link rel="stylesheet" href="./src/app/globals.css" />
   </head>
   <body>
-    <div class="seller-frame">
-      <aside class="seller-sidebar" aria-label="Seller navigation">
-        <div class="seller-brand">
-          <span class="seller-bag">S</span>
-          <div>
-            <strong>Shopee Seller</strong>
-            <small>AdaptLink Lab</small>
+    <div class="seller-console">
+      <aside class="seller-sidebar" aria-label="Shopee seller navigation">
+        <div class="shopee-lockup">
+          <button class="icon-button" type="button" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div class="shopee-logo" aria-label="Shopee">
+            <span class="bag-mark">S</span>
+            <strong>Shopee</strong>
           </div>
         </div>
-        <nav>
-          <a class="active" href="#">Business Insights</a>
-          <a href="#">Products</a>
-          <a href="#">Marketing Centre</a>
-          <a href="#">Customer Service</a>
-          <a href="#">Shop Health</a>
+
+        <nav class="side-nav">
+          <a href="#"><span class="nav-icon home"></span>Overview</a>
+          <a href="#" class="open"><span class="nav-icon analytics"></span>Product Analytics</a>
+          <button class="side-subnav" type="button" data-mode="pre">Pre-Launch</button>
+          <button class="side-subnav active" type="button" data-mode="post">Post-Launch</button>
+          <a href="#"><span class="nav-icon trend"></span>Performance Trends</a>
+          <a href="#"><span class="nav-icon competitor"></span>Competitor Insights</a>
+          <a href="#"><span class="nav-icon market"></span>Market Insights</a>
+          <a href="#"><span class="nav-icon search"></span>Search Insights</a>
+          <a href="#"><span class="nav-icon report"></span>Reports</a>
+          <a href="#"><span class="nav-icon alert"></span>Alerts</a>
+          <a href="#"><span class="nav-icon gear"></span>Settings</a>
         </nav>
+
+        <section class="sidebar-card product-switcher" aria-label="Seller existing products">
+          <div class="sidebar-card-title">
+            <span>Seller Existing Products</span>
+            <strong id="sidebar-product-count">3</strong>
+          </div>
+          <div id="product-list" class="product-list"></div>
+        </section>
       </aside>
 
-      <main class="dashboard-shell">
-        <header class="seller-topbar">
-          <div>
-            <p class="eyebrow">Post-launch seller intelligence</p>
-            <h1 id="product-title">Product dashboard</h1>
-            <p class="subhead" id="product-subhead">
-              Select a live product to inspect revenue leakage, competitor pressure, customer friction, and next actions.
-            </p>
+      <main class="seller-main">
+        <header class="global-bar">
+          <div class="brand-area">
+            <span class="adapt-mark"></span>
+            <strong>AdaptLink</strong>
+            <span>Seller Intelligence</span>
           </div>
-          <div class="topbar-actions">
-            <label class="product-picker">
-              <span>Product</span>
-              <select id="product-select" aria-label="Select product"></select>
-            </label>
-            <label class="product-picker timeframe-picker">
-              <span>Timeframe</span>
-              <select id="timeframe-select" aria-label="Select analysis timeframe"></select>
-            </label>
-            <div class="openai-badge" aria-label="Powered by OpenAI">
-              <span class="openai-mark">OpenAI</span>
-              <strong>AI routed</strong>
+          <div class="store-area">
+            <button class="notify-button" type="button" aria-label="Notifications">
+              <span class="bell-shape"></span>
+              <b>3</b>
+            </button>
+            <div class="store-card">
+              <span class="store-icon"></span>
+              <div>
+                <strong>My Home Living Store</strong>
+                <small>Shopee Mall</small>
+              </div>
             </div>
           </div>
         </header>
 
-        <section class="lifecycle-tabs" aria-label="Analysis mode">
-          <button class="lifecycle-tab muted" type="button" aria-disabled="true">
-            <strong>Pre-launch</strong>
-            <span>Person A will plug this in later</span>
-          </button>
-          <button class="lifecycle-tab active" type="button">
-            <strong>Post-launch</strong>
-            <span>Live product improvement selected</span>
-          </button>
-        </section>
-
-        <section class="summary-band" aria-label="Product summary">
-          <div class="health-meter">
-            <span class="meter-label">Product Health</span>
-            <strong id="health-score">--</strong>
-            <span class="meter-caption" id="health-label">--</span>
-          </div>
-          <div class="diagnosis">
-            <h2>Diagnosis</h2>
-            <p id="diagnosis-text">Select a product to load the analysis.</p>
-          </div>
-          <div class="primary-action">
-            <span>Top revenue move</span>
-            <strong id="top-action-area">--</strong>
-            <p id="top-action-impact">--</p>
-          </div>
-        </section>
-
-        <section class="metric-grid" aria-label="Key metrics">
-          <article class="metric-card"><span>Revenue</span><strong id="metric-revenue">--</strong><small id="metric-orders">--</small></article>
-          <article class="metric-card"><span>CTR</span><strong id="metric-ctr">--</strong><small id="metric-clicks">--</small></article>
-          <article class="metric-card"><span>Click-to-order</span><strong id="metric-conversion">--</strong><small>orders divided by clicks</small></article>
-          <article class="metric-card"><span>Net margin</span><strong id="metric-margin">--</strong><small id="metric-roas">--</small></article>
-          <article class="metric-card"><span>Rating</span><strong id="metric-rating">--</strong><small id="metric-reviews">--</small></article>
-          <article class="metric-card"><span>Stock</span><strong id="metric-stock">--</strong><small>units available</small></article>
-        </section>
-
-        <section class="panel seller-product-panel" aria-label="Seller existing products">
-          <div class="panel-heading">
-            <span>Seller Existing Products</span>
-            <strong id="product-count">--</strong>
-          </div>
-          <div class="selector-strip" id="product-tabs"></div>
-        </section>
-
-        <section class="two-column">
-          <div class="panel">
-            <div class="panel-heading">
-              <span>Score Breakdown</span>
-              <strong id="score-breakdown-total">--</strong>
+        <div class="dashboard-content">
+          <section class="page-head">
+            <div>
+              <h1 id="page-title">Post-Launch Product Intelligence</h1>
+              <p id="page-copy">Track performance, benchmark competitors, and optimize existing listings for growth.</p>
             </div>
-            <div class="score-list" id="score-list"></div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-heading">
-              <span>Funnel</span>
-              <strong id="funnel-category">--</strong>
+            <div class="head-actions">
+              <label class="range-picker">
+                <span class="calendar-icon"></span>
+                <select id="timeframe-select" aria-label="Select timeframe"></select>
+              </label>
+              <div class="openai-pill" aria-label="Powered by OpenAI">
+                <span class="openai-logo" aria-hidden="true"></span>
+                <strong>Powered by OpenAI</strong>
+              </div>
             </div>
-            <div class="funnel" id="funnel-list"></div>
-            <p class="panel-note">
-              Metrics are recalculated for the selected timeframe. Conversion is treated as click-to-order for mock
-              data. With Shopee APIs, this should map to the exact seller metric returned by the authorized endpoint/export.
-            </p>
-          </div>
-        </section>
+          </section>
 
-        <section class="two-column">
-          <div class="panel">
-            <div class="panel-heading">
-              <span>Health Graph</span>
-              <strong>Weak spots first</strong>
-            </div>
-            <div class="mini-chart" id="health-chart"></div>
-          </div>
+          <section class="mode-switch" aria-label="Analysis stage">
+            <button class="mode-button" type="button" data-mode="pre">
+              <span>Pre-Launch</span>
+              <strong>Validate new product idea</strong>
+            </button>
+            <button class="mode-button active" type="button" data-mode="post">
+              <span>Post-Launch</span>
+              <strong>Improve existing product</strong>
+            </button>
+          </section>
 
-          <div class="panel">
-            <div class="panel-heading">
-              <span>Communication Experience</span>
-              <strong id="communication-summary">--</strong>
-            </div>
-            <div class="communication-grid">
-              <article><span>Avg response</span><strong id="comm-response">--</strong></article>
-              <article><span>Within 1h</span><strong id="comm-one-hour">--</strong></article>
-              <article><span>Unanswered</span><strong id="comm-unanswered">--</strong></article>
-              <article><span>CSAT</span><strong id="comm-csat">--</strong></article>
-            </div>
-            <p class="panel-note">
-              CTR means click-through rate: clicks divided by product views or impressions. Response timing shows whether
-              seller communication may be hurting conversion after shoppers already show interest.
-            </p>
-          </div>
-        </section>
+          <section id="post-view" class="analysis-view">
+            <section class="kpi-grid" aria-label="Post-launch key metrics">
+              <article class="kpi-card accent-orange">
+                <div class="kpi-top"><span class="kpi-icon sales"></span><span>Sales</span></div>
+                <strong id="kpi-sales">--</strong>
+                <small id="kpi-sales-delta">--</small>
+                <div id="spark-sales" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-orange">
+                <div class="kpi-top"><span class="kpi-icon funnel"></span><span>Conversion Rate</span></div>
+                <strong id="kpi-conversion">--</strong>
+                <small id="kpi-conversion-delta">--</small>
+                <div id="spark-conversion" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-green">
+                <div class="kpi-top"><span class="kpi-icon health"></span><span>Product Health Score</span></div>
+                <strong><span id="kpi-health">--</span><em>/100</em></strong>
+                <small id="kpi-health-delta">--</small>
+                <div id="spark-health" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-orange">
+                <div class="kpi-top"><span class="kpi-icon margin"></span><span>Net Margin</span></div>
+                <strong id="kpi-margin">--</strong>
+                <small id="kpi-margin-delta">--</small>
+                <div id="spark-margin" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-purple">
+                <div class="kpi-top"><span class="kpi-icon reviews"></span><span>Reviews</span></div>
+                <strong id="kpi-reviews">--</strong>
+                <small id="kpi-reviews-delta">--</small>
+                <div id="spark-reviews" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-blue">
+                <div class="kpi-top"><span class="kpi-icon trophy"></span><span>Competitor Position</span></div>
+                <strong id="kpi-competitor">--</strong>
+                <small id="kpi-competitor-delta">--</small>
+                <div id="spark-competitor" class="sparkline"></div>
+              </article>
+            </section>
 
-        <section class="two-column">
-          <div class="panel">
-            <div class="panel-heading">
-              <span>Category-Specific Trust Signals</span>
-              <strong id="trust-segment">--</strong>
-            </div>
-            <div class="trust-list" id="trust-list"></div>
-            <p class="panel-note" id="non-applicable-note"></p>
-          </div>
+            <section class="main-grid">
+              <article class="panel sales-funnel-panel">
+                <div class="panel-heading">
+                  <h2>Sales Funnel</h2>
+                  <span id="funnel-summary">--</span>
+                </div>
+                <div class="funnel-layout">
+                  <div id="funnel-visual" class="funnel-visual"></div>
+                  <div id="funnel-table" class="funnel-table"></div>
+                </div>
+                <p class="panel-note" id="ctr-note"></p>
+              </article>
 
-          <div class="panel">
-            <div class="panel-heading">
-              <span>OpenAI Usage Plan</span>
-              <strong>Efficient routing</strong>
-            </div>
-            <div class="ai-route-list">
-              <div><b>Agent workflow</b><span>Coordinator routes product data to specialist agents, then merges one seller-safe action plan.</span></div>
-              <div><b>gpt-5.4-mini</b><span>Extract review themes, chat themes, and data-quality flags.</span></div>
-              <div><b>gpt-5.5</b><span>Deep revenue diagnosis and tradeoff reasoning.</span></div>
-              <div><b>Structured outputs</b><span>Return stable JSON for dashboard cards and actions.</span></div>
-            </div>
-          </div>
-        </section>
+              <article class="panel trend-panel">
+                <div class="panel-heading">
+                  <h2>Sales Trend</h2>
+                  <select class="compact-select" aria-label="Trend granularity">
+                    <option>Daily</option>
+                    <option>Weekly</option>
+                    <option>Monthly</option>
+                  </select>
+                </div>
+                <div id="sales-trend" class="line-chart"></div>
+              </article>
 
-        <section class="panel">
-          <div class="panel-heading">
-            <span>Competitor Benchmark</span>
-            <strong id="competitor-summary">--</strong>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Competitor</th>
-                  <th>Price</th>
-                  <th>Rating</th>
-                  <th>Reviews</th>
-                  <th>Voucher</th>
-                  <th>Gap to watch</th>
-                </tr>
-              </thead>
-              <tbody id="competitor-table"></tbody>
-            </table>
-          </div>
-        </section>
+              <article class="panel benchmark-panel">
+                <div class="panel-heading">
+                  <h2>Competitor Benchmark</h2>
+                  <span id="benchmark-summary">--</span>
+                </div>
+                <div class="benchmark-table" id="competitor-benchmark"></div>
+              </article>
 
-        <section class="two-column">
-          <div class="panel">
-            <div class="panel-heading">
-              <span>Buyer Questions</span>
-              <strong id="question-count">--</strong>
-            </div>
-            <div class="signal-list" id="buyer-questions"></div>
-          </div>
+              <article class="panel review-panel">
+                <div class="panel-heading">
+                  <h2>Review Insights</h2>
+                  <span id="review-base">--</span>
+                </div>
+                <div class="theme-columns">
+                  <div>
+                    <h3>Positive Themes</h3>
+                    <div id="positive-themes" class="theme-list"></div>
+                  </div>
+                  <div>
+                    <h3>Negative Themes</h3>
+                    <div id="negative-themes" class="theme-list danger"></div>
+                  </div>
+                </div>
+              </article>
 
-          <div class="panel">
-            <div class="panel-heading">
-              <span>Review Themes</span>
-              <strong id="review-count">--</strong>
-            </div>
-            <div class="review-list" id="review-list"></div>
-          </div>
-        </section>
+              <article class="panel sentiment-panel">
+                <div class="panel-heading">
+                  <h2>Review Sentiment</h2>
+                </div>
+                <div id="sentiment-donut" class="donut"></div>
+                <div id="sentiment-legend" class="legend-list"></div>
+                <div class="sentiment-score">
+                  <span>Sentiment Score</span>
+                  <strong id="sentiment-score">--</strong>
+                </div>
+              </article>
 
-        <section class="panel">
-          <div class="panel-heading">
-            <span>Revenue Action Plan</span>
-            <strong id="action-count">--</strong>
-          </div>
-          <div class="action-grid" id="action-grid"></div>
-        </section>
+              <article class="panel questions-panel">
+                <div class="panel-heading">
+                  <h2>Buyer Questions Insights</h2>
+                  <span id="question-total">--</span>
+                </div>
+                <div id="buyer-questions" class="question-list"></div>
+              </article>
 
-        <section class="warning-band" aria-label="Data quality warnings">
-          <div>
-            <span>Data quality</span>
-            <strong>Mock mode is for demo logic. Do not claim live Shopee accuracy until API credentials are connected.</strong>
-          </div>
-          <ul id="warning-list"></ul>
-        </section>
+              <article class="panel action-panel">
+                <div class="panel-heading">
+                  <h2>AI Action Plan</h2>
+                  <span id="action-priority-count">--</span>
+                </div>
+                <div id="ai-actions" class="action-plan"></div>
+              </article>
+            </section>
+          </section>
+
+          <section id="pre-view" class="analysis-view hidden">
+            <section class="pre-grid">
+              <article class="panel pre-input-panel">
+                <div class="panel-heading">
+                  <h2>Pre-Launch Product Input</h2>
+                  <span>Agent-ready</span>
+                </div>
+                <form id="pre-form" class="pre-form">
+                  <label>
+                    Product idea
+                    <select id="pre-idea"></select>
+                  </label>
+                  <label>
+                    Product title
+                    <input id="pre-title" required />
+                  </label>
+                  <label>
+                    Shopee category
+                    <input id="pre-category" required />
+                  </label>
+                  <div class="form-split">
+                    <label>
+                      Target price
+                      <input id="pre-price" type="number" min="0" step="0.1" required />
+                    </label>
+                    <label>
+                      Initial stock
+                      <input id="pre-stock" type="number" min="0" step="1" required />
+                    </label>
+                  </div>
+                  <label>
+                    Key features
+                    <textarea id="pre-features" rows="4"></textarea>
+                  </label>
+                  <button class="primary-button" type="submit">Run Pre-Launch Analysis</button>
+                </form>
+              </article>
+
+              <article class="panel pre-decision-panel">
+                <div class="panel-heading">
+                  <h2>Launch Decision</h2>
+                  <span id="pre-confidence">--</span>
+                </div>
+                <div class="decision-card">
+                  <div>
+                    <span>Recommendation</span>
+                    <strong id="pre-recommendation">--</strong>
+                    <p id="pre-summary">Choose an idea and run the analysis.</p>
+                  </div>
+                  <div id="pre-score" class="score-ring">--</div>
+                </div>
+              </article>
+
+              <article class="panel pre-metrics-panel">
+                <div class="panel-heading">
+                  <h2>Market Readiness</h2>
+                  <span>Before launch</span>
+                </div>
+                <div id="pre-metrics" class="pre-metrics"></div>
+              </article>
+
+              <article class="panel pre-comparison-panel">
+                <div class="panel-heading">
+                  <h2>Competitor Snapshot</h2>
+                  <span id="pre-market-badge">Shopee SG</span>
+                </div>
+                <div id="pre-comparison" class="benchmark-table"></div>
+              </article>
+
+              <article class="panel pre-actions-panel">
+                <div class="panel-heading">
+                  <h2>Launch Action Plan</h2>
+                  <span id="pre-action-count">--</span>
+                </div>
+                <div id="pre-actions" class="action-plan"></div>
+              </article>
+            </section>
+          </section>
+        </div>
       </main>
     </div>
     <script src="./dashboard-preview.js"></script>

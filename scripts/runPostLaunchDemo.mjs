@@ -1,4 +1,6 @@
-import sampleData from "../packages/shared-data/data/post-launch/halal-vitamin-c-serum.sample.json" with { type: "json" };
+import sampleProducts from "../packages/shared-data/data/post-launch/post-launch-products.sample.json" with { type: "json" };
+
+const sampleData = sampleProducts[0];
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));

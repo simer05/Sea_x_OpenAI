@@ -17,7 +17,7 @@ This branch should use OpenAI where it improves seller decisions, not everywhere
 
 Use multiple agents as roles, not as noise:
 
-1. `Data Quality Agent`: checks missing, mocked, stale, or estimated fields.
+1. `Source Readiness Agent`: checks missing, stale, or estimated fields.
 2. `Review Agent`: extracts positive/negative review themes.
 3. `Chat Experience Agent`: analyzes buyer questions, response timing, and lost-conversion risk.
 4. `Competitor Agent`: compares price, rating, vouchers, reviews, shipping, and trust gap.
@@ -26,11 +26,11 @@ Use multiple agents as roles, not as noise:
 
 ## Guardrails
 
-- Do not claim mock data is live.
+- Do not claim demo records are official live data.
 - Do not recommend price cuts without checking margin.
-- Do not show category-specific filters like halal unless the product category and buyer questions make them relevant.
+- Do not show category-specific filters unless the product category and buyer questions make them relevant.
 - Keep outputs structured so the dashboard can render them reliably.
-- Use Shopee API/tool data when credentials are available; otherwise mark fields as mock or estimated.
+- Use Shopee API/tool data when credentials are available; otherwise keep official-data claims out of the report.
 
 ## What Not To Use Yet
 
