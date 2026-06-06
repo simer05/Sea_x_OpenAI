@@ -1,4 +1,4 @@
-# Spec 01: Seller Insights and Analytics
+# Spec 01: Seller Insights
 
 ## Owner
 
@@ -6,48 +6,48 @@ Person 1
 
 ## Goal
 
-Build a seller-facing intelligence layer for Shopee Singapore that helps sellers understand product performance, pricing opportunities, catalog gaps, and market movement.
+Help a Shopee Singapore seller see what is happening with their products: what is selling, what is weak, where price or stock needs attention, and what actions are worth taking next.
 
 ## Scope
 
-- Seller product catalog overview
-- Sales and order trend summaries
-- Pricing and discount recommendations
-- Competitor/product comparison signals, subject to approved data access
-- Inventory and low-stock alerts
-- OpenAI-generated business summaries and next-best-action suggestions
+- Product catalog summary
+- Sales and order trends
+- Price and discount checks
+- Competitor/product comparison if we have approved data access
+- Stock and low-inventory flags
+- Short seller-facing summaries and action points
 
 ## Data Sources
 
-Preferred sources:
+Use first:
 
 - Shopee Open Platform for seller-owned shop, item, order, and inventory data
-- Shopee Affiliate API or approved partner APIs for product/deal discovery where allowed
-- Seller-provided CSV exports for early prototyping
+- Shopee Affiliate API or approved partner API data where allowed
+- Seller CSV exports for early testing
 
-Avoid:
+Do not use:
 
 - Login-protected scraping without permission
 - Circumventing anti-bot systems
-- Collecting personal customer data beyond what is needed and allowed
+- Customer personal data unless it is clearly needed and allowed
 
-## OpenAI Usage
+## OpenAI Use
 
-- Summarize weekly/monthly seller performance
+- Summarize weekly or monthly seller performance
 - Cluster products by category, margin, and movement
 - Generate pricing rationale in plain language
 - Identify unusual changes in orders, ratings, or stock
-- Convert raw metrics into seller-friendly action items
+- Turn raw metrics into seller action items
 
 ## MVP Features
 
 1. Import seller product/order data from CSV or API.
 2. Show product-level performance table.
-3. Generate an OpenAI seller summary.
+3. Generate a seller summary.
 4. Flag products needing attention.
 5. Export insights as a short report.
 
-## Questions To Resolve
+## Open Questions
 
 - Which Shopee API access do we have: seller Open Platform, affiliate, or neither?
 - Do we need live data, daily batch data, or manual CSV uploads for the MVP?
