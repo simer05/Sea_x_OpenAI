@@ -43,10 +43,16 @@ function copyPostLaunchPreview() {
   const indexHtml = path.join(dest, "index.html");
   if (!fs.existsSync(indexHtml)) return;
   let html = fs.readFileSync(indexHtml, "utf8");
-  html = html.replace(
-    '<script type="module" src="./dashboard-preview.js"></script>',
-    '<script type="module" src="/seller-dashboard/dashboard-preview.js"></script>',
-  );
+  html = html
+    .replace('href="./src/app/globals.css"', 'href="/seller-dashboard/src/app/globals.css"')
+    .replace(
+      '<script type="module" src="./dashboard-preview.js"></script>',
+      '<script src="/seller-dashboard/dashboard-preview.js"></script>',
+    )
+    .replace(
+      '<script src="./dashboard-preview.js"></script>',
+      '<script src="/seller-dashboard/dashboard-preview.js"></script>',
+    );
   fs.writeFileSync(indexHtml, html);
 }
 

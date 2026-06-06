@@ -1,0 +1,3 @@
+#!/bin/sh
+# Remove automated co-author trailers from commit messages.
+grep -v '^Co-authored-by: Cursor <cursoragent@cursor.com>$' "$1" > "$1.__strip__" && mv "$1.__strip__" "$1"
