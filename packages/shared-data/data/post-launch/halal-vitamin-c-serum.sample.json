@@ -1,0 +1,95 @@
+{
+  "product": {
+    "productId": "P-SG-101",
+    "title": "Insulated Stainless Steel Water Bottle",
+    "category": "Home & Living > Drinkware",
+    "price": 18.9,
+    "cost": 7.4,
+    "stock": 360,
+    "views": 24600,
+    "clicks": 1320,
+    "orders": 96,
+    "revenue": 1814.4,
+    "adSpend": 210.5,
+    "rating": 4.62,
+    "reviews": 188,
+    "refundRate": 0.024,
+    "cancellationRate": 0.012,
+    "netMarginPercent": 0.26,
+    "conversionRate": 0.0727,
+    "ctr": 0.0537
+  },
+  "context": {
+    "segment": "Home and lifestyle",
+    "trustSignals": [
+      {
+        "label": "Leak-proof proof",
+        "applies": true,
+        "evidence": "Buyer questions and reviews mention leakage, cap seal, and bag safety.",
+        "action": "Show a close-up seal image and short leak test claim in the first three images."
+      },
+      {
+        "label": "Capacity clarity",
+        "applies": true,
+        "evidence": "Customers compare 500ml, 750ml, and 1L bottle sizes before buying.",
+        "action": "Add a hand-size comparison image and capacity guide."
+      }
+    ],
+    "nonApplicableSignals": [
+      "Certification filters should only appear when relevant to the category or buyer questions."
+    ],
+    "listingFocus": ["Leak-proof proof", "Capacity guide", "Care instructions", "Bundle margin"]
+  },
+  "communication": {
+    "totalChats": 72,
+    "averageResponseMinutes": 82,
+    "responseWithinOneHourPercent": 0.61,
+    "unansweredRate": 0.06,
+    "buyerSatisfactionScore": 4.0
+  },
+  "competitors": [
+    {
+      "competitorId": "C-SG-301",
+      "title": "Thermal Flask 750ml Leakproof",
+      "price": 16.9,
+      "rating": 4.72,
+      "reviews": 920,
+      "estimatedSales": 2300,
+      "shippingDays": 2,
+      "voucherPercent": 10,
+      "keyStrength": "Lower price and strong review count",
+      "keyWeakness": "Mixed complaints about dents"
+    }
+  ],
+  "reviews": [
+    {
+      "reviewId": "R-301",
+      "rating": 5,
+      "text": "Keeps water cold and the colour looks nice.",
+      "sentiment": "positive",
+      "theme": "quality"
+    },
+    {
+      "reviewId": "R-302",
+      "rating": 3,
+      "text": "Bottle is good but I was not sure if the cap is fully leakproof.",
+      "sentiment": "mixed",
+      "theme": "leakproof"
+    }
+  ],
+  "buyerQuestions": [
+    {
+      "questionId": "Q-301",
+      "text": "Will it leak if I put in my bag?",
+      "theme": "leakproof",
+      "frequency": 20
+    },
+    {
+      "questionId": "Q-302",
+      "text": "Is this 750ml or 1 litre?",
+      "theme": "size",
+      "frequency": 16
+    }
+  ],
+  "dataQualityWarnings": []
+}
