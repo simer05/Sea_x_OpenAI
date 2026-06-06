@@ -262,14 +262,27 @@
               </article>
 
               <article class="panel empty-state-panel" id="pre-empty-panel">
-                <div class="empty-state upload-empty-state">
+                <label class="empty-state upload-empty-state" for="prelaunch-photo-upload">
+                  <input id="prelaunch-photo-upload" class="upload-input" type="file" accept="image/*" />
                   <span class="empty-icon">+</span>
-                  <h2>No pre-launch product loaded</h2>
-                  <p>Upload a product photo here. OpenAI will fill the editable form with suggested title, category, price, target region, features, description, and keywords.</p>
+                  <h2 id="pre-empty-title">No pre-launch product loaded</h2>
+                  <p id="pre-empty-copy">Upload a product photo here. OpenAI will fill the editable form with suggested title, category, price, target region, features, description, and keywords.</p>
                   <span class="image-upload-card">
-                    <strong>Upload Product Photo</strong>
-                    <span>No image added yet</span>
+                    <strong id="pre-upload-label">Upload Product Photo</strong>
+                    <span id="pre-upload-status">No image added yet</span>
                   </span>
+                </label>
+              </article>
+
+              <article class="panel ai-summary-panel hidden pre-result-panel" id="pre-ai-panel">
+                <div class="panel-heading">
+                  <h2>AI Seller Summary</h2>
+                  <span id="pre-ai-mode">Waiting</span>
+                </div>
+                <p id="pre-ai-summary">Run analysis or upload a product photo to generate seller guidance.</p>
+                <div class="ai-image-note">
+                  <strong>Image understanding</strong>
+                  <span id="pre-ai-image-note">Upload a product photo to include visual understanding.</span>
                 </div>
               </article>
 

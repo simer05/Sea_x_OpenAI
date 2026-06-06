@@ -291,7 +291,17 @@ const state = {
   productIndex: 0,
   timeframeIndex: 1,
   preIdeaIndex: 2,
-  preAnalyzed: false
+  preAnalyzed: false,
+  photoDataUrl: "",
+  photoName: "",
+  aiInsight: null,
+  aiLoading: false,
+  preDraft: {
+    productType: "",
+    description: "",
+    keywords: "",
+    targetArea: "Islandwide Singapore"
+  }
 };
 
 function init() {
@@ -306,14 +316,25 @@ function init() {
   byId("pre-idea").value = String(state.preIdeaIndex);
   byId("pre-idea").addEventListener("change", (event) => {
     state.preIdeaIndex = Number(event.target.value);
+    state.preAnalyzed = false;
+    state.aiInsight = null;
+    state.photoDataUrl = "";
+    state.photoName = "";
     hydratePreForm(preIdeas[state.preIdeaIndex]);
-    renderPre();
+    resetPreUploadUi();
+    render();
   });
   byId("pre-form").addEventListener("submit", (event) => {
     event.preventDefault();
-    state.preAnalyzed = true;
-    renderPre();
+    void runPreAnalysis();
   });
+
+  const photoInput = byId("prelaunch-photo-upload");
+  if (photoInput) {
+    photoInput.addEventListener("change", (event) => {
+      void handlePrePhoto(event.target.files?.[0] || null);
+    });
+  }
 
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
@@ -584,9 +605,13 @@ function renderImprovementAreas(input, health, actions) {
 }
 
 function togglePrePanels(showResults) {
-  byId("pre-empty-panel").classList.toggle("hidden", showResults);
+  byId("pre-empty-panel").classList.toggle("hidden", showResults || state.aiLoading);
   byId("pre-decision-panel").classList.toggle("hidden", !showResults);
-  document.querySelectorAll(".pre-result-panel").forEach((panel) => panel.classList.toggle("hidden", !showResults));
+  document.querySelectorAll(".pre-result-panel").forEach((panel) => {
+    if (panel.id === "pre-ai-panel") return;
+    panel.classList.toggle("hidden", !showResults);
+  });
+  renderAiSummary();
 }
 
 function renderPre() {
@@ -642,7 +667,186 @@ function renderPre() {
       .map((action, index) => `<div class="action-item"><span class="action-number">${index + 1}</span><p>${escapeHtml(action)}</p><b class="${index === 0 ? "high" : "medium"}">${index === 0 ? "High" : "Medium"}</b></div>`)
       .join("")
   );
+  renderAiSummary();
   togglePrePanels(true);
+}
+
+async function runPreAnalysis() {
+  state.preAnalyzed = true;
+  const report = analyzePre(readPreForm());
+  renderPre();
+  await requestSellerAi("pre", readPreFormPayload(), report);
+}
+
+async function handlePrePhoto(file) {
+  if (!file) {
+    state.photoDataUrl = "";
+    state.photoName = "";
+    resetPreUploadUi();
+    return;
+  }
+
+  state.aiLoading = true;
+  state.preAnalyzed = false;
+  state.aiInsight = null;
+  setPreUploadUi(file.name, true);
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      state.photoDataUrl = String(reader.result || "");
+      state.photoName = file.name;
+      const imageOnlyForm = emptyPrePayload(state.photoName, state.photoDataUrl);
+      const insight = await requestSellerAi("pre", imageOnlyForm, {}, state.photoDataUrl);
+      if (!insight) return;
+
+      const draftForm = buildPreDraftForm(imageOnlyForm, insight);
+      applyPreDraftToDom(draftForm);
+      state.preAnalyzed = true;
+      const report = analyzePre(readPreForm());
+      renderPre();
+      await requestSellerAi("pre", readPreFormPayload(), report, state.photoDataUrl);
+      setPreUploadUi(file.name, false);
+    } finally {
+      state.aiLoading = false;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function requestSellerAi(mode, productInput, computedReport, photoDataUrlOverride) {
+  state.aiLoading = true;
+  renderAiSummary();
+  try {
+    const response = await fetch("/api/seller-ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode,
+        productInput,
+        computedReport,
+        photoDataUrl: mode === "pre" ? photoDataUrlOverride || state.photoDataUrl : undefined
+      })
+    });
+    if (!response.ok) throw new Error("Seller AI request failed");
+    state.aiInsight = await response.json();
+    renderAiSummary();
+    return state.aiInsight;
+  } catch {
+    state.aiInsight = null;
+    renderAiSummary();
+    return null;
+  } finally {
+    state.aiLoading = false;
+    renderAiSummary();
+  }
+}
+
+function emptyPrePayload(photoName, photoDataUrl) {
+  return {
+    title: "",
+    category: "",
+    productType: "",
+    price: "",
+    launchStock: "",
+    shippingCost: "",
+    packagingCost: "",
+    adCost: "",
+    targetArea: "",
+    colors: "",
+    features: "",
+    description: "",
+    keywords: "",
+    photoName,
+    photoDataUrl
+  };
+}
+
+function buildPreDraftForm(base, insight) {
+  const draft = { ...base };
+  for (const change of [...(insight.safeChanges || []), ...(insight.blockedChanges || [])]) {
+    if (change.field in draft && change.value) draft[change.field] = change.value;
+  }
+  return {
+    ...draft,
+    title: draft.title || "AI drafted product title",
+    category: draft.category || "Mobile Accessories > Phone Cases",
+    productType: draft.productType || "image-detected product",
+    price: draft.price || "19.9",
+    launchStock: draft.launchStock || "30",
+    shippingCost: draft.shippingCost || "1",
+    packagingCost: draft.packagingCost || "0.5",
+    adCost: draft.adCost || "1",
+    targetArea: draft.targetArea || "Islandwide Singapore",
+    features: draft.features || "Visible product photo, local seller, fast delivery",
+    description: draft.description || "AI drafted product description. Seller should confirm product proof, sizing, compatibility, and local delivery details before launch.",
+    keywords: draft.keywords || "shopee singapore, local seller, fast delivery"
+  };
+}
+
+function applyPreDraftToDom(draft) {
+  byId("pre-title").value = draft.title;
+  byId("pre-category").value = draft.category;
+  byId("pre-price").value = draft.price;
+  byId("pre-stock").value = draft.launchStock;
+  byId("pre-features").value = draft.features;
+  state.preDraft = {
+    productType: draft.productType,
+    description: draft.description,
+    keywords: draft.keywords,
+    targetArea: draft.targetArea
+  };
+}
+
+function readPreFormPayload() {
+  const idea = readPreForm();
+  return {
+    title: idea.title,
+    category: idea.category,
+    productType: state.preDraft.productType || idea.productType,
+    price: String(idea.price),
+    launchStock: String(idea.stock),
+    shippingCost: "1",
+    packagingCost: "0.5",
+    adCost: "1",
+    targetArea: state.preDraft.targetArea,
+    colors: "",
+    features: idea.features,
+    description: state.preDraft.description || idea.features,
+    keywords: state.preDraft.keywords,
+    photoName: state.photoName,
+    photoDataUrl: state.photoDataUrl
+  };
+}
+
+function resetPreUploadUi() {
+  text("pre-upload-label", "Upload Product Photo");
+  text("pre-upload-status", "No image added yet");
+  text("pre-empty-title", "No pre-launch product loaded");
+  text("pre-empty-copy", "Upload a product photo here. OpenAI will fill the editable form with suggested title, category, price, target region, features, description, and keywords.");
+  const input = byId("prelaunch-photo-upload");
+  if (input) input.value = "";
+}
+
+function setPreUploadUi(fileName, loading) {
+  text("pre-upload-label", loading ? "Reading product image..." : "Upload Product Photo");
+  text("pre-upload-status", loading ? "OpenAI is filling the form." : fileName || "Image added");
+  if (!loading && fileName) {
+    text("pre-empty-title", "Pre-launch draft ready");
+    text("pre-empty-copy", "Review the editable form on the left, then run analysis or adjust any AI-filled fields.");
+  }
+}
+
+function renderAiSummary() {
+  const panel = byId("pre-ai-panel");
+  if (!panel) return;
+  const insight = state.aiInsight;
+  panel.classList.toggle("hidden", !state.preAnalyzed || (!insight && !state.aiLoading));
+  text("pre-ai-mode", state.aiLoading ? "Generating" : insight ? `${insight.modeUsed === "openai" ? "OpenAI" : "Fallback"} mode` : "Waiting");
+  text("pre-ai-summary", state.aiLoading
+    ? "Reading seller metrics, listing details, and uploaded product evidence..."
+    : insight?.summary || "Run analysis or upload a product photo to generate seller guidance.");
+  text("pre-ai-image-note", insight?.imageUnderstanding || "Upload a product photo to include visual understanding.");
 }
 
 function hydratePreForm(idea) {
