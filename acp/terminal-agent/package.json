@@ -5,10 +5,11 @@
   "type": "module",
   "description": "Interactive ACP shopping terminal using the OpenAI Codex SDK.",
   "scripts": {
+    "demo": "bash ../demo terminal",
     "check": "tsx src/check.ts",
-    "go": "tsx src/go.ts",
+    "go": "bash ../demo terminal",
     "start": "tsx src/codex-agent.ts",
-    "demo": "tsx src/acp-cli.ts",
+    "demo:rest": "tsx src/acp-cli.ts",
     "test": "tsx src/smoke.test.ts"
   },
   "dependencies": {

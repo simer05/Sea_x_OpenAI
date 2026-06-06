@@ -1,9 +1,11 @@
 import { toFile } from "openai";
 import {
   createOrder,
+  getCatalogProduct,
   getDeliveryOptions,
   getOrderTracking,
   getPaymentOptions,
+  getProductCard,
   parseShoppingIntent,
   runProductSearch,
   type GatewayProductCard,
@@ -128,8 +130,44 @@ function isNewSearchRequest(text: string) {
   return /^(start a new search|new search|search again|shop again)$/i.test(text.trim());
 }
 
-function isShoppingQuery(text: string) {
-  return /(buy|want|need|looking for|under|below|halal|noodle|pack|dollar|sgd|\$)/i.test(text);
+function parseDeliveryId(text: string): string | null {
+  if (/\b(standard|regular)\b/i.test(text)) return "standard";
+  if (/\bexpress\b/i.test(text)) return "express";
+  if (/\beconomy\b/i.test(text)) return "economy";
+  return null;
+}
+
+function matchProductFromText(
+  session: SessionState,
+  text: string,
+): GatewayProductCard | undefined {
+  if (!session.candidates.length) return undefined;
+  const optionMatch = text.match(/(?:option|#|pick|number)\s*(\d+)/i) ?? text.match(/^(\d+)$/);
+  if (optionMatch) {
+    const rank = Number(optionMatch[1]);
+    return session.candidates.find((c) => c.rank === rank);
+  }
+  const stripped = text
+    .replace(/^(i'?ll take|i will take|i want|pick|choose|select|go with|get)\s+/i, "")
+    .trim();
+  const needle = (stripped.length > 3 ? stripped : text).toLowerCase();
+  return session.candidates.find(
+    (c) =>
+      needle.includes(c.title.toLowerCase()) ||
+      c.title.toLowerCase().includes(needle) ||
+      (needle.length > 8 && c.title.toLowerCase().startsWith(needle.slice(0, 12))),
+  );
+}
+
+function isShoppingQuery(text: string, session: SessionState) {
+  if (isTrackingQuery(text) || isNewSearchRequest(text)) return false;
+  if (/^(i'?ll take|use |pay with)/i.test(text.trim())) return false;
+  if (parseDeliveryId(text) && session.selected) return false;
+  if (matchProductFromText(session, text)) return false;
+  return (
+    /(buy|want|need|looking for|search for|show me|find me)/i.test(text) ||
+    (/(under|below|\$|sgd)\s*\d/i.test(text) && /(halal|noodle|snack|food|grocery)/i.test(text))
+  );
 }
 
 function resetCheckoutState(session: SessionState, preserveOrderId = false) {
@@ -140,10 +178,70 @@ function resetCheckoutState(session: SessionState, preserveOrderId = false) {
   session.candidates = [];
 }
 
+function parsePaymentMethod(text: string): PaymentChoice["id"] | null {
+  if (/cod|cash on delivery/i.test(text)) return "cod";
+  if (/wallet|shopeepay/i.test(text)) return "shopeepay_wallet";
+  if (/paylater|bnpl|installment/i.test(text)) return "bnpl";
+  if (/\bcard\b/i.test(text)) return "tokenized_card";
+  return null;
+}
+
+function restoreClientContext(
+  session: SessionState,
+  input: {
+    orderId?: string;
+    clientStep?: string;
+    skuId?: string;
+    deliveryOptionId?: string;
+    clientProducts?: Array<Partial<GatewayProductCard>>;
+  },
+) {
+  if (input.orderId) session.orderId = input.orderId;
+  if (input.deliveryOptionId) session.deliveryOptionId = input.deliveryOptionId;
+
+  if (input.clientProducts?.length && !session.candidates.length) {
+    session.candidates = normalizeProductCards(input.clientProducts);
+  }
+
+  if (input.skuId && !session.selected) {
+    let pick = session.candidates.find((c) => c.sku_id === input.skuId);
+    if (!pick) {
+      const catalog = getCatalogProduct(input.skuId);
+      if (catalog) {
+        const card = getProductCard(catalog.product_id);
+        if (card) {
+          pick = card;
+          if (!session.candidates.some((c) => c.sku_id === pick!.sku_id)) {
+            session.candidates.push(pick);
+          }
+        }
+      }
+    }
+    if (pick) session.selected = pick;
+  }
+
+  const step = input.clientStep;
+  if (
+    step &&
+    (step === "picks" ||
+      step === "delivery" ||
+      step === "payment" ||
+      step === "done" ||
+      step === "tracking")
+  ) {
+    session.step = step;
+  }
+}
+
 export async function handleAgentChat(input: {
   sessionId?: string;
   demoSessionId?: string;
   message: string;
+  orderId?: string;
+  clientStep?: string;
+  skuId?: string;
+  deliveryOptionId?: string;
+  clientProducts?: Array<Partial<GatewayProductCard>>;
   action?:
     | "select_product"
     | "confirm"
@@ -160,7 +258,10 @@ export async function handleAgentChat(input: {
   const session = sessions.get(sessionId) ?? newSession();
   sessions.set(sessionId, session);
 
+  restoreClientContext(session, input);
+
   const text = input.message.trim();
+  const resolvedOrderId = session.orderId ?? input.orderId;
 
   if (input.action === "cancel" || isNewSearchRequest(text)) {
     sessions.delete(sessionId);
@@ -173,8 +274,9 @@ export async function handleAgentChat(input: {
     };
   }
 
-  if ((input.action === "track" || isTrackingQuery(text)) && session.orderId) {
-    const tracking = getOrderTracking(session.orderId, session.acpSessionId);
+  if ((input.action === "track" || isTrackingQuery(text)) && resolvedOrderId) {
+    session.orderId = resolvedOrderId;
+    const tracking = getOrderTracking(resolvedOrderId, session.acpSessionId);
     const reply = await polishReply(session, text || "Where is my order?", {
       fallback: tracking.expected_message,
       tracking,
@@ -301,31 +403,15 @@ export async function handleAgentChat(input: {
     };
   }
 
-  if (/standard delivery/i.test(text) && session.step === "delivery" && session.selected) {
+  const typedDelivery = parseDeliveryId(text);
+  if (typedDelivery && session.selected && !session.deliveryOptionId) {
     return handleAgentChat({
       sessionId,
       demoSessionId,
       message: text,
+      orderId: input.orderId,
       action: "select_delivery",
-      deliveryOptionId: "standard",
-    });
-  }
-  if (/express delivery/i.test(text) && session.step === "delivery" && session.selected) {
-    return handleAgentChat({
-      sessionId,
-      demoSessionId,
-      message: text,
-      action: "select_delivery",
-      deliveryOptionId: "express",
-    });
-  }
-  if (/economy delivery/i.test(text) && session.step === "delivery" && session.selected) {
-    return handleAgentChat({
-      sessionId,
-      demoSessionId,
-      message: text,
-      action: "select_delivery",
-      deliveryOptionId: "economy",
+      deliveryOptionId: typedDelivery,
     });
   }
 
@@ -373,34 +459,23 @@ export async function handleAgentChat(input: {
     };
   }
 
-  if (/cod/i.test(text) && session.step === "payment") {
+  const typedPayment = parsePaymentMethod(text);
+  if (
+    (input.action === "pay" || typedPayment) &&
+    session.selected &&
+    session.deliveryOptionId &&
+    (input.paymentMethod ?? typedPayment)
+  ) {
     return handleAgentChat({
       sessionId,
       demoSessionId,
       message: text,
-      action: "pay",
-      paymentMethod: "cod",
+      orderId: input.orderId,
+      clientStep: input.clientStep,
+      skuId: input.skuId ?? session.selected.sku_id,
       deliveryOptionId: session.deliveryOptionId,
-    });
-  }
-  if (/card|wallet|shopeepay/i.test(text) && session.step === "payment") {
-    return handleAgentChat({
-      sessionId,
-      demoSessionId,
-      message: text,
       action: "pay",
-      paymentMethod: /wallet|shopeepay/i.test(text) ? "shopeepay_wallet" : "tokenized_card",
-      deliveryOptionId: session.deliveryOptionId,
-    });
-  }
-  if (/paylater|bnpl|installment/i.test(text) && session.step === "payment") {
-    return handleAgentChat({
-      sessionId,
-      demoSessionId,
-      message: text,
-      action: "pay",
-      paymentMethod: "bnpl",
-      deliveryOptionId: session.deliveryOptionId,
+      paymentMethod: input.paymentMethod ?? typedPayment!,
     });
   }
 
@@ -413,8 +488,30 @@ export async function handleAgentChat(input: {
     };
   }
 
+  const typedPick = matchProductFromText(session, text);
+  if (typedPick && (session.step === "picks" || session.step === "chat") && !session.selected) {
+    return handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: text,
+      orderId: input.orderId,
+      action: "select_product",
+      skuId: typedPick.sku_id,
+    });
+  }
+
+  if (isTrackingQuery(text)) {
+    return {
+      sessionId,
+      step: session.step === "done" ? "done" : "chat",
+      reply:
+        'I do not have an order to track yet. Complete checkout first, then ask "Where is my order?"',
+      suggestions: session.orderId ? ["Where is my order?"] : [],
+    };
+  }
+
   if (session.step === "done" || session.step === "tracking" || session.step === "payment" || session.step === "delivery") {
-    if (isShoppingQuery(text) && !isTrackingQuery(text)) {
+    if (isShoppingQuery(text, session)) {
       resetCheckoutState(session, true);
     }
   }

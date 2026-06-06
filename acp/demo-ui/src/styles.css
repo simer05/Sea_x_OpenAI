@@ -2437,6 +2437,67 @@ a {
   margin-bottom: 14px;
 }
 
+.agent-v3-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.agent-v3-msg-user {
+  align-items: flex-end;
+}
+
+.agent-v3-msg-assistant,
+.agent-v3-msg-error {
+  align-items: flex-start;
+}
+
+.agent-v3-msg-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+  padding: 0 4px;
+}
+
+.agent-v3-msg-user .agent-v3-msg-label {
+  color: var(--shopee-orange);
+}
+
+.agent-v3-msg-error .agent-bubble {
+  background: #fff5f5;
+  border: 1px solid #ffc9c9;
+  color: #b42318;
+}
+
+.agent-typing-dots {
+  display: inline-block;
+  letter-spacing: 2px;
+  animation: agent-typing-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes agent-typing-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+.agent-v3-mic-hint {
+  font-size: 10px;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.agent-v3-chat-inner {
+  display: flex;
+  flex-direction: column;
+}
+
 @media (max-width: 860px) {
   .agent-v3-main {
     grid-template-columns: 1fr;

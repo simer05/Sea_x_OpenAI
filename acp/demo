@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# One-command demo — hosted on Vercel + Fly.io (no local servers).
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+AGENT_URL="${DEMO_AGENT_URL:-https://acp-virid.vercel.app/agent.html}"
+SHOP_URL="${DEMO_SHOP_URL:-https://acp-virid.vercel.app}"
+API_URL="${ACP_BASE_URL:-https://sea-acp-api.fly.dev}"
+JUDGE_PROMPT="${JUDGE_PROMPT:-I want to buy a halal noodles pack under 10 dollars}"
+
+mode="${1:-browser}"
+
+banner() {
+  echo ""
+  echo "  ╔══════════════════════════════════════════════════════════╗"
+  echo "  ║  ACP-SEA Demo (hosted)                                   ║"
+  echo "  ╚══════════════════════════════════════════════════════════╝"
+  echo ""
+  echo "  Agent:  $AGENT_URL"
+  echo "  Shop:   $SHOP_URL"
+  echo "  API:    $API_URL"
+  echo ""
+  echo "  Judge prompt:"
+  echo "  \"$JUDGE_PROMPT\""
+  echo ""
+}
+
+open_url() {
+  local url="$1"
+  if command -v open >/dev/null 2>&1; then
+    open "$url"
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url"
+  else
+    echo "  (Open this URL in your browser: $url)"
+  fi
+}
+
+case "$mode" in
+  browser|"")
+    banner
+    echo "  Opening agent in your browser…"
+    open_url "$AGENT_URL"
+    echo "  Done. Paste the judge prompt above into the chat."
+    echo ""
+    ;;
+  terminal)
+    banner
+    echo "  Starting Codex terminal agent (hosted API)…"
+    echo ""
+    cd "$ROOT/terminal-agent"
+    export ACP_BASE_URL="$API_URL"
+    exec pnpm exec tsx src/codex-agent.ts
+    ;;
+  check)
+    banner
+    echo "  Quick API proof (no chat)…"
+    echo ""
+    cd "$ROOT/terminal-agent"
+    export ACP_BASE_URL="$API_URL"
+    exec pnpm check
+    ;;
+  *)
+    echo "Usage: pnpm demo [browser|terminal|check]"
+    echo "  browser   — open agent page (default)"
+    echo "  terminal  — interactive Codex SDK chat"
+    echo "  check     — one-shot order proof (~1s)"
+    exit 1
+    ;;
+esac

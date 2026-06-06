@@ -151,8 +151,22 @@ function normalizeAgentProduct(raw: Partial<AgentProduct> | undefined): AgentPro
   };
 }
 
-function speakShort(text: string) {
-  const short = text.split(/[.!?]/)[0]?.trim().slice(0, 120) ?? text;
+async function speakShort(text: string) {
+  const short = text.split(/[.!?]/)[0]?.trim().slice(0, 200) ?? text;
+  try {
+    const res = await fetch("/api/agent/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: short }),
+    });
+    if (res.ok) {
+      const blob = await res.blob();
+      await new Audio(URL.createObjectURL(blob)).play();
+      return;
+    }
+  } catch {
+    // fall through to browser TTS
+  }
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(short);
@@ -205,17 +219,22 @@ export function AgentPage() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [recording, setRecording] = useState(false);
-  const [voiceOn, setVoiceOn] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [openAiVoice, setOpenAiVoice] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const productsRef = useRef<HTMLDivElement>(null);
+  const lastOrderIdRef = useRef<string>();
 
   const statusLabel = flowStatus(currentStep);
   const showProducts = products.length > 0 && (currentStep === "picks" || currentStep === "chat");
 
   useEffect(() => {
-    void checkAgentApiHealth().then((h) => setApiOnline(h.ok));
+    void checkAgentApiHealth().then((h) => {
+      setApiOnline(h.ok);
+      setOpenAiVoice(Boolean(h.openai));
+    });
   }, []);
 
   useEffect(() => {
@@ -247,6 +266,14 @@ export function AgentPage() {
       clearCheckoutState();
       setSuggestions(data.suggestions ?? []);
       return;
+    }
+
+    if (data.step === "done") {
+      setDeliveries([]);
+      setPayments([]);
+      setChosenDeliveryId(undefined);
+      setChosenPaymentId(undefined);
+      setProducts([]);
     }
 
     if (data.step === "picks") {
@@ -286,6 +313,7 @@ export function AgentPage() {
     }
     if (data.order !== undefined) {
       setOrderSummary(data.order);
+      if (data.order?.order_id) lastOrderIdRef.current = data.order.order_id;
     }
     if (data.tracking !== undefined) {
       setTracking(data.tracking);
@@ -307,7 +335,16 @@ export function AgentPage() {
       const res = await fetch("/api/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, demoSessionId: getDemoSessionId(), ...body }),
+        body: JSON.stringify({
+          sessionId,
+          demoSessionId: getDemoSessionId(),
+          orderId: orderSummary?.order_id ?? lastOrderIdRef.current,
+          clientStep: currentStep,
+          skuId: selected?.sku_id,
+          deliveryOptionId: chosenDeliveryId,
+          clientProducts: products.length > 0 ? products : undefined,
+          ...body,
+        }),
       });
       const data = (await res.json()) as AgentResponse;
       if (!res.ok) throw new Error(data.error ?? "Request failed");
@@ -315,7 +352,7 @@ export function AgentPage() {
       applyAgentState(data);
       setMessages((p) => [...p, { id: crypto.randomUUID(), role: "assistant", content: data.reply }]);
       if (data.cartSynced) notifyCartSync();
-      if (voiceOn) speakShort(data.reply);
+      if (voiceOn) void speakShort(data.reply);
     } catch (error) {
       setMessages((p) => [
         ...p,
@@ -466,11 +503,21 @@ export function AgentPage() {
         <section className="agent-v3-chat">
           <div className="agent-v3-chat-inner">
             {messages.map((msg) => (
-              <div key={msg.id} className={`agent-bubble ${msg.role}`}>
-                {msg.content}
+              <div key={msg.id} className={`agent-v3-msg agent-v3-msg-${msg.role}`}>
+                <span className="agent-v3-msg-label">
+                  {msg.role === "user" ? "You" : msg.role === "error" ? "Notice" : "Agent"}
+                </span>
+                <div className={`agent-bubble ${msg.role}`}>{msg.content}</div>
               </div>
             ))}
-            {loading && <div className="agent-bubble assistant agent-typing">Working on it…</div>}
+            {loading && (
+              <div className="agent-v3-msg agent-v3-msg-assistant">
+                <span className="agent-v3-msg-label">Agent</span>
+                <div className="agent-bubble assistant agent-typing">
+                  <span className="agent-typing-dots" aria-hidden>···</span> Working on it…
+                </div>
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
         </section>
@@ -644,8 +691,24 @@ export function AgentPage() {
                     headers: { "Content-Type": blob.type },
                     body: blob,
                   });
-                  const data = (await res.json()) as { text?: string };
+                  const data = (await res.json()) as { text?: string; error?: string };
+                  if (!res.ok) {
+                    throw new Error(data.error ?? "Voice input failed");
+                  }
                   if (data.text) await onSend(data.text);
+                  else throw new Error("No speech detected — try again");
+                } catch (error) {
+                  setMessages((p) => [
+                    ...p,
+                    {
+                      id: crypto.randomUUID(),
+                      role: "error",
+                      content:
+                        error instanceof Error
+                          ? error.message
+                          : "Microphone failed — allow mic access and try again",
+                    },
+                  ]);
                 } finally {
                   setLoading(false);
                 }
@@ -658,6 +721,11 @@ export function AgentPage() {
         >
           {recording ? <MicOff size={18} /> : <Mic size={18} />}
         </button>
+        {!openAiVoice && (
+          <span className="agent-v3-mic-hint" title="Set OPENAI_API_KEY on API for Whisper voice input">
+            Mic needs API key
+          </span>
+        )}
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

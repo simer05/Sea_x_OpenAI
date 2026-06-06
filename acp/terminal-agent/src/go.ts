@@ -8,6 +8,10 @@ import { ensureApiRunning } from "./ensure-api.js";
 
 loadDemoUiEnv();
 
+if (!process.env.ACP_BASE_URL) {
+  process.env.ACP_BASE_URL = "https://sea-acp-api.fly.dev";
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 
 async function main() {

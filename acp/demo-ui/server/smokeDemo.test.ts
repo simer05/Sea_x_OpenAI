@@ -191,6 +191,71 @@ async function smokeAgentChatWithInvalidOpenAi() {
   }
 }
 
+async function smokeAgentNaturalLanguageFlow() {
+  const previous = process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+
+  try {
+    let sessionId = crypto.randomUUID();
+    const demoSessionId = "smoke-nl";
+
+    const picks = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "I want to buy halal noodles under 10 dollar",
+    });
+    sessionId = picks.sessionId;
+    assert.equal(picks.step, "picks");
+    const top = picks.products?.[0];
+    assert.ok(top?.title);
+
+    const selected = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: `I'll take ${top!.title}`,
+    });
+    assert.equal(selected.step, "delivery");
+    assert.ok(selected.deliveryOptions?.length);
+
+    const delivery = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "Use standard delivery",
+    });
+    assert.equal(delivery.step, "payment");
+    assert.ok(delivery.paymentOptions?.length);
+
+    const paid = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "Pay with shopeepay_wallet",
+    });
+    assert.equal(paid.step, "done");
+    assert.ok(paid.order?.order_id);
+
+    const track1 = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "Where is my order?",
+      orderId: paid.order?.order_id,
+    });
+    assert.equal(track1.step, "tracking");
+    assert.ok(track1.tracking?.current_status);
+
+    const track2 = await handleAgentChat({
+      sessionId: crypto.randomUUID(),
+      demoSessionId,
+      message: "Where is my order?",
+      orderId: paid.order?.order_id,
+      clientStep: "done",
+    });
+    assert.equal(track2.step, "tracking");
+    assert.ok(track2.tracking?.current_status);
+  } finally {
+    if (previous) process.env.OPENAI_API_KEY = previous;
+  }
+}
+
 async function smokeAgentTrackingAfterNewSearch() {
   const previous = process.env.OPENAI_API_KEY;
   delete process.env.OPENAI_API_KEY;
@@ -257,6 +322,7 @@ async function main() {
   await smokeAcpUcpBridge();
   await smokeAgentChatWithoutOpenAi();
   await smokeAgentChatWithInvalidOpenAi();
+  await smokeAgentNaturalLanguageFlow();
   await smokeAgentTrackingAfterNewSearch();
   console.log("demo-ui smoke tests passed");
 }
