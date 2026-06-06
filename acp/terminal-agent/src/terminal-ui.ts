@@ -90,13 +90,21 @@ export function formatToolOutput(raw: string): string | null {
         halal_status?: string;
         product_id: string;
       }>;
-      const eligible = (data.eligible_count as number | undefined) ?? products.length;
-      const lines = [`Found ${eligible} match${eligible === 1 ? "" : "es"}:`];
-      for (const p of products.slice(0, 3)) {
+      const picks = products.slice(0, 3);
+      const totalFound = data.total_found as number | undefined;
+      const eligibleCount = data.eligible_count as number | undefined;
+      const headline =
+        totalFound !== undefined && eligibleCount !== undefined
+          ? `Found ${totalFound} matches — ${eligibleCount} passed Halal & filters. Top ${picks.length} picks:`
+          : `Top ${picks.length} pick${picks.length === 1 ? "" : "s"}:`;
+      const lines = [headline];
+      for (const p of picks) {
         const halal = p.halal_status?.toLowerCase().includes("halal") ? " · halal" : "";
         lines.push(`  ${p.rank ?? "•"}. ${p.title} — ${money(p.price, p.currency)}${halal}`);
       }
-      if (products.length > 3) lines.push(`  … +${products.length - 3} more`);
+      if (products.length > picks.length) {
+        lines.push(`  … +${products.length - picks.length} more in response`);
+      }
       return lines.join("\n");
     }
 
