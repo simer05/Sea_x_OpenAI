@@ -29,10 +29,12 @@ import {
   verifyHalalByProductId,
 } from "./acpGateway.js";
 import {
+  agentOpenAiStatus,
   handleAgentChat,
   synthesizeSpeech,
   transcribeAudio,
 } from "./agentLogic.js";
+import { isOpenAiReady } from "./openaiClient.js";
 import {
   addToSharedCart,
   clearSharedToast,
@@ -49,8 +51,10 @@ app.use(express.json({ limit: "2mb" }));
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
-    openai: Boolean(process.env.OPENAI_API_KEY),
+    openai: isOpenAiReady(),
+    openai_mode: isOpenAiReady() ? "live" : "deterministic_fallback",
     acp: true,
+    ...agentOpenAiStatus(),
   });
 });
 
@@ -221,8 +225,8 @@ app.post("/api/agent/chat", async (req, res) => {
 
 app.post("/api/agent/transcribe", express.raw({ type: "*/*", limit: "12mb" }), async (req, res) => {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      res.status(400).json({ error: "OPENAI_API_KEY is not configured" });
+    if (!isOpenAiReady()) {
+      res.status(400).json({ error: "OPENAI_API_KEY is not configured or invalid" });
       return;
     }
     const mimeType = String(req.headers["content-type"] ?? "audio/webm");
@@ -237,8 +241,8 @@ app.post("/api/agent/transcribe", express.raw({ type: "*/*", limit: "12mb" }), a
 
 app.post("/api/agent/tts", async (req, res) => {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      res.status(400).json({ error: "OPENAI_API_KEY is not configured" });
+    if (!isOpenAiReady()) {
+      res.status(400).json({ error: "OPENAI_API_KEY is not configured or invalid" });
       return;
     }
     const text = String(req.body?.text ?? "").trim();
