@@ -124,6 +124,22 @@ function isTrackingQuery(text: string) {
   return /where is my order|track(ing)?|order status|delivery status/i.test(text);
 }
 
+function isNewSearchRequest(text: string) {
+  return /^(start a new search|new search|search again|shop again)$/i.test(text.trim());
+}
+
+function isShoppingQuery(text: string) {
+  return /(buy|want|need|looking for|under|below|halal|noodle|pack|dollar|sgd|\$)/i.test(text);
+}
+
+function resetCheckoutState(session: SessionState, preserveOrderId = false) {
+  session.selected = undefined;
+  session.deliveryOptionId = undefined;
+  session.paymentMethod = undefined;
+  if (!preserveOrderId) session.orderId = undefined;
+  session.candidates = [];
+}
+
 export async function handleAgentChat(input: {
   sessionId?: string;
   demoSessionId?: string;
@@ -146,12 +162,13 @@ export async function handleAgentChat(input: {
 
   const text = input.message.trim();
 
-  if (input.action === "cancel") {
+  if (input.action === "cancel" || isNewSearchRequest(text)) {
     sessions.delete(sessionId);
+    const freshSessionId = crypto.randomUUID();
     return {
-      sessionId,
+      sessionId: freshSessionId,
       step: "chat",
-      reply: "Session cleared. Tell me what you'd like to shop for.",
+      reply: "Fresh start — tell me what you'd like to shop for.",
       suggestions: [],
     };
   }
@@ -394,6 +411,12 @@ export async function handleAgentChat(input: {
       reply: "Type your request in the chat — what product, budget, Halal preference, and city?",
       suggestions: [],
     };
+  }
+
+  if (session.step === "done" || session.step === "tracking" || session.step === "payment" || session.step === "delivery") {
+    if (isShoppingQuery(text) && !isTrackingQuery(text)) {
+      resetCheckoutState(session, true);
+    }
   }
 
   const intent = parseShoppingIntent(text);

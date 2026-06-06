@@ -595,3 +595,9 @@ export function getCatalogProduct(id: string) {
   if (id.startsWith("sku_")) return catalogBySku.get(id);
   return catalogById.get(id.startsWith("prod_") ? id : `prod_${id}`);
 }
+
+export function getGatewayOrder(orderId: string) {
+  const order = orders.get(orderId);
+  if (!order) throw new Error(`Unknown order_id ${orderId}`);
+  return order;
+}

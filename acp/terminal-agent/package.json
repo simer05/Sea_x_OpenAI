@@ -1,0 +1,22 @@
+{
+  "name": "@acp-sea/terminal-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive ACP shopping terminal using the OpenAI Codex SDK.",
+  "scripts": {
+    "check": "tsx src/check.ts",
+    "go": "tsx src/go.ts",
+    "start": "tsx src/codex-agent.ts",
+    "demo": "tsx src/acp-cli.ts",
+    "test": "tsx src/smoke.test.ts"
+  },
+  "dependencies": {
+    "@openai/codex-sdk": "^0.137.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1"
+  }
+}
