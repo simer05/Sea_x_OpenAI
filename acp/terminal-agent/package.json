@@ -10,7 +10,7 @@
     "go": "bash ../demo terminal",
     "start": "tsx src/codex-agent.ts",
     "demo:rest": "tsx src/acp-cli.ts",
-    "test": "tsx src/smoke.test.ts"
+    "test": "tsx src/smoke.test.ts && tsx src/terminal-ui.test.ts"
   },
   "dependencies": {
     "@openai/codex-sdk": "^0.137.0",
