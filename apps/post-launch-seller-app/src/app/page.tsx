@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { postLaunchSamples } from "@adaptlink/shared-data";
 import { analyzePostLaunchProduct } from "@adaptlink/post-launch-seller";
 import type { PostLaunchInput } from "@adaptlink/shared-types";
@@ -39,9 +39,35 @@ type PreForm = {
   description: string;
   keywords: string;
   photoName: string;
+  photoDataUrl: string;
 };
 
 type PreReport = ReturnType<typeof analyzePreLaunch>;
+
+type SellerPatch = {
+  field: keyof PreForm;
+  value: string;
+  reason: string;
+};
+
+type SellerAiInsight = {
+  modeUsed: "openai" | "fallback";
+  summary: string;
+  imageUnderstanding: string;
+  safeChanges: SellerPatch[];
+  blockedChanges: SellerPatch[];
+  actionPlan: Array<{
+    title: string;
+    severity: "High" | "Medium" | "Low";
+    expectedImpact: string;
+    sellerStep: string;
+  }>;
+};
+
+type PreDraft = {
+  form: PreForm;
+  insight: SellerAiInsight;
+};
 
 const emptyPreForm: PreForm = {
   title: "",
@@ -57,28 +83,86 @@ const emptyPreForm: PreForm = {
   features: "",
   description: "",
   keywords: "",
-  photoName: ""
+  photoName: "",
+  photoDataUrl: ""
 };
 
 export default function Page() {
   const [mode, setMode] = useState<Mode>("post");
+  const [postInputs, setPostInputs] = useState<PostLaunchInput[]>(inputs);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedTimeframeIndex, setSelectedTimeframeIndex] = useState(1);
   const [preForm, setPreForm] = useState<PreForm>(emptyPreForm);
   const [preReport, setPreReport] = useState<PreReport | null>(null);
+  const [aiInsight, setAiInsight] = useState<SellerAiInsight | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [pendingSafeChanges, setPendingSafeChanges] = useState<SellerPatch[]>([]);
+  const [preDraft, setPreDraft] = useState<PreDraft | null>(null);
+  const [preManualEntry, setPreManualEntry] = useState(false);
+  const [aiFilledFields, setAiFilledFields] = useState<Array<keyof PreForm>>([]);
 
   const timeframe = timeframes[selectedTimeframeIndex];
-  const selectedInput = selectedIndex === null ? null : applyTimeframe(inputs[selectedIndex], timeframe);
+  const selectedInput = selectedIndex === null ? null : applyTimeframe(postInputs[selectedIndex], timeframe);
   const postReport = useMemo(() => selectedInput ? analyzePostLaunchProduct(selectedInput) : null, [selectedInput]);
 
+  useEffect(() => {
+    if (mode !== "post" || !selectedInput || !postReport) return;
+    setAiInsight(null);
+    setPendingSafeChanges([]);
+    void requestSellerAi("post", selectedInput, postReport);
+  }, [mode, selectedIndex, selectedTimeframeIndex]);
+
   function updatePreField(field: keyof PreForm, value: string) {
-    setPreForm((current) => ({ ...current, [field]: value }));
-    setPreReport(null);
+    setPreManualEntry(true);
+    setAiFilledFields((fields) => fields.filter((item) => item !== field));
+    setPreForm((current) => {
+      const updated = { ...current, [field]: value };
+      setPreReport(isPreFormAnalyzable(updated) ? analyzePreLaunch(updated) : null);
+      return updated;
+    });
+    setAiInsight(null);
+    setPendingSafeChanges([]);
+    setPreDraft(null);
+  }
+
+  async function updatePrePhoto(file: File | null) {
+    if (!file) {
+      updatePreField("photoName", "");
+      updatePreField("photoDataUrl", "");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const photoDataUrl = String(reader.result || "");
+      const imageOnlyForm = { ...emptyPreForm, photoName: file.name, photoDataUrl };
+      setPreForm(imageOnlyForm);
+      setPreReport(null);
+      setAiInsight(null);
+      setPendingSafeChanges([]);
+      setPreDraft(null);
+      setAiFilledFields([]);
+      setPreManualEntry(true);
+      const insight = await requestSellerAi("pre", imageOnlyForm, {}, photoDataUrl);
+      if (insight) {
+        const draftForm = buildPreDraftForm(imageOnlyForm, insight);
+        const report = analyzePreLaunch(draftForm);
+        setPreForm(draftForm);
+        setPreReport(report);
+        setAiInsight(insight);
+        setPendingSafeChanges([]);
+        setAiFilledFields(aiRecommendedFields(insight));
+        void requestSellerAi("pre", draftForm, report, draftForm.photoDataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   function runPreAnalysis(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPreReport(analyzePreLaunch(preForm));
+    const report = analyzePreLaunch(preForm);
+    setPreReport(report);
+    void requestSellerAi("pre", preForm, report);
   }
 
   function applyRecommendedPreChanges() {
@@ -88,13 +172,116 @@ export default function Page() {
     setPreReport(analyzePreLaunch(updated));
   }
 
+  async function requestSellerAi(aiMode: Mode, productInput: PreForm | PostLaunchInput, computedReport: unknown, photoDataUrlOverride?: string) {
+    setAiLoading(true);
+    try {
+      const response = await fetch("/api/seller-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: aiMode,
+          productInput,
+          computedReport,
+          photoDataUrl: aiMode === "pre" ? photoDataUrlOverride ?? ("photoDataUrl" in productInput ? productInput.photoDataUrl : preForm.photoDataUrl) : undefined
+        })
+      });
+      const payload = await response.json() as SellerAiInsight;
+      setAiInsight(payload);
+      setPendingSafeChanges([]);
+      return payload;
+    } catch {
+      setAiInsight(null);
+      setPendingSafeChanges([]);
+      return null;
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  function confirmPreDraft() {
+    if (!preDraft) return;
+    const report = analyzePreLaunch(preDraft.form);
+    setPreForm(preDraft.form);
+    setPreReport(report);
+    setAiInsight(preDraft.insight);
+    setPendingSafeChanges([]);
+    setAiFilledFields(aiRecommendedFields(preDraft.insight));
+    setPreManualEntry(true);
+    void requestSellerAi("pre", preDraft.form, report, preDraft.form.photoDataUrl);
+  }
+
+  function startManualPreEntry() {
+    setPreManualEntry(true);
+    setPreDraft(null);
+    setAiInsight(null);
+    setPendingSafeChanges([]);
+    setAiFilledFields([]);
+  }
+
+  function previewSafeChanges() {
+    if (!aiInsight?.safeChanges.length) return;
+    setPendingSafeChanges(aiInsight.safeChanges);
+  }
+
+  function confirmApplySafeChanges() {
+    if (!pendingSafeChanges.length) return;
+    const approved = window.confirm(`Apply ${pendingSafeChanges.length} safe AI-recommended change(s)? Risky edits like title, category, price, and photo will remain blocked.`);
+    if (!approved) return;
+
+    const updated = pendingSafeChanges.reduce((current, change) => {
+      if (!isSafePreField(change.field)) return current;
+      return { ...current, [change.field]: change.value };
+    }, preForm);
+    setPreForm(updated);
+    setPreReport(analyzePreLaunch(updated));
+    setPendingSafeChanges([]);
+  }
+
+  function addPreListingToPostLaunch() {
+    if (!preReport) return;
+    const approved = window.confirm("Add this validated product as a new seller listing in the post-launch dashboard?");
+    if (!approved) return;
+    const listing = createPostLaunchListing(preForm, preReport, postInputs.length + 1);
+    setPostInputs((current) => [...current, listing]);
+    setMode("post");
+    setSelectedIndex(postInputs.length);
+  }
+
+  function cancelPreLaunchProduct() {
+    const hasCurrentProduct = Object.values(preForm).some((value) => value.trim()) || Boolean(preReport || aiInsight);
+    const approved = !hasCurrentProduct || window.confirm("Clear this pre-launch draft and choose a different product?");
+    if (!approved) return;
+
+    setPreForm(emptyPreForm);
+    setPreReport(null);
+    setAiInsight(null);
+    setAiLoading(false);
+    setPendingSafeChanges([]);
+    setPreDraft(null);
+    setPreManualEntry(false);
+    setAiFilledFields([]);
+  }
+
   return (
     <div className="seller-console two-mode-console">
       <aside className="seller-sidebar" aria-label="Seller intelligence navigation">
+        <div className="seller-utility">
+          <span>Seller Centre</span>
+          <span>Mock Shopee SG</span>
+          <span className="seller-utility-spacer" />
+          <span>Notifications</span>
+          <span>Help</span>
+          <span>English</span>
+        </div>
+
         <div className="shopee-lockup">
           <div className="shopee-logo" aria-label="AdaptLink">
             <span className="bag-mark">A</span>
-            <strong>AdaptLink</strong>
+            <strong>Shopee Seller</strong>
+          </div>
+          <div className="seller-search-shell" aria-label="Seller workspace context">
+            <span>Seller Perspective</span>
+            <strong>{mode === "post" ? "Optimize live listings, reviews, and campaign spend" : "Validate new listing ideas before launch"}</strong>
           </div>
         </div>
 
@@ -148,9 +335,28 @@ export default function Page() {
           </section>
 
           {mode === "pre" ? (
-            <PreLaunchView form={preForm} report={preReport} onApplyRecommendations={applyRecommendedPreChanges} onChange={updatePreField} onSubmit={runPreAnalysis} />
+            <PreLaunchView
+              aiInsight={aiInsight}
+              aiLoading={aiLoading}
+              aiFilledFields={aiFilledFields}
+              form={preForm}
+              pendingSafeChanges={pendingSafeChanges}
+              preDraft={preDraft}
+              preManualEntry={preManualEntry}
+              report={preReport}
+              onAddListing={addPreListingToPostLaunch}
+              onApplyRecommendations={applyRecommendedPreChanges}
+              onCancelProduct={cancelPreLaunchProduct}
+              onChange={updatePreField}
+              onConfirmPreDraft={confirmPreDraft}
+              onConfirmApplySafeChanges={confirmApplySafeChanges}
+              onPhotoChange={updatePrePhoto}
+              onPreviewSafeChanges={previewSafeChanges}
+              onStartManualEntry={startManualPreEntry}
+              onSubmit={runPreAnalysis}
+            />
           ) : (
-            <PostLaunchView inputs={inputs} selectedIndex={selectedIndex} input={selectedInput} report={postReport} timeframeLabel={timeframe.label} onSelect={setSelectedIndex} />
+            <PostLaunchView aiInsight={aiInsight} aiLoading={aiLoading} inputs={postInputs} selectedIndex={selectedIndex} input={selectedInput} report={postReport} timeframeLabel={timeframe.label} onSelect={setSelectedIndex} />
           )}
         </div>
       </main>
@@ -159,70 +365,188 @@ export default function Page() {
 }
 
 function PreLaunchView({
+  aiInsight,
+  aiLoading,
+  aiFilledFields,
   form,
+  pendingSafeChanges,
+  preDraft,
+  preManualEntry,
   report,
+  onAddListing,
   onApplyRecommendations,
+  onCancelProduct,
   onChange,
+  onConfirmPreDraft,
+  onConfirmApplySafeChanges,
+  onPhotoChange,
+  onPreviewSafeChanges,
+  onStartManualEntry,
   onSubmit
 }: {
+  aiInsight: SellerAiInsight | null;
+  aiLoading: boolean;
+  aiFilledFields: Array<keyof PreForm>;
   form: PreForm;
+  pendingSafeChanges: SellerPatch[];
+  preDraft: PreDraft | null;
+  preManualEntry: boolean;
   report: PreReport | null;
+  onAddListing: () => void;
   onApplyRecommendations: () => void;
+  onCancelProduct: () => void;
   onChange: (field: keyof PreForm, value: string) => void;
+  onConfirmPreDraft: () => void;
+  onConfirmApplySafeChanges: () => void;
+  onPhotoChange: (file: File | null) => void;
+  onPreviewSafeChanges: () => void;
+  onStartManualEntry: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const fieldClass = (field: keyof PreForm) => aiFilledFields.includes(field) ? "ai-filled-field" : undefined;
+  const hasCurrentProduct = Object.values(form).some((value) => value.trim()) || Boolean(report);
   return (
     <section className="analysis-view">
       <section className="pre-workspace">
         <article className="panel pre-input-panel">
-          <div className="panel-heading"><h2>New Product Details</h2><span>Mock Shopee SG</span></div>
+          <div className="panel-heading">
+            <h2>New Product Details</h2>
+            <div className="panel-heading-actions">
+              <span>Editable seller review</span>
+              {hasCurrentProduct ? <button className="panel-action-button secondary" type="button" onClick={onCancelProduct}>Change Product</button> : null}
+            </div>
+          </div>
           <form className="pre-form live-pre-form" onSubmit={onSubmit}>
-            <label>Product title<input value={form.title} onChange={(event) => onChange("title", event.target.value)} placeholder="e.g. Purple iPhone 15 case with strap" required /></label>
-            <label>Shopee category<input list="category-suggestions" value={form.category} onChange={(event) => onChange("category", event.target.value)} placeholder="Type or choose category path" required /></label>
+            <label className={fieldClass("title")}>Product title<input value={form.title} onChange={(event) => onChange("title", event.target.value)} placeholder="e.g. Purple iPhone 15 case with strap" required /></label>
+            <label className={fieldClass("category")}>Shopee category<input list="category-suggestions" value={form.category} onChange={(event) => onChange("category", event.target.value)} placeholder="Type or choose category path" required /></label>
             <datalist id="category-suggestions">{categorySuggestions.map((item) => <option key={item} value={item} />)}</datalist>
-            <label>Product type<input value={form.productType} onChange={(event) => onChange("productType", event.target.value)} placeholder="e.g. phone case, thermal bottle, custom tee" required /></label>
+            <label className={fieldClass("productType")}>Product type<input value={form.productType} onChange={(event) => onChange("productType", event.target.value)} placeholder="e.g. phone case, thermal bottle, custom tee" required /></label>
             <div className="form-pair">
-              <label>Selling price<input type="number" min="0" step="0.1" value={form.price} onChange={(event) => onChange("price", event.target.value)} placeholder="SGD" required /></label>
-              <label>Initial launch stock<input type="number" min="0" step="1" value={form.launchStock} onChange={(event) => onChange("launchStock", event.target.value)} placeholder="Units seller plans to list" /></label>
+              <label className={fieldClass("price")}>Selling price<input type="number" min="0" step="0.1" value={form.price} onChange={(event) => onChange("price", event.target.value)} placeholder="SGD" required /></label>
+              <label className={fieldClass("launchStock")}>Initial launch stock<input type="number" min="0" step="1" value={form.launchStock} onChange={(event) => onChange("launchStock", event.target.value)} placeholder="Units seller plans to list" /></label>
             </div>
             <div className="form-pair">
-              <label>Shipping/order<input type="number" min="0" step="0.1" value={form.shippingCost} onChange={(event) => onChange("shippingCost", event.target.value)} placeholder="SGD" /></label>
-              <label>Packaging/order<input type="number" min="0" step="0.1" value={form.packagingCost} onChange={(event) => onChange("packagingCost", event.target.value)} placeholder="SGD" /></label>
+              <label className={fieldClass("shippingCost")}>Shipping/order<input type="number" min="0" step="0.1" value={form.shippingCost} onChange={(event) => onChange("shippingCost", event.target.value)} placeholder="SGD" /></label>
+              <label className={fieldClass("packagingCost")}>Packaging/order<input type="number" min="0" step="0.1" value={form.packagingCost} onChange={(event) => onChange("packagingCost", event.target.value)} placeholder="SGD" /></label>
             </div>
             <div className="form-pair">
-              <label>Ad cost/order<input type="number" min="0" step="0.1" value={form.adCost} onChange={(event) => onChange("adCost", event.target.value)} placeholder="SGD" /></label>
-              <label>Target area in Singapore<input value={form.targetArea} onChange={(event) => onChange("targetArea", event.target.value)} placeholder="Central, East, West, North-East, Islandwide" /></label>
+              <label className={fieldClass("adCost")}>Ad cost/order<input type="number" min="0" step="0.1" value={form.adCost} onChange={(event) => onChange("adCost", event.target.value)} placeholder="SGD" /></label>
+              <label className={fieldClass("targetArea")}>Target area in Singapore<input value={form.targetArea} onChange={(event) => onChange("targetArea", event.target.value)} placeholder="Central, East, West, North-East, Islandwide" /></label>
             </div>
-            <label>Colors<input value={form.colors} onChange={(event) => onChange("colors", event.target.value)} placeholder="purple, black, white" /></label>
-            <label>Features<textarea rows={3} value={form.features} onChange={(event) => onChange("features", event.target.value)} placeholder="Comma-separated features" /></label>
-            <label>Description<textarea rows={4} value={form.description} onChange={(event) => onChange("description", event.target.value)} placeholder="Main buyer benefits and proof points" required /></label>
-            <label>Keywords<input value={form.keywords} onChange={(event) => onChange("keywords", event.target.value)} placeholder="Comma-separated buyer search keywords" /></label>
-            <label className="file-control">Photo upload<input type="file" accept="image/*" onChange={(event) => onChange("photoName", event.target.files?.[0]?.name || "")} /><small>{form.photoName || "No photo selected"}</small></label>
-            <button className="primary-cta" type="submit">Generate Pre-Launch Analysis</button>
+            <label className={fieldClass("colors")}>Colors<input value={form.colors} onChange={(event) => onChange("colors", event.target.value)} placeholder="purple, black, white" /></label>
+            <label className={fieldClass("features")}>Features<textarea rows={3} value={form.features} onChange={(event) => onChange("features", event.target.value)} placeholder="Comma-separated features" /></label>
+            <label className={fieldClass("description")}>Description<textarea rows={4} value={form.description} onChange={(event) => onChange("description", event.target.value)} placeholder="Main buyer benefits and proof points" required /></label>
+            <label className={fieldClass("keywords")}>Keywords<input value={form.keywords} onChange={(event) => onChange("keywords", event.target.value)} placeholder="Comma-separated buyer search keywords" /></label>
+            <div className="edit-hint">Upload a photo in the panel on the right to let OpenAI fill this form. Every field remains editable for seller review.</div>
           </form>
         </article>
 
-        {report ? <PreLaunchReport report={report} onApplyRecommendations={onApplyRecommendations} /> : <EmptyPreLaunch />}
+        {report ? (
+          <PreLaunchReport
+            aiInsight={aiInsight}
+            aiLoading={aiLoading}
+            pendingSafeChanges={pendingSafeChanges}
+            report={report}
+            onAddListing={onAddListing}
+            onApplyRecommendations={onApplyRecommendations}
+            onCancelProduct={onCancelProduct}
+            onConfirmApplySafeChanges={onConfirmApplySafeChanges}
+            onPreviewSafeChanges={onPreviewSafeChanges}
+          />
+        ) : <EmptyPreLaunch aiLoading={aiLoading} onPhotoChange={onPhotoChange} />}
       </section>
     </section>
   );
 }
 
-function EmptyPreLaunch() {
+function EmptyPreLaunch({
+  aiLoading,
+  onPhotoChange
+}: {
+  aiLoading: boolean;
+  onPhotoChange: (file: File | null) => void;
+}) {
   return (
     <article className="panel empty-state-panel">
-      <div className="empty-state">
+      <label className="empty-state upload-empty-state" htmlFor="prelaunch-photo-upload">
+        <input
+          id="prelaunch-photo-upload"
+          className="upload-input"
+          type="file"
+          accept="image/*"
+          onChange={(event) => onPhotoChange(event.target.files?.[0] || null)}
+        />
         <span className="empty-icon">+</span>
         <h2>No pre-launch product loaded</h2>
-        <p>Enter product details on the left. The dashboard will stay empty until the seller provides a new product idea.</p>
-      </div>
+        <p>Upload a product photo here. OpenAI will fill the editable form with suggested title, category, price, target region, features, description, and keywords.</p>
+        <span className="image-upload-card">
+          <strong>{aiLoading ? "Reading product image..." : "Upload Product Photo"}</strong>
+          <span>{aiLoading ? "OpenAI is filling the form." : "No image added yet"}</span>
+        </span>
+      </label>
     </article>
   );
 }
 
-function PreLaunchReport({ report, onApplyRecommendations }: { report: PreReport; onApplyRecommendations: () => void }) {
+function PreDraftReview({ draft, onConfirmPreDraft, onStartManualEntry }: { draft: PreDraft; onConfirmPreDraft: () => void; onStartManualEntry: () => void }) {
+  const fields = [
+    ["Product title", draft.form.title],
+    ["Shopee category", draft.form.category],
+    ["Suggested selling price", currency(numberValue(draft.form.price))],
+    ["Product type", draft.form.productType],
+    ["Target region", draft.form.targetArea],
+    ["Features", draft.form.features],
+    ["Description", draft.form.description],
+    ["Keywords", draft.form.keywords]
+  ];
+  return (
+    <div className="pre-draft-review">
+      <div className="panel-heading">
+        <h2>OpenAI Draft for Seller Confirmation</h2>
+        <span>{draft.insight.modeUsed === "openai" ? "Image understanding" : "Fallback draft"}</span>
+      </div>
+      <p>{draft.insight.imageUnderstanding}</p>
+      <div className="draft-field-grid">
+        {fields.map(([label, value]) => (
+          <div className="draft-field" key={label}>
+            <span>{label}</span>
+            <strong>{value || "Needs seller input"}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="draft-actions">
+        <button className="primary-cta" type="button" onClick={onConfirmPreDraft}>Confirm AI Draft & Analyze</button>
+        <button className="manual-entry-button" type="button" onClick={onStartManualEntry}>Update manually</button>
+      </div>
+    </div>
+  );
+}
+
+function PreLaunchReport({
+  aiInsight,
+  aiLoading,
+  pendingSafeChanges,
+  report,
+  onAddListing,
+  onApplyRecommendations,
+  onCancelProduct,
+  onConfirmApplySafeChanges,
+  onPreviewSafeChanges
+}: {
+  aiInsight: SellerAiInsight | null;
+  aiLoading: boolean;
+  pendingSafeChanges: SellerPatch[];
+  report: PreReport;
+  onAddListing: () => void;
+  onApplyRecommendations: () => void;
+  onCancelProduct: () => void;
+  onConfirmApplySafeChanges: () => void;
+  onPreviewSafeChanges: () => void;
+}) {
   return (
     <section className="pre-results">
+      <AiSellerSummaryPanel insight={aiInsight} loading={aiLoading} />
+
       <article className="panel pre-decision-panel">
         <div className="panel-heading"><h2>Launch Decision</h2><span>{report.confidence} confidence</span></div>
         <div className="decision-card">
@@ -302,7 +626,17 @@ function PreLaunchReport({ report, onApplyRecommendations }: { report: PreReport
       <article className="panel pre-actions-panel">
         <div className="panel-heading">
           <h2>Recommended Changes</h2>
-          <button className="panel-action-button" type="button" onClick={onApplyRecommendations}>Apply Safe Changes</button>
+          <div className="panel-button-row">
+            <button className="panel-action-button secondary" type="button" onClick={onApplyRecommendations}>Use Rule-Based Safe Changes</button>
+            <button
+              className="panel-action-button"
+              type="button"
+              disabled={aiLoading || !aiInsight?.safeChanges.length}
+              onClick={onPreviewSafeChanges}
+            >
+              {aiLoading ? "Loading AI Changes" : aiInsight?.safeChanges.length ? "Preview AI Safe Changes" : "No AI Changes Yet"}
+            </button>
+          </div>
         </div>
         <div className="action-plan">
           {report.actions.map((action, index) => (
@@ -310,11 +644,26 @@ function PreLaunchReport({ report, onApplyRecommendations }: { report: PreReport
           ))}
         </div>
       </article>
+
+      <AiAutomationPanel insight={aiInsight} pendingSafeChanges={pendingSafeChanges} onConfirmApplySafeChanges={onConfirmApplySafeChanges} />
+
+      <article className="panel listing-publish-panel">
+        <div className="panel-heading"><h2>Seller Approval</h2><span>Human in loop</span></div>
+        <p className="panel-note">If the seller is satisfied with the analysis and editable listing details, launch this product into the live post-launch dashboard for monitoring.</p>
+        <div className="approval-actions">
+          <button className="cancel-product-button" type="button" onClick={onCancelProduct}>Change Product</button>
+          <button className="primary-cta" type="button" disabled title="Launch is disabled for this demo.">
+            Launch Product
+          </button>
+        </div>
+      </article>
     </section>
   );
 }
 
 function PostLaunchView({
+  aiInsight,
+  aiLoading,
   inputs,
   selectedIndex,
   input,
@@ -322,6 +671,8 @@ function PostLaunchView({
   timeframeLabel,
   onSelect
 }: {
+  aiInsight: SellerAiInsight | null;
+  aiLoading: boolean;
   inputs: PostLaunchInput[];
   selectedIndex: number | null;
   input: PostLaunchInput | null;
@@ -353,6 +704,8 @@ function PostLaunchView({
         </div>
       </section>
 
+      <AiSellerSummaryPanel insight={aiInsight} loading={aiLoading} />
+
       <section className="kpi-grid compact-kpis" aria-label="Post-launch key metrics">
         <KpiCard accent="orange" icon="sales" label="Sales" value={currency(product.revenue)} detail={`${product.orders} orders`} />
         <KpiCard accent="orange" icon="funnel" label="Conversion Rate" value={percent(product.conversionRate)} detail="orders divided by clicks" />
@@ -380,6 +733,79 @@ function PostLaunchView({
 
 function InsightBox({ label, value, detail }: { label: string; value: string; detail: string }) {
   return <div className="insight-box"><span>{label}</span><strong>{value}</strong><p>{detail}</p></div>;
+}
+
+function AiSellerSummaryPanel({ insight, loading }: { insight: SellerAiInsight | null; loading: boolean }) {
+  return (
+    <article className="panel ai-summary-panel">
+      <div className="panel-heading">
+        <h2>AI Seller Summary</h2>
+        <span>{loading ? "Generating" : insight ? `${insight.modeUsed === "openai" ? "OpenAI" : "Fallback"} mode` : "Waiting"}</span>
+      </div>
+      <p>{loading ? "Reading seller metrics, listing details, and uploaded product evidence..." : insight?.summary || "Run analysis or select a live item to generate a concise seller explanation."}</p>
+      <div className="ai-image-note">
+        <strong>Image understanding</strong>
+        <span>{insight?.imageUnderstanding || "Upload a product photo in pre-launch to include visual understanding."}</span>
+      </div>
+      {insight?.actionPlan?.length ? (
+        <div className="ai-ranked-actions">
+          {insight.actionPlan.map((action, index) => (
+            <div className="ai-ranked-action" key={`${action.title}-${index}`}>
+              <span>{index + 1}</span>
+              <div>
+                <strong>{action.title}</strong>
+                <p>{action.sellerStep}</p>
+                <small>{action.expectedImpact}</small>
+              </div>
+              <b className={action.severity.toLowerCase()}>{action.severity}</b>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function AiAutomationPanel({
+  insight,
+  pendingSafeChanges,
+  onConfirmApplySafeChanges
+}: {
+  insight: SellerAiInsight | null;
+  pendingSafeChanges: SellerPatch[];
+  onConfirmApplySafeChanges: () => void;
+}) {
+  return (
+    <article className="panel ai-automation-panel">
+      <div className="panel-heading">
+        <h2>Automated Change Review</h2>
+        <span>{pendingSafeChanges.length} safe changes ready</span>
+      </div>
+      <div className="automation-grid">
+        <div>
+          <h3>Safe to automate after confirmation</h3>
+          {pendingSafeChanges.length ? pendingSafeChanges.map((change) => (
+            <div className="automation-row safe" key={`${change.field}-${change.value}`}>
+              <strong>{change.field}</strong>
+              <p>{change.value}</p>
+              <small>{change.reason}</small>
+            </div>
+          )) : <p className="panel-note">Click “Preview AI Safe Changes” to review proposed edits before applying them.</p>}
+        </div>
+        <div>
+          <h3>Blocked risky auto-edits</h3>
+          {insight?.blockedChanges?.length ? insight.blockedChanges.map((change) => (
+            <div className="automation-row blocked" key={`${change.field}-${change.value}`}>
+              <strong>{change.field}</strong>
+              <p>{change.value || "Manual seller approval required"}</p>
+              <small>{change.reason}</small>
+            </div>
+          )) : <p className="panel-note">Title, category, price, and photo changes are blocked from automatic application.</p>}
+        </div>
+      </div>
+      <button className="primary-cta" type="button" disabled={!pendingSafeChanges.length} onClick={onConfirmApplySafeChanges}>Confirm & Apply Safe Changes</button>
+    </article>
+  );
 }
 
 function SellerProductGrid({ inputs, selectedIndex, onSelect }: { inputs: PostLaunchInput[]; selectedIndex: number | null; onSelect: (index: number) => void }) {
@@ -814,6 +1240,113 @@ function applySafePreLaunchChanges(form: PreForm, report: PreReport): PreForm {
     shippingCost: form.shippingCost || "1",
     packagingCost: form.packagingCost || "0.5",
     adCost: form.adCost || "1"
+  };
+}
+
+function buildPreDraftForm(base: PreForm, insight: SellerAiInsight): PreForm {
+  const draft = { ...base };
+  for (const change of [...insight.safeChanges, ...insight.blockedChanges]) {
+    if (change.field in draft && change.value) draft[change.field] = change.value;
+  }
+  return {
+    ...draft,
+    title: draft.title || "AI drafted product title",
+    category: draft.category || "Mobile & Gadgets > Mobile Accessories > Cases Covers & Skins",
+    productType: draft.productType || "image-detected product",
+    price: draft.price || "19.9",
+    launchStock: draft.launchStock || "30",
+    shippingCost: draft.shippingCost || "1",
+    packagingCost: draft.packagingCost || "0.5",
+    adCost: draft.adCost || "1",
+    targetArea: draft.targetArea || "Islandwide Singapore",
+    features: draft.features || "Visible product photo, local seller, fast delivery",
+    description: draft.description || "AI drafted product description. Seller should confirm product proof, sizing, compatibility, and local delivery details before launch.",
+    keywords: draft.keywords || "shopee singapore, local seller, fast delivery"
+  };
+}
+
+function aiRecommendedFields(insight: SellerAiInsight): Array<keyof PreForm> {
+  const fields = new Set<keyof PreForm>();
+  for (const change of [...insight.safeChanges, ...insight.blockedChanges]) {
+    if (change.field && change.value) fields.add(change.field);
+  }
+  return [...fields].filter((field) => field !== "photoDataUrl" && field !== "photoName");
+}
+
+function isSafePreField(field: keyof PreForm) {
+  return ["productType", "launchStock", "targetArea", "keywords", "features", "description", "shippingCost", "packagingCost", "adCost"].includes(field);
+}
+
+function isPreFormAnalyzable(form: PreForm) {
+  return Boolean(form.title.trim() && form.category.trim() && form.productType.trim() && numberValue(form.price) > 0 && form.description.trim());
+}
+
+function createPostLaunchListing(form: PreForm, report: PreReport, index: number): PostLaunchInput {
+  const price = numberValue(form.price);
+  const stock = report.stock.suggested || numberValue(form.launchStock) || 30;
+  const clicks = Math.max(16, Math.round(report.overall * 8));
+  const conversionRate = clamp(report.overall / 1250, 0.025, 0.095);
+  const orders = Math.max(3, Math.round(clicks * conversionRate));
+  const views = Math.max(600, Math.round(clicks / 0.048));
+  const competitors = report.competitors.slice(0, 3).map((competitor, competitorIndex) => ({
+    competitorId: `AI-C-${index}-${competitorIndex + 1}`,
+    title: competitor.title,
+    price: competitor.price,
+    rating: competitor.reviews > 1000 ? 4.7 : 4.45,
+    reviews: competitor.reviews,
+    estimatedSales: Math.round(competitor.reviews * 1.8),
+    shippingDays: competitorIndex + 1,
+    voucherPercent: competitorIndex === 0 ? 12 : 8,
+    keyStrength: competitor.risk,
+    keyWeakness: competitor.tier === "direct" ? "Needs proof gap comparison" : "Less direct product match"
+  }));
+
+  return {
+    product: {
+      productId: `PRE-SG-${String(index).padStart(3, "0")}`,
+      title: form.title,
+      category: form.category,
+      price,
+      cost: 0,
+      stock,
+      views,
+      clicks,
+      orders,
+      revenue: roundMoney(price * orders),
+      adSpend: roundMoney(numberValue(form.adCost) * Math.max(orders, 1)),
+      rating: 4.5,
+      reviews: 0,
+      refundRate: 0.01,
+      cancellationRate: 0.01,
+      netMarginPercent: clamp((price - numberValue(form.shippingCost) - numberValue(form.packagingCost) - numberValue(form.adCost)) / Math.max(price, 1), 0.05, 0.5),
+      conversionRate,
+      ctr: clicks / Math.max(views, 1)
+    },
+    context: {
+      segment: form.productType || "Seller listing",
+      trustSignals: [
+        { label: "Pre-launch proof", applies: Boolean(form.photoName), evidence: form.photoName ? "Seller uploaded a product photo." : "No product photo uploaded.", action: "Add close-up proof images before scaling." },
+        { label: "Keyword coverage", applies: splitList(form.keywords).length >= 3, evidence: form.keywords || "No keywords provided.", action: "Keep buyer search terms visible in listing copy." }
+      ],
+      nonApplicableSignals: ["Live order metrics are estimated until the listing has real Shopee activity."],
+      listingFocus: report.actions.slice(0, 4)
+    },
+    communication: {
+      totalChats: 0,
+      averageResponseMinutes: 90,
+      responseWithinOneHourPercent: 0.55,
+      unansweredRate: 0.05,
+      buyerSatisfactionScore: 4
+    },
+    competitors,
+    reviews: [
+      { reviewId: `PRE-R-${index}-1`, rating: 4, text: "New seller listing added from pre-launch validation.", sentiment: "neutral", theme: "new listing" }
+    ],
+    buyerQuestions: [
+      { questionId: `PRE-Q-${index}-1`, text: "Can you show more proof photos?", theme: "proof", frequency: 6 },
+      { questionId: `PRE-Q-${index}-2`, text: "Is local delivery available?", theme: "delivery", frequency: 4 }
+    ],
+    dataQualityWarnings: ["Listing was added from pre-launch mock evaluation; live Shopee metrics are not connected yet."]
   };
 }
 
