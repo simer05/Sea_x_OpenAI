@@ -1,4 +1,4 @@
-import OpenAI, { toFile } from "openai";
+import { toFile } from "openai";
 import {
   createOrder,
   getDeliveryOptions,
@@ -9,6 +9,8 @@ import {
   type GatewayProductCard,
 } from "./acpGateway.js";
 import { appendTrace, getTrace } from "./acpTrace.js";
+import { normalizeProductCard, normalizeProductCards } from "./normalizeProduct.js";
+import { getOpenAi, isOpenAiAuthError, isOpenAiReady } from "./openaiClient.js";
 import { addToSharedCart, recordSharedOrder } from "./sharedStore.js";
 
 type AgentStep =
@@ -85,7 +87,6 @@ interface SessionState {
 }
 
 const sessions = new Map<string, SessionState>();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function newSession(): SessionState {
   return {
@@ -108,28 +109,37 @@ async function polishReply(
   userMessage: string,
   structured: Record<string, unknown>,
 ): Promise<string> {
-  if (!process.env.OPENAI_API_KEY) {
-    return String(structured.fallback ?? "Here are the best Halal noodle options for you.");
+  const fallback = String(
+    structured.fallback ?? "Here are the best Halal noodle options for you.",
+  );
+  const openai = getOpenAi();
+  if (!openai) return fallback;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.5,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a Singapore marketplace shopping agent using the Shopee ACP protocol. " +
+            "Be concise and explain Halal verification, scoring, payment, and delivery clearly. " +
+            "Never invent products not in context. Ask one clear next-step question.",
+        },
+        ...session.history.slice(-8),
+        { role: "user", content: userMessage },
+        { role: "system", content: `Structured context:\n${JSON.stringify(structured, null, 2)}` },
+      ],
+    });
+
+    return completion.choices[0]?.message?.content?.trim() ?? fallback;
+  } catch (error) {
+    if (isOpenAiAuthError(error)) {
+      console.warn("OpenAI unavailable — using deterministic demo reply.");
+    }
+    return fallback;
   }
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0.5,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a Singapore marketplace shopping agent using the Shopee ACP protocol. " +
-          "Be concise and explain Halal verification, scoring, payment, and delivery clearly. " +
-          "Never invent products not in context. Ask one clear next-step question.",
-      },
-      ...session.history.slice(-8),
-      { role: "user", content: userMessage },
-      { role: "system", content: `Structured context:\n${JSON.stringify(structured, null, 2)}` },
-    ],
-  });
-
-  return completion.choices[0]?.message?.content?.trim() ?? String(structured.fallback);
 }
 
 function isTrackingQuery(text: string) {
@@ -393,15 +403,16 @@ export async function handleAgentChat(input: {
 
   const intent = parseShoppingIntent(text || "I want to buy a Halal noodles pack under $10");
   const search = runProductSearch({ ...intent, session_id: session.acpSessionId });
-  session.candidates = search.products;
+  const products = normalizeProductCards(search.products);
+  session.candidates = products;
   session.step = "picks";
 
   const reply = await polishReply(session, text || "Halal noodles under $10", {
     fallback:
-      search.products.length > 0
-        ? `I searched via Shopee ACP and found ${search.total_found} noodle products. After Halal verification and hard filters, ${search.eligible_count} qualified — here are the top ${search.products.length} explainable picks.`
+      products.length > 0
+        ? `I searched via Shopee ACP and found ${search.total_found} noodle products. After Halal verification and hard filters, ${search.eligible_count} qualified — here are the top ${products.length} explainable picks.`
         : "No eligible Halal noodles matched your constraints in Singapore.",
-    products: search.products,
+    products,
     filterSummary: {
       total_found: search.total_found,
       eligible_count: search.eligible_count,
@@ -416,33 +427,61 @@ export async function handleAgentChat(input: {
     sessionId,
     step: "picks",
     reply,
-    products: search.products,
+    products,
     filterSummary: {
       total_found: search.total_found,
       eligible_count: search.eligible_count,
       rejections: search.rejections.slice(0, 8),
     },
     trace: search.trace,
-    suggestions: search.products.length
-      ? [`I'll go with option ${search.products[0]?.rank}`, "Which has the best Halal score?", "Show cheaper options"]
+    suggestions: products.length
+      ? [`I'll go with option ${products[0]?.rank}`, "Which has the best Halal score?", "Show cheaper options"]
       : ["I want to buy a Halal noodles pack under $10"],
   };
 }
 
 export async function transcribeAudio(buffer: Buffer, mimeType: string): Promise<string> {
-  const file = await toFile(buffer, "speech.webm", { type: mimeType || "audio/webm" });
-  const result = await openai.audio.transcriptions.create({
-    file,
-    model: "whisper-1",
-  });
-  return result.text.trim();
+  const openai = getOpenAi();
+  if (!openai) {
+    throw new Error("Voice input requires a valid OPENAI_API_KEY");
+  }
+
+  try {
+    const file = await toFile(buffer, "speech.webm", { type: mimeType || "audio/webm" });
+    const result = await openai.audio.transcriptions.create({
+      file,
+      model: "whisper-1",
+    });
+    return result.text.trim();
+  } catch (error) {
+    if (isOpenAiAuthError(error)) {
+      throw new Error("OpenAI voice transcription is unavailable — check OPENAI_API_KEY");
+    }
+    throw error;
+  }
 }
 
 export async function synthesizeSpeech(text: string): Promise<Buffer> {
-  const speech = await openai.audio.speech.create({
-    model: "tts-1",
-    voice: "nova",
-    input: text.slice(0, 800),
-  });
-  return Buffer.from(await speech.arrayBuffer());
+  const openai = getOpenAi();
+  if (!openai) {
+    throw new Error("Voice output requires a valid OPENAI_API_KEY");
+  }
+
+  try {
+    const speech = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: "nova",
+      input: text.slice(0, 800),
+    });
+    return Buffer.from(await speech.arrayBuffer());
+  } catch (error) {
+    if (isOpenAiAuthError(error)) {
+      throw new Error("OpenAI text-to-speech is unavailable — check OPENAI_API_KEY");
+    }
+    throw error;
+  }
+}
+
+export function agentOpenAiStatus() {
+  return { configured: isOpenAiReady() };
 }

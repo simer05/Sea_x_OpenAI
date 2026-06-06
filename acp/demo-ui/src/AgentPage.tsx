@@ -116,6 +116,51 @@ function tierClass(tier: string) {
   return "tier-backup";
 }
 
+const EMPTY_BREAKDOWN: ScoreBreakdown = {
+  halal_trust: 0,
+  price_fit: 0,
+  product_rating: 0,
+  customer_reviews: 0,
+  seller_trust: 0,
+  sold_count: 0,
+  delivery_fit: 0,
+};
+
+function normalizeAgentProduct(raw: Partial<AgentProduct> | undefined): AgentProduct | undefined {
+  if (!raw?.sku_id && !raw?.product_id) return undefined;
+  const breakdown = raw.score_breakdown ?? EMPTY_BREAKDOWN;
+  return {
+    rank: raw.rank ?? 0,
+    sku_id: raw.sku_id ?? "",
+    product_id: raw.product_id ?? "",
+    title: raw.title ?? "Unknown product",
+    description: raw.description ?? "",
+    price: raw.price ?? 0,
+    currency: raw.currency ?? "SGD",
+    seller_name: raw.seller_name ?? "",
+    halal_status: raw.halal_status ?? "unknown",
+    certificate_authority: raw.certificate_authority ?? null,
+    certificate_status: raw.certificate_status ?? "No active certificate",
+    overall_score: raw.overall_score ?? 0,
+    tier: raw.tier ?? "Not recommended",
+    score_breakdown: {
+      halal_trust: breakdown.halal_trust ?? 0,
+      price_fit: breakdown.price_fit ?? 0,
+      product_rating: breakdown.product_rating ?? 0,
+      customer_reviews: breakdown.customer_reviews ?? 0,
+      seller_trust: breakdown.seller_trust ?? 0,
+      sold_count: breakdown.sold_count ?? 0,
+      delivery_fit: breakdown.delivery_fit ?? 0,
+    },
+    recommendation_reason: raw.recommendation_reason ?? "",
+    product_url: raw.product_url ?? "/",
+    cod_available: Boolean(raw.cod_available),
+    bnpl_available: Boolean(raw.bnpl_available),
+    delivery_days: raw.delivery_days ?? "2-3 days",
+    image_url: raw.image_url ?? "/images/products/food_groceries.jpg",
+  };
+}
+
 async function speak(text: string) {
   try {
     const res = await fetch("/api/agent/tts", {
@@ -221,8 +266,14 @@ export function AgentPage() {
         ...prev,
         { id: crypto.randomUUID(), role: "assistant", content: data.reply },
       ]);
-      if (data.products) setProducts(data.products);
-      if (data.selected) setSelected(data.selected);
+      if (data.products) {
+        setProducts(
+          data.products
+            .map((product) => normalizeAgentProduct(product))
+            .filter((product): product is AgentProduct => Boolean(product)),
+        );
+      }
+      if (data.selected) setSelected(normalizeAgentProduct(data.selected));
       if (data.paymentOptions) setPayments(data.paymentOptions);
       if (data.deliveryOptions) setDeliveries(data.deliveryOptions);
       if (data.trace) setTrace(data.trace);
