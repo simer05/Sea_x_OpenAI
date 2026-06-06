@@ -232,16 +232,23 @@
                 </div>
                 <form id="pre-form" class="pre-form live-pre-form">
                   <label>
-                    Product idea
-                    <select id="pre-idea"></select>
-                  </label>
-                  <label>
                     Product title
                     <input id="pre-title" placeholder="e.g. Purple iPhone 15 case with strap" required />
                   </label>
                   <label>
                     Shopee category
-                    <input id="pre-category" placeholder="Type or choose category path" required />
+                    <input id="pre-category" list="category-suggestions" placeholder="Type or choose category path" required />
+                  </label>
+                  <datalist id="category-suggestions">
+                    <option value="Mobile & Gadgets > Mobile Accessories > Cases Covers & Skins"></option>
+                    <option value="Home & Living > Kitchenware > Water Bottles"></option>
+                    <option value="Men Clothes > Tops > T-Shirts"></option>
+                    <option value="Women Clothes > Tops > T-Shirts"></option>
+                    <option value="Mobile Accessories > Phone Cases"></option>
+                  </datalist>
+                  <label>
+                    Product type
+                    <input id="pre-product-type" placeholder="e.g. phone case, thermal bottle, custom tee" required />
                   </label>
                   <div class="form-pair">
                     <label>
@@ -250,20 +257,53 @@
                     </label>
                     <label>
                       Initial launch stock
-                      <input id="pre-stock" type="number" min="0" step="1" placeholder="Units seller plans to list" required />
+                      <input id="pre-stock" type="number" min="0" step="1" placeholder="Units seller plans to list" />
+                    </label>
+                  </div>
+                  <div class="form-pair">
+                    <label>
+                      Shipping/order
+                      <input id="pre-shipping" type="number" min="0" step="0.1" placeholder="SGD" />
+                    </label>
+                    <label>
+                      Packaging/order
+                      <input id="pre-packaging" type="number" min="0" step="0.1" placeholder="SGD" />
+                    </label>
+                  </div>
+                  <div class="form-pair">
+                    <label>
+                      Ad cost/order
+                      <input id="pre-ad-cost" type="number" min="0" step="0.1" placeholder="SGD" />
+                    </label>
+                    <label>
+                      Target area in Singapore
+                      <input id="pre-target-area" placeholder="Central, East, West, North-East, Islandwide" />
                     </label>
                   </div>
                   <label>
-                    Key features
-                    <textarea id="pre-features" rows="4" placeholder="Comma-separated features"></textarea>
+                    Colors
+                    <input id="pre-colors" placeholder="purple, black, white" />
                   </label>
+                  <label>
+                    Features
+                    <textarea id="pre-features" rows="3" placeholder="Comma-separated features"></textarea>
+                  </label>
+                  <label>
+                    Description
+                    <textarea id="pre-description" rows="4" placeholder="Main buyer benefits and proof points" required></textarea>
+                  </label>
+                  <label>
+                    Keywords
+                    <input id="pre-keywords" placeholder="Comma-separated buyer search keywords" />
+                  </label>
+                  <div class="edit-hint">Upload a photo in the panel on the right to let OpenAI fill this form. Every field remains editable for seller review.</div>
                   <button class="primary-button" type="submit">Run Pre-Launch Analysis</button>
                 </form>
               </article>
 
               <article class="panel empty-state-panel" id="pre-empty-panel">
                 <label class="empty-state upload-empty-state" for="prelaunch-photo-upload">
-                  <input id="prelaunch-photo-upload" class="upload-input" type="file" accept="image/*" />
+                  <input id="prelaunch-photo-upload" class="upload-input" type="file" accept="image/*,.heic,.heif,.webp,.png,.gif,.bmp,.tiff,.avif" />
                   <span class="empty-icon">+</span>
                   <h2 id="pre-empty-title">No pre-launch product loaded</h2>
                   <p id="pre-empty-copy">Upload a product photo here. OpenAI will fill the editable form with suggested title, category, price, target region, features, description, and keywords.</p>
