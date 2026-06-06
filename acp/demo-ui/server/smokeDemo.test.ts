@@ -83,7 +83,7 @@ async function smokeAgentChatWithInvalidOpenAi() {
     });
 
     assert.equal(response.step, "picks");
-    assert.ok(response.reply.includes("Shopee ACP") || response.reply.includes("noodle"));
+    assert.ok(response.reply.includes("Found") || response.reply.includes("Halal"));
     assert.equal(response.products?.length, 3);
   } finally {
     if (previous) process.env.OPENAI_API_KEY = previous;
