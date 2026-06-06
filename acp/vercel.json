@@ -1,0 +1,27 @@
+{
+  "buildCommand": "cd demo-ui && npm install && npm run build",
+  "outputDirectory": "demo-ui/dist",
+  "installCommand": "cd demo-ui && npm install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://sea-acp-api.fly.dev/api/:path*" },
+    { "source": "/v1/:path*", "destination": "https://sea-acp-api.fly.dev/v1/:path*" },
+    { "source": "/.well-known/:path*", "destination": "https://sea-acp-api.fly.dev/.well-known/:path*" },
+    { "source": "/checkout_sessions/:path*", "destination": "https://sea-acp-api.fly.dev/checkout_sessions/:path*" },
+    { "source": "/checkout_sessions", "destination": "https://sea-acp-api.fly.dev/checkout_sessions" },
+    { "source": "/checkout-sessions/:path*", "destination": "https://sea-acp-api.fly.dev/checkout-sessions/:path*" },
+    { "source": "/checkout-sessions", "destination": "https://sea-acp-api.fly.dev/checkout-sessions" },
+    { "source": "/orders/:path*", "destination": "https://sea-acp-api.fly.dev/orders/:path*" },
+    { "source": "/agentic_commerce/:path*", "destination": "https://sea-acp-api.fly.dev/agentic_commerce/:path*" },
+    { "source": "/agentic_checkout/:path*", "destination": "https://sea-acp-api.fly.dev/agentic_checkout/:path*" },
+    { "source": "/ucp/:path*", "destination": "https://sea-acp-api.fly.dev/ucp/:path*" }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/agent", "dest": "/agent.html" },
+    { "src": "/pre-product", "dest": "/pre-product/index.html" },
+    { "src": "/pre-product/(.*)", "dest": "/pre-product/$1" },
+    { "src": "/seller-dashboard", "dest": "/seller-dashboard/index.html" },
+    { "src": "/seller-dashboard/(.*)", "dest": "/seller-dashboard/$1" }
+  ]
+}

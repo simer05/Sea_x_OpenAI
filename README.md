@@ -4,15 +4,15 @@ Person B integration branch for **AdaptLink Seller Intelligence**.
 
 This branch brings the common AdaptLink seller dashboard together with pre-launch and post-launch product intelligence for Shopee Singapore.
 
-## Branch
+## Hosted demos (Vercel)
 
-Current branch:
-
-```text
-post_launch_seller
-```
-
-The current integration keeps the work on `post_launch_seller` and imports the pre-launch analysis source without changing the protected remote branch.
+| Surface | URL |
+|---------|-----|
+| Consumer agent | https://acp-virid.vercel.app/agent.html |
+| Shopee shop | https://acp-virid.vercel.app |
+| Pre-product seller dashboard | https://acp-virid.vercel.app/pre-product |
+| Post-launch seller dashboard | https://acp-virid.vercel.app/seller-dashboard |
+| API (Fly.io) | https://sea-acp-api.fly.dev |
 
 ## What Person B Owns
 
