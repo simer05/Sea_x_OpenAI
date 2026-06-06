@@ -1,23 +1,50 @@
 # Sea x OpenAI
 
-Project workspace for our Shopee Singapore seller-side idea.
+Person B branch for **AdaptLink Seller Intelligence**.
 
-## How We Work
+This branch focuses only on post-launch seller intelligence for Shopee Singapore: live product performance, competitor benchmarking, review and buyer-question analysis, margin protection, and revenue-growth recommendations.
 
-We will split the work into two branches so both people can build without touching the same files all the time.
+## Branch
 
-- Person 1: `feature/seller-insights`
-- Person 2: `feature/seller-ai-assistant`
+Current branch:
 
-Basic flow:
+```text
+post_launch_seller
+```
 
-1. Pull the latest `main`.
-2. Switch to your own branch.
-3. Make changes in your assigned folder/spec.
-4. Push your branch.
-5. Merge back through a pull request when ready.
+Person A will work separately later on their own pre-launch branch. This branch should not add pre-product upload, launch/no-launch scoring, or pre-launch competitor validation logic.
 
-## Specs
+## What Person B Owns
 
-- [Seller Insights Spec](seller-perspective/specs/01_seller_insights_spec.md)
-- [Seller AI Assistant Spec](seller-perspective/specs/02_seller_ai_assistant_spec.md)
+- `apps/post-launch-seller-app`
+- `modules/post-launch-seller`
+- `docs/post-launch-seller-spec.md`
+- Post-launch mock data and analysis demo scripts
+
+## Main Goal
+
+Help a live Shopee seller answer:
+
+```text
+How can I improve this product's sales, margin, and conversion after it is already launched?
+```
+
+## Data Plan
+
+For now, we will use mock Shopee-style data so the Person B branch can run and demo without being blocked by API approval.
+
+The real-data path stays documented and scaffolded. When credentials are ready, switch `DATA_MODE=real`.
+
+Needed for real mode:
+
+- Shopee Open Platform app credentials
+- Authorized seller shop access token
+- OpenAI API key for deep structured analysis
+
+```powershell
+npm install
+npm run demo:post
+npm run dev:post
+```
+
+Keep any mocked or estimated field clearly marked with a data quality warning.
