@@ -248,7 +248,7 @@ export default function Page() {
   }
 
   function cancelPreLaunchProduct() {
-    const hasCurrentProduct = Object.values(preForm).some((value) => value.trim()) || Boolean(preReport || aiInsight);
+    const hasCurrentProduct = hasPreLaunchProduct(preForm) || Boolean(preReport || aiInsight);
     const approved = !hasCurrentProduct || window.confirm("Clear this pre-launch draft and choose a different product?");
     if (!approved) return;
 
@@ -404,7 +404,7 @@ function PreLaunchView({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const fieldClass = (field: keyof PreForm) => aiFilledFields.includes(field) ? "ai-filled-field" : undefined;
-  const hasCurrentProduct = Object.values(form).some((value) => value.trim()) || Boolean(report);
+  const hasCurrentProduct = hasPreLaunchProduct(form) || Boolean(report);
   return (
     <section className="analysis-view">
       <section className="pre-workspace">
@@ -1277,6 +1277,19 @@ function isSafePreField(field: keyof PreForm) {
 
 function isPreFormAnalyzable(form: PreForm) {
   return Boolean(form.title.trim() && form.category.trim() && form.productType.trim() && numberValue(form.price) > 0 && form.description.trim());
+}
+
+function hasPreLaunchProduct(form: PreForm) {
+  return Boolean(
+    form.title.trim() ||
+    form.category.trim() ||
+    form.productType.trim() ||
+    form.price.trim() ||
+    form.description.trim() ||
+    form.features.trim() ||
+    form.photoName.trim() ||
+    form.photoDataUrl.trim()
+  );
 }
 
 function createPostLaunchListing(form: PreForm, report: PreReport, index: number): PostLaunchInput {
