@@ -45,9 +45,6 @@ case "$mode" in
     echo ""
     ;;
   terminal)
-    banner
-    echo "  Starting Codex terminal agent (hosted API)…"
-    echo ""
     cd "$ROOT/terminal-agent"
     export ACP_BASE_URL="$API_URL"
     exec pnpm exec tsx src/codex-agent.ts
