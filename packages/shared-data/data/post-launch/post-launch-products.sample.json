@@ -1,292 +1,416 @@
 [
   {
     "product": {
-      "productId": "P-SG-001",
-      "title": "Halal Vitamin C Serum",
-      "category": "Beauty > Skincare",
-      "price": 19.9,
-      "cost": 7.8,
-      "stock": 420,
-      "views": 18400,
-      "clicks": 920,
-      "orders": 62,
-      "revenue": 1233.8,
-      "adSpend": 155.5,
-      "rating": 4.55,
-      "reviews": 126,
-      "refundRate": 0.035,
-      "cancellationRate": 0.018,
-      "netMarginPercent": 0.21,
-      "conversionRate": 0.0674,
-      "ctr": 0.05
+      "productId": "P-SG-101",
+      "title": "Insulated Stainless Steel Water Bottle",
+      "category": "Home & Living > Drinkware",
+      "price": 18.9,
+      "cost": 7.4,
+      "stock": 360,
+      "views": 24600,
+      "clicks": 1320,
+      "orders": 96,
+      "revenue": 1814.4,
+      "adSpend": 210.5,
+      "rating": 4.62,
+      "reviews": 188,
+      "refundRate": 0.024,
+      "cancellationRate": 0.012,
+      "netMarginPercent": 0.26,
+      "conversionRate": 0.0727,
+      "ctr": 0.0537
     },
     "context": {
-      "segment": "Beauty and skincare",
+      "segment": "Home and lifestyle",
       "trustSignals": [
         {
-          "label": "Halal certification",
+          "label": "Leak-proof proof",
           "applies": true,
-          "evidence": "Repeated buyer questions ask whether this serum is halal certified.",
-          "action": "Show the halal badge only if certification is verified."
+          "evidence": "Buyer questions and reviews mention leakage, cap seal, and bag safety.",
+          "action": "Show a close-up seal image and short leak test claim in the first three images."
         },
         {
-          "label": "Sensitive-skin suitability",
+          "label": "Capacity clarity",
           "applies": true,
-          "evidence": "Ingredient questions appear often in chat and reviews.",
-          "action": "Add ingredient image, patch-test guidance, and sensitive-skin FAQ."
+          "evidence": "Customers compare 500ml, 750ml, and 1L bottle sizes before buying.",
+          "action": "Add a hand-size comparison image and capacity guide."
         },
         {
-          "label": "Delivery expectation",
+          "label": "Cleaning guidance",
           "applies": true,
-          "evidence": "Delivery is the main negative review theme.",
-          "action": "Clarify ship-out timing and avoid overpromising."
+          "evidence": "A few questions ask whether the bottle is dishwasher safe.",
+          "action": "Add care instructions and avoid unsupported dishwasher-safe claims."
         }
       ],
       "nonApplicableSignals": [
-        "Halal is shown because this skincare product has buyer trust questions about it. It should not appear as a universal filter for all products."
+        "Certification filters should only appear when relevant to the category or buyer questions."
       ],
-      "listingFocus": ["Certification proof", "Ingredient clarity", "Delivery promise", "Bundle margin protection"]
+      "listingFocus": ["Leak-proof proof", "Capacity guide", "Care instructions", "Bundle margin"]
     },
     "communication": {
-      "totalChats": 64,
-      "averageResponseMinutes": 118,
-      "responseWithinOneHourPercent": 0.52,
-      "unansweredRate": 0.09,
-      "buyerSatisfactionScore": 3.7
+      "totalChats": 72,
+      "averageResponseMinutes": 82,
+      "responseWithinOneHourPercent": 0.61,
+      "unansweredRate": 0.06,
+      "buyerSatisfactionScore": 4.0
     },
     "competitors": [
       {
-        "competitorId": "C-SG-101",
-        "title": "Vitamin C Brightening Serum 30ml",
-        "price": 17.8,
-        "rating": 4.82,
-        "reviews": 1240,
-        "estimatedSales": 3100,
+        "competitorId": "C-SG-301",
+        "title": "Thermal Flask 750ml Leakproof",
+        "price": 16.9,
+        "rating": 4.72,
+        "reviews": 920,
+        "estimatedSales": 2300,
         "shippingDays": 2,
         "voucherPercent": 10,
-        "keyStrength": "Lower price and stronger review count",
-        "keyWeakness": "Complaints about sticky texture"
+        "keyStrength": "Lower price and strong review count",
+        "keyWeakness": "Mixed complaints about dents"
       },
       {
-        "competitorId": "C-SG-102",
-        "title": "Halal Glow Serum Sensitive Skin",
-        "price": 21.5,
-        "rating": 4.76,
-        "reviews": 860,
-        "estimatedSales": 1800,
+        "competitorId": "C-SG-302",
+        "title": "Premium Stainless Water Bottle",
+        "price": 21.8,
+        "rating": 4.68,
+        "reviews": 610,
+        "estimatedSales": 1450,
         "shippingDays": 1,
         "voucherPercent": 8,
-        "keyStrength": "Clear halal trust signal",
+        "keyStrength": "Premium photos and fast shipping",
         "keyWeakness": "Higher price"
       },
       {
-        "competitorId": "C-SG-103",
-        "title": "Brightening Face Serum Bundle",
-        "price": 18.9,
-        "rating": 4.68,
-        "reviews": 540,
+        "competitorId": "C-SG-303",
+        "title": "Sports Water Bottle Bundle",
+        "price": 17.5,
+        "rating": 4.51,
+        "reviews": 430,
         "estimatedSales": 980,
         "shippingDays": 3,
         "voucherPercent": 12,
         "keyStrength": "Bundle value",
-        "keyWeakness": "Mixed reviews on packaging"
+        "keyWeakness": "Weak product material detail"
       }
     ],
     "reviews": [
       {
-        "reviewId": "R-001",
+        "reviewId": "R-301",
         "rating": 5,
-        "text": "Nice glow and feels light on skin.",
+        "text": "Keeps water cold and the colour looks nice.",
         "sentiment": "positive",
-        "theme": "product quality"
+        "theme": "quality"
       },
       {
-        "reviewId": "R-002",
+        "reviewId": "R-302",
         "rating": 3,
-        "text": "Works okay but delivery took longer than expected.",
+        "text": "Bottle is good but I was not sure if the cap is fully leakproof.",
         "sentiment": "mixed",
-        "theme": "delivery"
+        "theme": "leakproof"
       },
       {
-        "reviewId": "R-003",
-        "rating": 3,
-        "text": "I wanted clearer ingredient details for sensitive skin.",
-        "sentiment": "negative",
-        "theme": "ingredient"
+        "reviewId": "R-303",
+        "rating": 4,
+        "text": "Fast delivery but the size photo can be clearer.",
+        "sentiment": "mixed",
+        "theme": "size clarity"
       }
     ],
     "buyerQuestions": [
       {
-        "questionId": "Q-001",
-        "text": "Is this halal certified?",
-        "theme": "trust",
-        "frequency": 18
+        "questionId": "Q-301",
+        "text": "Will it leak if I put in my bag?",
+        "theme": "leakproof",
+        "frequency": 20
       },
       {
-        "questionId": "Q-002",
-        "text": "Can sensitive skin use this?",
-        "theme": "ingredient",
-        "frequency": 14
+        "questionId": "Q-302",
+        "text": "Is this 750ml or 1 litre?",
+        "theme": "size",
+        "frequency": 16
       },
       {
-        "questionId": "Q-003",
-        "text": "When can ship?",
-        "theme": "delivery",
-        "frequency": 9
+        "questionId": "Q-303",
+        "text": "Can wash in dishwasher?",
+        "theme": "care",
+        "frequency": 8
       }
     ],
-    "dataQualityWarnings": [
-      "Competitor sales are estimated for demo mode.",
-      "Shopee Ads data is mocked until API credentials are connected.",
-      "Buyer questions are sample themes, not live chat exports."
-    ]
+    "dataQualityWarnings": []
   },
   {
     "product": {
-      "productId": "P-SG-002",
-      "title": "Wireless Bluetooth Earbuds Pro",
-      "category": "Electronics > Audio",
-      "price": 29.9,
-      "cost": 13.5,
-      "stock": 280,
-      "views": 32000,
-      "clicks": 1150,
-      "orders": 48,
-      "revenue": 1435.2,
-      "adSpend": 280,
-      "rating": 4.32,
-      "reviews": 74,
-      "refundRate": 0.052,
-      "cancellationRate": 0.011,
-      "netMarginPercent": 0.18,
-      "conversionRate": 0.0417,
-      "ctr": 0.0359
+      "productId": "P-SG-102",
+      "title": "Oversized Cotton T-Shirt",
+      "category": "Fashion > Men Clothing",
+      "price": 15.9,
+      "cost": 6.2,
+      "stock": 520,
+      "views": 38200,
+      "clicks": 1680,
+      "orders": 74,
+      "revenue": 1176.6,
+      "adSpend": 260,
+      "rating": 4.28,
+      "reviews": 96,
+      "refundRate": 0.071,
+      "cancellationRate": 0.015,
+      "netMarginPercent": 0.17,
+      "conversionRate": 0.044,
+      "ctr": 0.044
     },
     "context": {
-      "segment": "Electronics accessories",
+      "segment": "Fashion apparel",
       "trustSignals": [
         {
-          "label": "Warranty clarity",
+          "label": "Size accuracy",
           "applies": true,
-          "evidence": "Buyers ask about warranty and authenticity before checkout.",
-          "action": "Add warranty duration, return window, and support terms near the top of the listing."
+          "evidence": "Buyer questions and returns are concentrated around fit and sizing.",
+          "action": "Add model height/weight, chest width, shoulder width, and size recommendation."
         },
         {
-          "label": "Compatibility proof",
+          "label": "Fabric quality",
           "applies": true,
-          "evidence": "Compatibility questions are the highest-frequency buyer friction.",
-          "action": "Add compatible phone models, Bluetooth version, and pairing instructions."
+          "evidence": "Reviews mention cotton thickness and shrinkage.",
+          "action": "Show fabric GSM, wash guidance, and close-up texture photo."
         },
         {
-          "label": "Battery claim evidence",
+          "label": "Colour accuracy",
           "applies": true,
-          "evidence": "Negative reviews mention battery drain.",
-          "action": "Show tested battery range and charging-case capacity without exaggeration."
+          "evidence": "Fashion products often lose trust when photos do not match delivered colour.",
+          "action": "Use natural-light photos and label colour variants clearly."
         }
       ],
       "nonApplicableSignals": [
-        "Halal certification is not relevant for this electronics product and should not be shown as a filter."
+        "Food, beauty, and electronics-specific filters should not appear for apparel unless buyer data asks for them."
       ],
-      "listingFocus": ["Compatibility table", "Warranty proof", "Battery expectation", "Bundle and ad spend control"]
+      "listingFocus": ["Size chart", "Fabric proof", "Variant photos", "Return reduction"]
     },
     "communication": {
-      "totalChats": 89,
-      "averageResponseMinutes": 46,
-      "responseWithinOneHourPercent": 0.76,
-      "unansweredRate": 0.04,
-      "buyerSatisfactionScore": 4.1
+      "totalChats": 118,
+      "averageResponseMinutes": 134,
+      "responseWithinOneHourPercent": 0.48,
+      "unansweredRate": 0.11,
+      "buyerSatisfactionScore": 3.5
     },
     "competitors": [
       {
-        "competitorId": "C-SG-201",
-        "title": "TWS Earbuds Noise Cancelling",
-        "price": 24.9,
-        "rating": 4.75,
-        "reviews": 1820,
-        "estimatedSales": 4200,
+        "competitorId": "C-SG-401",
+        "title": "Plain Oversized Tee",
+        "price": 12.9,
+        "rating": 4.55,
+        "reviews": 1480,
+        "estimatedSales": 5200,
         "shippingDays": 2,
-        "voucherPercent": 12,
-        "keyStrength": "Cheaper with strong review base",
-        "keyWeakness": "Battery life complaints"
+        "voucherPercent": 15,
+        "keyStrength": "Lower price and strong volume",
+        "keyWeakness": "Thin fabric complaints"
       },
       {
-        "competitorId": "C-SG-202",
-        "title": "Bluetooth 5.3 Gaming Earbuds",
-        "price": 31.5,
-        "rating": 4.61,
-        "reviews": 920,
-        "estimatedSales": 1650,
+        "competitorId": "C-SG-402",
+        "title": "Heavy Cotton Drop Shoulder T-Shirt",
+        "price": 19.9,
+        "rating": 4.63,
+        "reviews": 730,
+        "estimatedSales": 2100,
         "shippingDays": 1,
         "voucherPercent": 8,
-        "keyStrength": "Clear low-latency positioning",
-        "keyWeakness": "Higher return concerns"
+        "keyStrength": "Clear fabric positioning",
+        "keyWeakness": "Higher price"
       },
       {
-        "competitorId": "C-SG-203",
-        "title": "Wireless Earbuds With Charging Case",
-        "price": 27.9,
-        "rating": 4.5,
-        "reviews": 610,
-        "estimatedSales": 1100,
+        "competitorId": "C-SG-403",
+        "title": "Unisex Streetwear Tee",
+        "price": 14.8,
+        "rating": 4.34,
+        "reviews": 520,
+        "estimatedSales": 1600,
         "shippingDays": 3,
-        "voucherPercent": 15,
-        "keyStrength": "Aggressive voucher",
-        "keyWeakness": "Weak warranty detail"
+        "voucherPercent": 12,
+        "keyStrength": "Better variant photos",
+        "keyWeakness": "Slow shipping"
       }
     ],
     "reviews": [
       {
-        "reviewId": "R-201",
-        "rating": 4,
-        "text": "Sound is good for the price but battery is shorter than expected.",
-        "sentiment": "mixed",
-        "theme": "battery"
-      },
-      {
-        "reviewId": "R-202",
+        "reviewId": "R-401",
         "rating": 3,
-        "text": "Had to ask seller whether it works with iPhone.",
+        "text": "Nice design but size feels smaller than expected.",
         "sentiment": "negative",
-        "theme": "compatibility"
+        "theme": "size"
       },
       {
-        "reviewId": "R-203",
+        "reviewId": "R-402",
+        "rating": 4,
+        "text": "Material is okay for the price.",
+        "sentiment": "mixed",
+        "theme": "fabric"
+      },
+      {
+        "reviewId": "R-403",
         "rating": 5,
-        "text": "Fast delivery and easy pairing.",
+        "text": "Colour is nice and delivery was fast.",
         "sentiment": "positive",
-        "theme": "setup"
+        "theme": "delivery"
       }
     ],
     "buyerQuestions": [
       {
-        "questionId": "Q-201",
-        "text": "Can use with iPhone and Samsung?",
-        "theme": "compatibility",
-        "frequency": 22
+        "questionId": "Q-401",
+        "text": "I am 175cm, what size should I buy?",
+        "theme": "size",
+        "frequency": 34
       },
       {
-        "questionId": "Q-202",
-        "text": "How many hours can the battery last?",
-        "theme": "battery",
-        "frequency": 17
+        "questionId": "Q-402",
+        "text": "Is the material thick?",
+        "theme": "fabric",
+        "frequency": 18
       },
       {
-        "questionId": "Q-203",
-        "text": "Is there warranty?",
-        "theme": "warranty",
-        "frequency": 11
-      },
-      {
-        "questionId": "Q-204",
-        "text": "Can ship today?",
-        "theme": "delivery",
-        "frequency": 7
+        "questionId": "Q-403",
+        "text": "Can exchange if size wrong?",
+        "theme": "return",
+        "frequency": 13
       }
     ],
-    "dataQualityWarnings": [
-      "Competitor sales are estimated for demo mode.",
-      "Compatibility questions are sample chat themes until Shopee chat access is connected.",
-      "Ad spend is mocked until Shopee marketing data is connected."
-    ]
+    "dataQualityWarnings": []
+  },
+  {
+    "product": {
+      "productId": "P-SG-103",
+      "title": "Shockproof Clear Phone Case",
+      "category": "Mobile Accessories > Phone Cases",
+      "price": 9.9,
+      "cost": 3.1,
+      "stock": 740,
+      "views": 42100,
+      "clicks": 2050,
+      "orders": 155,
+      "revenue": 1534.5,
+      "adSpend": 190,
+      "rating": 4.71,
+      "reviews": 312,
+      "refundRate": 0.022,
+      "cancellationRate": 0.009,
+      "netMarginPercent": 0.31,
+      "conversionRate": 0.0756,
+      "ctr": 0.0487
+    },
+    "context": {
+      "segment": "Mobile accessories",
+      "trustSignals": [
+        {
+          "label": "Model compatibility",
+          "applies": true,
+          "evidence": "Questions cluster around phone model fit and camera cutout.",
+          "action": "Put compatible models in title, first image, and variant names."
+        },
+        {
+          "label": "Protection proof",
+          "applies": true,
+          "evidence": "Competitors highlight corner protection and drop resistance.",
+          "action": "Show corner bumpers, raised camera lip, and edge thickness."
+        },
+        {
+          "label": "Yellowing expectation",
+          "applies": true,
+          "evidence": "Clear cases often receive buyer concern around yellowing.",
+          "action": "State material type and realistic anti-yellowing claim."
+        }
+      ],
+      "nonApplicableSignals": [
+        "Fashion size charts and beauty certification filters should not appear for a phone case."
+      ],
+      "listingFocus": ["Model fit", "Protection proof", "Variant clarity", "Anti-yellowing expectation"]
+    },
+    "communication": {
+      "totalChats": 54,
+      "averageResponseMinutes": 38,
+      "responseWithinOneHourPercent": 0.81,
+      "unansweredRate": 0.03,
+      "buyerSatisfactionScore": 4.4
+    },
+    "competitors": [
+      {
+        "competitorId": "C-SG-501",
+        "title": "Transparent iPhone Shockproof Case",
+        "price": 8.9,
+        "rating": 4.78,
+        "reviews": 2100,
+        "estimatedSales": 7800,
+        "shippingDays": 1,
+        "voucherPercent": 8,
+        "keyStrength": "High trust and fast delivery",
+        "keyWeakness": "Yellowing complaints"
+      },
+      {
+        "competitorId": "C-SG-502",
+        "title": "MagSafe Clear Phone Case",
+        "price": 12.5,
+        "rating": 4.62,
+        "reviews": 980,
+        "estimatedSales": 3100,
+        "shippingDays": 2,
+        "voucherPercent": 10,
+        "keyStrength": "Better feature positioning",
+        "keyWeakness": "Higher price"
+      },
+      {
+        "competitorId": "C-SG-503",
+        "title": "Slim TPU Case Bundle",
+        "price": 7.9,
+        "rating": 4.42,
+        "reviews": 640,
+        "estimatedSales": 1900,
+        "shippingDays": 3,
+        "voucherPercent": 15,
+        "keyStrength": "Low price bundle",
+        "keyWeakness": "Weak model-fit detail"
+      }
+    ],
+    "reviews": [
+      {
+        "reviewId": "R-501",
+        "rating": 5,
+        "text": "Fits my phone well and buttons are easy to press.",
+        "sentiment": "positive",
+        "theme": "fit"
+      },
+      {
+        "reviewId": "R-502",
+        "rating": 4,
+        "text": "Looks clear now, hope it will not turn yellow.",
+        "sentiment": "mixed",
+        "theme": "yellowing"
+      },
+      {
+        "reviewId": "R-503",
+        "rating": 4,
+        "text": "Good protection but variant names can be clearer.",
+        "sentiment": "mixed",
+        "theme": "variant clarity"
+      }
+    ],
+    "buyerQuestions": [
+      {
+        "questionId": "Q-501",
+        "text": "Does it fit iPhone 15 Pro Max?",
+        "theme": "compatibility",
+        "frequency": 24
+      },
+      {
+        "questionId": "Q-502",
+        "text": "Will it turn yellow?",
+        "theme": "material",
+        "frequency": 15
+      },
+      {
+        "questionId": "Q-503",
+        "text": "Is camera lens protected?",
+        "theme": "protection",
+        "frequency": 12
+      }
+    ],
+    "dataQualityWarnings": []
   }
 ]

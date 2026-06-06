@@ -14,7 +14,7 @@ Use OpenAI for the judgment-heavy parts of Person B's work:
 Recommended setup:
 
 ```env
-AI_MODE=mock
+AI_MODE=analysis
 OPENAI_MODEL=gpt-5.5
 OPENAI_FALLBACK_MODEL=gpt-5.4-mini
 ```
@@ -32,7 +32,7 @@ Use the higher-capability model for final analysis and judging tradeoffs. Use th
 
 ## API Keys Needed
 
-Mock mode is the current working mode. Real mode needs keys when Shopee API access is approved.
+The dashboard can run locally now. Official seller-data mode needs keys when Shopee API access is approved.
 
 Required:
 
@@ -41,7 +41,7 @@ Required:
 
 ## Shopee API Need
 
-For the current build, use mock Shopee-style data. For the final demo, switch to real seller data through Shopee APIs if the app credentials are approved in time.
+For the current build, use curated seller-style product records. For the final demo, switch to seller data through Shopee APIs if the app credentials are approved in time.
 
 For live data, we need Shopee Open Platform or approved seller exports for:
 
@@ -64,4 +64,4 @@ Competitor data is the hardest part. Use only approved sources: official APIs, a
 6. Normalize everything into `PostLaunchInput`.
 7. Send the normalized object to OpenAI for structured revenue analysis.
 
-If any Shopee permission is not available, keep that field marked with a data quality warning instead of pretending it is real.
+If any Shopee permission is not available, keep that field out of official reporting until an approved source is connected.

@@ -8,14 +8,9 @@ Owner: Person B
 
 Build the post-launch side of AdaptLink Seller Intelligence for Shopee Singapore sellers. The module should help a seller improve a live product's revenue, margin, conversion, trust, and competitive position.
 
-## Not In This Branch
+## Integration Note
 
-- Pre-product upload
-- Launch/no-launch scoring
-- Product idea validation
-- Pre-launch market entry recommendation
-
-Person A can build those later in a separate branch.
+The branch now includes the shared seller dashboard shell with working Pre-Launch and Post-Launch tabs. Person B still owns the post-launch seller intelligence module.
 
 ## Inputs
 
@@ -60,8 +55,8 @@ The report should include:
 - Buyer-question themes
 - Margin-aware pricing/voucher recommendation
 - Top 3 to 5 actions ranked by priority
-- Data quality warnings
+- Source readiness notes
 
-## Real Data Rule
+## Official Data Rule
 
-Anything displayed as live must come from Shopee API access or a seller-owned export. If we only have sample data, the UI and report must label it as mock/estimated.
+Anything displayed as official live data must come from Shopee API access or a seller-owned export.

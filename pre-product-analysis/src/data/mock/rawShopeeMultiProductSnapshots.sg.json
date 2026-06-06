@@ -1,0 +1,52 @@
+{
+  "note": "Mock Shopee-like API snapshots for demo only. These are not live Shopee Open API responses.",
+  "region": "SG",
+  "generated_at": "2026-06-06T12:00:00+08:00",
+  "categories": [
+    {
+      "category_id": 102010,
+      "category_path": [
+        "Home & Living",
+        "Kitchenware",
+        "Water Bottles"
+      ],
+      "mock_products": [
+        "simple plastic bottle",
+        "Stanley-style handled tumbler",
+        "thermal coated stainless steel bottle"
+      ]
+    },
+    {
+      "category_id": 103020,
+      "category_path": [
+        "Men Clothes",
+        "Tops",
+        "T-Shirts"
+      ],
+      "mock_products": [
+        "plain cotton T-shirt",
+        "sci-fi fiction graphic T-shirt",
+        "customizable print T-shirt"
+      ]
+    }
+  ],
+  "mock_endpoints": {
+    "product.get_item_base_info": [
+      "bottle_cmp_001",
+      "bottle_cmp_002",
+      "bottle_cmp_003",
+      "tshirt_cmp_001",
+      "tshirt_cmp_002",
+      "tshirt_cmp_003"
+    ],
+    "product.get_model_list": [
+      "color and size variants for bottle and T-shirt listings"
+    ],
+    "product.get_comment": [
+      "review ratings and pain-point comments per competitor"
+    ],
+    "category.get": [
+      "mock category ids and category paths"
+    ]
+  }
+}
