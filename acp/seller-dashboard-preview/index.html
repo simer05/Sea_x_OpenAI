@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AdaptLink Seller Intelligence</title>
+    <link rel="stylesheet" href="./src/app/globals.css" />
+  </head>
+  <body>
+    <div class="seller-console">
+      <aside class="seller-sidebar" aria-label="Shopee seller navigation">
+        <div class="shopee-lockup">
+          <button class="icon-button" type="button" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div class="shopee-logo" aria-label="Shopee">
+            <span class="bag-mark">S</span>
+            <strong>Shopee</strong>
+          </div>
+        </div>
+
+        <nav class="side-nav">
+          <a href="#"><span class="nav-icon home"></span>Overview</a>
+          <a href="#" class="open"><span class="nav-icon analytics"></span>Product Analytics</a>
+          <button class="side-subnav" type="button" data-mode="pre">Pre-Launch</button>
+          <button class="side-subnav active" type="button" data-mode="post">Post-Launch</button>
+          <a href="#"><span class="nav-icon trend"></span>Performance Trends</a>
+          <a href="#"><span class="nav-icon competitor"></span>Competitor Insights</a>
+          <a href="#"><span class="nav-icon market"></span>Market Insights</a>
+          <a href="#"><span class="nav-icon search"></span>Search Insights</a>
+          <a href="#"><span class="nav-icon report"></span>Reports</a>
+          <a href="#"><span class="nav-icon alert"></span>Alerts</a>
+          <a href="#"><span class="nav-icon gear"></span>Settings</a>
+        </nav>
+
+        <section class="sidebar-card product-switcher" aria-label="Seller existing products">
+          <div class="sidebar-card-title">
+            <span>Seller Existing Products</span>
+            <strong id="sidebar-product-count">3</strong>
+          </div>
+          <div id="product-list" class="product-list"></div>
+        </section>
+      </aside>
+
+      <main class="seller-main">
+        <header class="global-bar">
+          <div class="brand-area">
+            <span class="adapt-mark"></span>
+            <strong>AdaptLink</strong>
+            <span>Seller Intelligence</span>
+          </div>
+          <div class="store-area">
+            <button class="notify-button" type="button" aria-label="Notifications">
+              <span class="bell-shape"></span>
+              <b>3</b>
+            </button>
+            <div class="store-card">
+              <span class="store-icon"></span>
+              <div>
+                <strong>My Home Living Store</strong>
+                <small>Shopee Mall</small>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="dashboard-content">
+          <section class="page-head">
+            <div>
+              <h1 id="page-title">Post-Launch Product Intelligence</h1>
+              <p id="page-copy">Track performance, benchmark competitors, and optimize existing listings for growth.</p>
+            </div>
+            <div class="head-actions">
+              <label class="range-picker">
+                <span class="calendar-icon"></span>
+                <select id="timeframe-select" aria-label="Select timeframe"></select>
+              </label>
+              <div class="openai-pill" aria-label="Powered by OpenAI">
+                <span class="openai-logo" aria-hidden="true"></span>
+                <strong>Powered by OpenAI</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="mode-switch" aria-label="Analysis stage">
+            <button class="mode-button" type="button" data-mode="pre">
+              <span>Pre-Launch</span>
+              <strong>Validate new product idea</strong>
+            </button>
+            <button class="mode-button active" type="button" data-mode="post">
+              <span>Post-Launch</span>
+              <strong>Improve existing product</strong>
+            </button>
+          </section>
+
+          <section id="post-view" class="analysis-view">
+            <section class="kpi-grid" aria-label="Post-launch key metrics">
+              <article class="kpi-card accent-orange">
+                <div class="kpi-top"><span class="kpi-icon sales"></span><span>Sales</span></div>
+                <strong id="kpi-sales">--</strong>
+                <small id="kpi-sales-delta">--</small>
+                <div id="spark-sales" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-orange">
+                <div class="kpi-top"><span class="kpi-icon funnel"></span><span>Conversion Rate</span></div>
+                <strong id="kpi-conversion">--</strong>
+                <small id="kpi-conversion-delta">--</small>
+                <div id="spark-conversion" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-green">
+                <div class="kpi-top"><span class="kpi-icon health"></span><span>Product Health Score</span></div>
+                <strong><span id="kpi-health">--</span><em>/100</em></strong>
+                <small id="kpi-health-delta">--</small>
+                <div id="spark-health" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-orange">
+                <div class="kpi-top"><span class="kpi-icon margin"></span><span>Net Margin</span></div>
+                <strong id="kpi-margin">--</strong>
+                <small id="kpi-margin-delta">--</small>
+                <div id="spark-margin" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-purple">
+                <div class="kpi-top"><span class="kpi-icon reviews"></span><span>Reviews</span></div>
+                <strong id="kpi-reviews">--</strong>
+                <small id="kpi-reviews-delta">--</small>
+                <div id="spark-reviews" class="sparkline"></div>
+              </article>
+              <article class="kpi-card accent-blue">
+                <div class="kpi-top"><span class="kpi-icon trophy"></span><span>Competitor Position</span></div>
+                <strong id="kpi-competitor">--</strong>
+                <small id="kpi-competitor-delta">--</small>
+                <div id="spark-competitor" class="sparkline"></div>
+              </article>
+            </section>
+
+            <section class="main-grid">
+              <article class="panel sales-funnel-panel">
+                <div class="panel-heading">
+                  <h2>Sales Funnel</h2>
+                  <span id="funnel-summary">--</span>
+                </div>
+                <div class="funnel-layout">
+                  <div id="funnel-visual" class="funnel-visual"></div>
+                  <div id="funnel-table" class="funnel-table"></div>
+                </div>
+                <p class="panel-note" id="ctr-note"></p>
+              </article>
+
+              <article class="panel trend-panel">
+                <div class="panel-heading">
+                  <h2>Sales Trend</h2>
+                  <select class="compact-select" aria-label="Trend granularity">
+                    <option>Daily</option>
+                    <option>Weekly</option>
+                    <option>Monthly</option>
+                  </select>
+                </div>
+                <div id="sales-trend" class="line-chart"></div>
+              </article>
+
+              <article class="panel benchmark-panel">
+                <div class="panel-heading">
+                  <h2>Competitor Benchmark</h2>
+                  <span id="benchmark-summary">--</span>
+                </div>
+                <div class="benchmark-table" id="competitor-benchmark"></div>
+              </article>
+
+              <article class="panel health-driver-panel">
+                <div class="panel-heading">
+                  <h2>Health Score Drivers</h2>
+                  <span id="health-driver-summary">Weighted score</span>
+                </div>
+                <div id="health-drivers" class="driver-grid"></div>
+              </article>
+
+              <article class="panel response-panel">
+                <div class="panel-heading">
+                  <h2>Seller Response Experience</h2>
+                  <span id="response-summary">--</span>
+                </div>
+                <div id="response-metrics" class="response-grid"></div>
+              </article>
+
+              <article class="panel review-panel">
+                <div class="panel-heading">
+                  <h2>Review Insights</h2>
+                  <span id="review-base">--</span>
+                </div>
+                <div class="theme-columns">
+                  <div>
+                    <h3>Positive Themes</h3>
+                    <div id="positive-themes" class="theme-list"></div>
+                  </div>
+                  <div>
+                    <h3>Negative Themes</h3>
+                    <div id="negative-themes" class="theme-list danger"></div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="panel sentiment-panel">
+                <div class="panel-heading">
+                  <h2>Review Sentiment</h2>
+                </div>
+                <div id="sentiment-donut" class="donut"></div>
+                <div id="sentiment-legend" class="legend-list"></div>
+                <div class="sentiment-score">
+                  <span>Sentiment Score</span>
+                  <strong id="sentiment-score">--</strong>
+                </div>
+              </article>
+
+              <article class="panel questions-panel">
+                <div class="panel-heading">
+                  <h2>Buyer Questions Insights</h2>
+                  <span id="question-total">--</span>
+                </div>
+                <div id="buyer-questions" class="question-list"></div>
+              </article>
+
+              <article class="panel action-panel">
+                <div class="panel-heading">
+                  <h2>AI Action Plan</h2>
+                  <span id="action-priority-count">--</span>
+                </div>
+                <div id="ai-actions" class="action-plan"></div>
+              </article>
+
+              <article class="panel improvement-panel">
+                <div class="panel-heading">
+                  <h2>Next Improvement Areas</h2>
+                  <span id="improvement-summary">--</span>
+                </div>
+                <div id="improvement-areas" class="improvement-list"></div>
+              </article>
+            </section>
+          </section>
+
+          <section id="pre-view" class="analysis-view hidden">
+            <section class="pre-grid">
+              <article class="panel pre-input-panel">
+                <div class="panel-heading">
+                  <h2>Pre-Launch Product Input</h2>
+                  <span>Agent-ready</span>
+                </div>
+                <form id="pre-form" class="pre-form">
+                  <label>
+                    Product idea
+                    <select id="pre-idea"></select>
+                  </label>
+                  <label>
+                    Product title
+                    <input id="pre-title" required />
+                  </label>
+                  <label>
+                    Shopee category
+                    <input id="pre-category" required />
+                  </label>
+                  <div class="form-split">
+                    <label>
+                      Target price
+                      <input id="pre-price" type="number" min="0" step="0.1" required />
+                    </label>
+                    <label>
+                      Initial stock
+                      <input id="pre-stock" type="number" min="0" step="1" required />
+                    </label>
+                  </div>
+                  <label>
+                    Key features
+                    <textarea id="pre-features" rows="4"></textarea>
+                  </label>
+                  <button class="primary-button" type="submit">Run Pre-Launch Analysis</button>
+                </form>
+              </article>
+
+              <article class="panel pre-decision-panel">
+                <div class="panel-heading">
+                  <h2>Launch Decision</h2>
+                  <span id="pre-confidence">--</span>
+                </div>
+                <div class="decision-card">
+                  <div>
+                    <span>Recommendation</span>
+                    <strong id="pre-recommendation">--</strong>
+                    <p id="pre-summary">Choose an idea and run the analysis.</p>
+                  </div>
+                  <div id="pre-score" class="score-ring">--</div>
+                </div>
+              </article>
+
+              <article class="panel pre-metrics-panel">
+                <div class="panel-heading">
+                  <h2>Market Readiness</h2>
+                  <span>Before launch</span>
+                </div>
+                <div id="pre-metrics" class="pre-metrics"></div>
+              </article>
+
+              <article class="panel pre-comparison-panel">
+                <div class="panel-heading">
+                  <h2>Competitor Snapshot</h2>
+                  <span id="pre-market-badge">Shopee SG</span>
+                </div>
+                <div id="pre-comparison" class="benchmark-table"></div>
+              </article>
+
+              <article class="panel pre-margin-panel">
+                <div class="panel-heading">
+                  <h2>Price, Cost & Stock Plan</h2>
+                  <span id="pre-margin-badge">--</span>
+                </div>
+                <div id="pre-margin" class="margin-grid"></div>
+              </article>
+
+              <article class="panel pre-readiness-panel">
+                <div class="panel-heading">
+                  <h2>Listing Readiness</h2>
+                  <span id="pre-readiness-badge">--</span>
+                </div>
+                <div id="pre-readiness" class="readiness-list"></div>
+              </article>
+
+              <article class="panel pre-actions-panel">
+                <div class="panel-heading">
+                  <h2>Launch Action Plan</h2>
+                  <span id="pre-action-count">--</span>
+                </div>
+                <div id="pre-actions" class="action-plan"></div>
+              </article>
+            </section>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="./dashboard-preview.js"></script>
+  </body>
+</html>

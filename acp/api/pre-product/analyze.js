@@ -1,13 +1,13 @@
 const path = require("node:path");
 
 const { analyzePreProduct } = require(
-  path.join(__dirname, "../../../pre-product-analysis/src/analysis/preProductAnalyzer.js"),
+  path.join(__dirname, "../../pre-product-analysis/src/analysis/preProductAnalyzer.js"),
 );
 const multiProductCompetitors = require(
-  path.join(__dirname, "../../../pre-product-analysis/src/data/mock/multiProductCompetitors.sg.json"),
+  path.join(__dirname, "../../pre-product-analysis/src/data/mock/multiProductCompetitors.sg.json"),
 );
 const phoneCaseCompetitors = require(
-  path.join(__dirname, "../../../pre-product-analysis/src/data/mock/phoneCaseCompetitors.sg.json"),
+  path.join(__dirname, "../../pre-product-analysis/src/data/mock/phoneCaseCompetitors.sg.json"),
 );
 
 function chooseCompetitors(categoryPath) {

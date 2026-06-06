@@ -1,0 +1,888 @@
+[
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "seller_input",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_model_list"
+      ],
+      "raw_snapshot_id": "raw_mock_simple_plastic_bottle_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "seller_sku": "BOTTLE_SIMPLE_PLASTIC_750ML",
+      "item_status": "PLANNED"
+    },
+    "shop_identity": {
+      "shop_name": "Seller Draft SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Simple BPA-Free Plastic Water Bottle 750ml for School and Gym",
+      "description": "Lightweight BPA-free plastic water bottle for school, gym, office, and daily use. Easy to carry, simple to clean, and available in multiple colors for everyday hydration.",
+      "bullet_features": [
+        "BPA-free plastic",
+        "750ml capacity",
+        "Lightweight daily bottle",
+        "School and gym use"
+      ],
+      "keywords": [
+        "plastic water bottle",
+        "bpa free bottle",
+        "school water bottle",
+        "gym bottle singapore"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://simple-plastic-bottle-main.jpg",
+        "mock://simple-plastic-bottle-colors.jpg",
+        "mock://simple-plastic-bottle-size.jpg"
+      ],
+      "image_count": 3,
+      "vision_tags": [
+        "water bottle",
+        "plastic bottle",
+        "school bottle",
+        "gym bottle"
+      ],
+      "image_quality_score": 72,
+      "missing_visuals": [
+        "no leak test photo",
+        "no lifestyle gym photo"
+      ]
+    },
+    "taxonomy": {
+      "category_id": 102010,
+      "category_path": [
+        "Home & Living",
+        "Kitchenware",
+        "Water Bottles"
+      ],
+      "category_depth": 3,
+      "product_type": "water_bottle",
+      "brand": null,
+      "condition": "new"
+    },
+    "attributes": {
+      "material": "plastic",
+      "capacity_ml": 750,
+      "insulation": "none",
+      "certifications": [
+        "BPA-free"
+      ],
+      "color": [
+        "blue",
+        "pink",
+        "black"
+      ],
+      "size": "750ml"
+    },
+    "variants": [
+      {
+        "model_sku": "BOTTLE_SIMPLE_PLASTIC_750ML_BLUE",
+        "variation_name": "Blue",
+        "price": 8.9,
+        "currency": "SGD",
+        "stock": 120
+      },
+      {
+        "model_sku": "BOTTLE_SIMPLE_PLASTIC_750ML_PINK",
+        "variation_name": "Pink",
+        "price": 8.9,
+        "currency": "SGD",
+        "stock": 90
+      },
+      {
+        "model_sku": "BOTTLE_SIMPLE_PLASTIC_750ML_BLACK",
+        "variation_name": "Black",
+        "price": 8.9,
+        "currency": "SGD",
+        "stock": 100
+      }
+    ],
+    "commerce": {
+      "listing_price": 8.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": true,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "school essentials",
+        "bundle friendly"
+      ]
+    },
+    "fees_and_margin": {
+      "product_cost": 2.6,
+      "fee_assumptions": {
+        "shopeeFeeRate": 0.08,
+        "transactionFeeRate": 0.022,
+        "shippingSubsidy": 0.6,
+        "voucherCost": 0.3,
+        "packagingCost": 0.35,
+        "adCostPerOrder": 0.5
+      }
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "delivery_type": "local_delivery",
+      "estimated_delivery_days": 2
+    },
+    "agent_processing": {
+      "target_use_case": "lightweight plastic water bottle for school gym and daily use"
+    },
+    "data_quality": {
+      "warnings": [
+        "Mock Shopee SG marketplace data for demo only."
+      ],
+      "confidence": "medium"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "seller_input",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_model_list"
+      ],
+      "raw_snapshot_id": "raw_mock_stanley_style_tumbler_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "seller_sku": "BOTTLE_STANLEY_STYLE_1200ML",
+      "item_status": "PLANNED"
+    },
+    "shop_identity": {
+      "shop_name": "Seller Draft SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Stanley-Style Stainless Steel Tumbler 1200ml with Handle and Straw",
+      "description": "Large stainless steel tumbler inspired by viral handled cup designs. Comes with straw, handle, splash-resistant lid, and premium colors for office, gym, and commute use.",
+      "bullet_features": [
+        "1200ml capacity",
+        "Handle and straw included",
+        "Stainless steel body",
+        "Premium lifestyle design"
+      ],
+      "keywords": [
+        "stanley style tumbler",
+        "large tumbler with straw",
+        "stainless steel tumbler",
+        "handle water bottle"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://stanley-style-main.jpg",
+        "mock://stanley-style-colors.jpg",
+        "mock://stanley-style-office.jpg",
+        "mock://stanley-style-car-cupholder.jpg"
+      ],
+      "image_count": 4,
+      "vision_tags": [
+        "tumbler",
+        "stainless steel bottle",
+        "handle cup",
+        "straw cup"
+      ],
+      "image_quality_score": 84,
+      "missing_visuals": [
+        "no insulation duration test"
+      ]
+    },
+    "taxonomy": {
+      "category_id": 102010,
+      "category_path": [
+        "Home & Living",
+        "Kitchenware",
+        "Water Bottles"
+      ],
+      "category_depth": 3,
+      "product_type": "tumbler",
+      "brand": null,
+      "condition": "new"
+    },
+    "attributes": {
+      "material": "stainless steel",
+      "capacity_ml": 1200,
+      "insulation": "double-wall",
+      "includes": [
+        "straw",
+        "handle",
+        "lid"
+      ],
+      "color": [
+        "cream",
+        "pink",
+        "black"
+      ],
+      "size": "1200ml"
+    },
+    "variants": [
+      {
+        "model_sku": "BOTTLE_STANLEY_STYLE_1200ML_CREAM",
+        "variation_name": "Cream",
+        "price": 32.9,
+        "currency": "SGD",
+        "stock": 60
+      },
+      {
+        "model_sku": "BOTTLE_STANLEY_STYLE_1200ML_PINK",
+        "variation_name": "Pink",
+        "price": 32.9,
+        "currency": "SGD",
+        "stock": 70
+      },
+      {
+        "model_sku": "BOTTLE_STANLEY_STYLE_1200ML_BLACK",
+        "variation_name": "Black",
+        "price": 32.9,
+        "currency": "SGD",
+        "stock": 50
+      }
+    ],
+    "commerce": {
+      "listing_price": 32.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": true,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "viral tumbler",
+        "premium"
+      ]
+    },
+    "fees_and_margin": {
+      "product_cost": 13.5,
+      "fee_assumptions": {
+        "shopeeFeeRate": 0.08,
+        "transactionFeeRate": 0.022,
+        "shippingSubsidy": 1.8,
+        "voucherCost": 1.2,
+        "packagingCost": 1.1,
+        "adCostPerOrder": 2.4
+      }
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "delivery_type": "local_delivery",
+      "estimated_delivery_days": 2
+    },
+    "agent_processing": {
+      "target_use_case": "large stainless steel tumbler with handle straw for office gym commute"
+    },
+    "data_quality": {
+      "warnings": [
+        "Mock Shopee SG marketplace data for demo only.",
+        "Use Stanley-style wording only if the product is not represented as official Stanley brand."
+      ],
+      "confidence": "medium"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "seller_input",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_model_list"
+      ],
+      "raw_snapshot_id": "raw_mock_thermal_bottle_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "seller_sku": "BOTTLE_THERMAL_COATED_500ML",
+      "item_status": "PLANNED"
+    },
+    "shop_identity": {
+      "shop_name": "Seller Draft SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Thermal Coated Stainless Steel Water Bottle 500ml Leakproof",
+      "description": "Compact thermal coated stainless steel bottle for hot and cold drinks. Leakproof design for office, school, travel, and commute use in Singapore.",
+      "bullet_features": [
+        "Thermal coated bottle",
+        "Hot and cold drink support",
+        "Leakproof lid",
+        "Compact 500ml size"
+      ],
+      "keywords": [
+        "thermal water bottle",
+        "stainless steel bottle",
+        "leakproof bottle",
+        "hot cold bottle"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://thermal-bottle-main.jpg",
+        "mock://thermal-bottle-temperature.jpg",
+        "mock://thermal-bottle-leakproof.jpg",
+        "mock://thermal-bottle-bag.jpg"
+      ],
+      "image_count": 4,
+      "vision_tags": [
+        "thermal bottle",
+        "stainless steel bottle",
+        "leakproof bottle",
+        "water bottle"
+      ],
+      "image_quality_score": 81,
+      "missing_visuals": []
+    },
+    "taxonomy": {
+      "category_id": 102010,
+      "category_path": [
+        "Home & Living",
+        "Kitchenware",
+        "Water Bottles"
+      ],
+      "category_depth": 3,
+      "product_type": "thermal_bottle",
+      "brand": null,
+      "condition": "new"
+    },
+    "attributes": {
+      "material": "stainless steel",
+      "capacity_ml": 500,
+      "insulation": "thermal-coated",
+      "color": [
+        "silver",
+        "black",
+        "green"
+      ],
+      "size": "500ml"
+    },
+    "variants": [
+      {
+        "model_sku": "BOTTLE_THERMAL_COATED_500ML_SILVER",
+        "variation_name": "Silver",
+        "price": 19.9,
+        "currency": "SGD",
+        "stock": 80
+      },
+      {
+        "model_sku": "BOTTLE_THERMAL_COATED_500ML_BLACK",
+        "variation_name": "Black",
+        "price": 19.9,
+        "currency": "SGD",
+        "stock": 90
+      },
+      {
+        "model_sku": "BOTTLE_THERMAL_COATED_500ML_GREEN",
+        "variation_name": "Green",
+        "price": 19.9,
+        "currency": "SGD",
+        "stock": 60
+      }
+    ],
+    "commerce": {
+      "listing_price": 19.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": true,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "office essentials",
+        "travel"
+      ]
+    },
+    "fees_and_margin": {
+      "product_cost": 7.4,
+      "fee_assumptions": {
+        "shopeeFeeRate": 0.08,
+        "transactionFeeRate": 0.022,
+        "shippingSubsidy": 1,
+        "voucherCost": 0.8,
+        "packagingCost": 0.8,
+        "adCostPerOrder": 1.2
+      }
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "delivery_type": "local_delivery",
+      "estimated_delivery_days": 2
+    },
+    "agent_processing": {
+      "target_use_case": "thermal leakproof stainless steel water bottle for office travel school"
+    },
+    "data_quality": {
+      "warnings": [
+        "Mock Shopee SG marketplace data for demo only."
+      ],
+      "confidence": "medium"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "seller_input",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_model_list"
+      ],
+      "raw_snapshot_id": "raw_mock_plain_tshirt_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "seller_sku": "TSHIRT_PLAIN_COTTON_UNISEX",
+      "item_status": "PLANNED"
+    },
+    "shop_identity": {
+      "shop_name": "Seller Draft SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Plain Cotton Unisex T-Shirt Multiple Colors",
+      "description": "Comfortable plain cotton unisex T-shirt for casual wear, layering, school events, and bulk orders. Available in multiple colors and sizes.",
+      "bullet_features": [
+        "Plain cotton tee",
+        "Unisex fit",
+        "Multiple colors",
+        "Bulk order friendly"
+      ],
+      "keywords": [
+        "plain tshirt",
+        "cotton t shirt",
+        "unisex tshirt",
+        "basic tee singapore"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://plain-tshirt-main.jpg",
+        "mock://plain-tshirt-colors.jpg",
+        "mock://plain-tshirt-size-chart.jpg"
+      ],
+      "image_count": 3,
+      "vision_tags": [
+        "plain tshirt",
+        "cotton tee",
+        "apparel",
+        "unisex shirt"
+      ],
+      "image_quality_score": 76,
+      "missing_visuals": [
+        "no model fit photo"
+      ]
+    },
+    "taxonomy": {
+      "category_id": 103020,
+      "category_path": [
+        "Men Clothes",
+        "Tops",
+        "T-Shirts"
+      ],
+      "category_depth": 3,
+      "product_type": "tshirt",
+      "brand": null,
+      "condition": "new"
+    },
+    "attributes": {
+      "material": "cotton",
+      "fit": "regular",
+      "design": "plain",
+      "color": [
+        "white",
+        "black",
+        "navy",
+        "grey"
+      ],
+      "size": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    "variants": [
+      {
+        "model_sku": "TSHIRT_PLAIN_WHITE_M",
+        "variation_name": "White / M",
+        "price": 12.9,
+        "currency": "SGD",
+        "stock": 100
+      },
+      {
+        "model_sku": "TSHIRT_PLAIN_BLACK_M",
+        "variation_name": "Black / M",
+        "price": 12.9,
+        "currency": "SGD",
+        "stock": 100
+      },
+      {
+        "model_sku": "TSHIRT_PLAIN_NAVY_L",
+        "variation_name": "Navy / L",
+        "price": 12.9,
+        "currency": "SGD",
+        "stock": 80
+      }
+    ],
+    "commerce": {
+      "listing_price": 12.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": true,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "bulk friendly",
+        "basics"
+      ]
+    },
+    "fees_and_margin": {
+      "product_cost": 4.2,
+      "fee_assumptions": {
+        "shopeeFeeRate": 0.08,
+        "transactionFeeRate": 0.022,
+        "shippingSubsidy": 0.8,
+        "voucherCost": 0.5,
+        "packagingCost": 0.4,
+        "adCostPerOrder": 0.8
+      }
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "delivery_type": "local_delivery",
+      "estimated_delivery_days": 2
+    },
+    "agent_processing": {
+      "target_use_case": "plain cotton unisex tshirt for casual bulk daily wear"
+    },
+    "data_quality": {
+      "warnings": [
+        "Mock Shopee SG marketplace data for demo only."
+      ],
+      "confidence": "medium"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "seller_input",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_model_list"
+      ],
+      "raw_snapshot_id": "raw_mock_scifi_tshirt_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "seller_sku": "TSHIRT_SCIFI_FICTION_GRAPHIC",
+      "item_status": "PLANNED"
+    },
+    "shop_identity": {
+      "shop_name": "Seller Draft SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Sci-Fi Fiction Graphic T-Shirt Multiple Colors",
+      "description": "Graphic sci-fi fiction T-shirt with futuristic artwork for fans of space, cyberpunk, robots, and retro-futuristic fashion. Available in multiple colors and sizes.",
+      "bullet_features": [
+        "Sci-fi graphic print",
+        "Cyberpunk and space theme",
+        "Multiple colors",
+        "Fan fashion tee"
+      ],
+      "keywords": [
+        "sci fi tshirt",
+        "graphic tee",
+        "cyberpunk tshirt",
+        "space t shirt"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://scifi-tshirt-main.jpg",
+        "mock://scifi-tshirt-black.jpg",
+        "mock://scifi-tshirt-purple.jpg",
+        "mock://scifi-tshirt-print-closeup.jpg"
+      ],
+      "image_count": 4,
+      "vision_tags": [
+        "graphic tshirt",
+        "sci fi shirt",
+        "cyberpunk print",
+        "apparel"
+      ],
+      "image_quality_score": 83,
+      "missing_visuals": [
+        "no wash durability photo"
+      ]
+    },
+    "taxonomy": {
+      "category_id": 103020,
+      "category_path": [
+        "Men Clothes",
+        "Tops",
+        "T-Shirts"
+      ],
+      "category_depth": 3,
+      "product_type": "graphic_tshirt",
+      "brand": null,
+      "condition": "new"
+    },
+    "attributes": {
+      "material": "cotton blend",
+      "fit": "regular",
+      "design": "sci-fi graphic",
+      "color": [
+        "black",
+        "purple",
+        "white"
+      ],
+      "size": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    "variants": [
+      {
+        "model_sku": "TSHIRT_SCIFI_BLACK_M",
+        "variation_name": "Black / M",
+        "price": 18.9,
+        "currency": "SGD",
+        "stock": 70
+      },
+      {
+        "model_sku": "TSHIRT_SCIFI_PURPLE_L",
+        "variation_name": "Purple / L",
+        "price": 18.9,
+        "currency": "SGD",
+        "stock": 50
+      },
+      {
+        "model_sku": "TSHIRT_SCIFI_WHITE_M",
+        "variation_name": "White / M",
+        "price": 18.9,
+        "currency": "SGD",
+        "stock": 60
+      }
+    ],
+    "commerce": {
+      "listing_price": 18.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": true,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "fan fashion",
+        "graphic tee"
+      ]
+    },
+    "fees_and_margin": {
+      "product_cost": 6.8,
+      "fee_assumptions": {
+        "shopeeFeeRate": 0.08,
+        "transactionFeeRate": 0.022,
+        "shippingSubsidy": 0.8,
+        "voucherCost": 0.8,
+        "packagingCost": 0.45,
+        "adCostPerOrder": 1.3
+      }
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "delivery_type": "local_delivery",
+      "estimated_delivery_days": 2
+    },
+    "agent_processing": {
+      "target_use_case": "sci fi cyberpunk graphic tshirt for fans casual wear"
+    },
+    "data_quality": {
+      "warnings": [
+        "Mock Shopee SG marketplace data for demo only.",
+        "Avoid copyrighted franchise names unless licensed."
+      ],
+      "confidence": "medium"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "seller_input",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_model_list"
+      ],
+      "raw_snapshot_id": "raw_mock_custom_tshirt_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "seller_sku": "TSHIRT_CUSTOMIZABLE_PRINT",
+      "item_status": "PLANNED"
+    },
+    "shop_identity": {
+      "shop_name": "Seller Draft SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Customizable T-Shirt with Name Logo or Photo Print",
+      "description": "Customizable T-shirt for names, logos, photos, school events, birthdays, and team wear. Seller can upload artwork requirements before production.",
+      "bullet_features": [
+        "Custom name logo or photo",
+        "Event and team wear",
+        "Multiple colors",
+        "Seller proof before print"
+      ],
+      "keywords": [
+        "custom tshirt",
+        "personalized t shirt",
+        "logo print tshirt",
+        "custom shirt singapore"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://custom-tshirt-main.jpg",
+        "mock://custom-tshirt-upload-guide.jpg",
+        "mock://custom-tshirt-colors.jpg",
+        "mock://custom-tshirt-size-chart.jpg"
+      ],
+      "image_count": 4,
+      "vision_tags": [
+        "custom tshirt",
+        "printed shirt",
+        "personalized apparel",
+        "logo print"
+      ],
+      "image_quality_score": 80,
+      "missing_visuals": [
+        "no print durability proof"
+      ]
+    },
+    "taxonomy": {
+      "category_id": 103020,
+      "category_path": [
+        "Men Clothes",
+        "Tops",
+        "T-Shirts"
+      ],
+      "category_depth": 3,
+      "product_type": "custom_tshirt",
+      "brand": null,
+      "condition": "new"
+    },
+    "attributes": {
+      "material": "cotton blend",
+      "fit": "regular",
+      "design": "customizable",
+      "color": [
+        "white",
+        "black",
+        "red",
+        "blue"
+      ],
+      "size": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "custom_attributes": {
+        "customization_type": [
+          "name",
+          "logo",
+          "photo"
+        ],
+        "production_lead_time_days": 4
+      }
+    },
+    "variants": [
+      {
+        "model_sku": "TSHIRT_CUSTOM_WHITE_M",
+        "variation_name": "White / M",
+        "price": 24.9,
+        "currency": "SGD",
+        "stock": 50
+      },
+      {
+        "model_sku": "TSHIRT_CUSTOM_BLACK_L",
+        "variation_name": "Black / L",
+        "price": 24.9,
+        "currency": "SGD",
+        "stock": 50
+      },
+      {
+        "model_sku": "TSHIRT_CUSTOM_BLUE_XL",
+        "variation_name": "Blue / XL",
+        "price": 26.9,
+        "currency": "SGD",
+        "stock": 40
+      }
+    ],
+    "commerce": {
+      "listing_price": 24.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": false,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "customizable",
+        "event orders"
+      ]
+    },
+    "fees_and_margin": {
+      "product_cost": 9.2,
+      "fee_assumptions": {
+        "shopeeFeeRate": 0.08,
+        "transactionFeeRate": 0.022,
+        "shippingSubsidy": 1,
+        "voucherCost": 1,
+        "packagingCost": 0.7,
+        "adCostPerOrder": 1.6
+      }
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "delivery_type": "made_to_order",
+      "estimated_delivery_days": 5
+    },
+    "agent_processing": {
+      "target_use_case": "custom personalized tshirt for events teams birthdays logos photos"
+    },
+    "data_quality": {
+      "warnings": [
+        "Mock Shopee SG marketplace data for demo only.",
+        "Made-to-order products need clear proof approval and delivery promise."
+      ],
+      "confidence": "medium"
+    }
+  }
+]

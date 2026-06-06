@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, "../../..");
+const acpRoot = path.resolve(here, "../..");
 const dist = path.resolve(here, "../dist");
 
 function copyDir(src, dest) {
@@ -36,38 +36,21 @@ function patchPreProductAssets() {
 }
 
 function copyPostLaunchPreview() {
+  const srcRoot = path.join(acpRoot, "seller-dashboard-preview");
   const dest = path.join(dist, "seller-dashboard");
-  fs.mkdirSync(dest, { recursive: true });
+  copyDir(srcRoot, dest);
 
-  const appDir = path.join(repoRoot, "apps/post-launch-seller-app");
-  fs.copyFileSync(
-    path.join(appDir, "dashboard-preview.html"),
-    path.join(dest, "index.html"),
-  );
-  fs.copyFileSync(
-    path.join(appDir, "dashboard-preview.js"),
-    path.join(dest, "dashboard-preview.js"),
-  );
-
-  const cssDest = path.join(dest, "src/app");
-  fs.mkdirSync(cssDest, { recursive: true });
-  fs.copyFileSync(
-    path.join(appDir, "src/app/globals.css"),
-    path.join(cssDest, "globals.css"),
-  );
-
-  let html = fs.readFileSync(path.join(dest, "index.html"), "utf8");
+  const indexHtml = path.join(dest, "index.html");
+  if (!fs.existsSync(indexHtml)) return;
+  let html = fs.readFileSync(indexHtml, "utf8");
   html = html.replace(
     '<script type="module" src="./dashboard-preview.js"></script>',
     '<script type="module" src="/seller-dashboard/dashboard-preview.js"></script>',
   );
-  fs.writeFileSync(path.join(dest, "index.html"), html);
+  fs.writeFileSync(indexHtml, html);
 }
 
-copyDir(
-  path.join(repoRoot, "pre-product-analysis/src/dashboard"),
-  path.join(dist, "pre-product"),
-);
+copyDir(path.join(acpRoot, "pre-product-analysis/src/dashboard"), path.join(dist, "pre-product"));
 patchPreProductAssets();
 copyPostLaunchPreview();
 
