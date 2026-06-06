@@ -545,8 +545,6 @@ function PreLaunchReport({
 }) {
   return (
     <section className="pre-results">
-      <AiSellerSummaryPanel insight={aiInsight} loading={aiLoading} />
-
       <article className="panel pre-decision-panel">
         <div className="panel-heading"><h2>Launch Decision</h2><span>{report.confidence} confidence</span></div>
         <div className="decision-card">
