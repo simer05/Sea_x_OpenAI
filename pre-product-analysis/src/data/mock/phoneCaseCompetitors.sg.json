@@ -1,0 +1,334 @@
+[
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "mock.shopee.search.item",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_comment"
+      ],
+      "raw_snapshot_id": "raw_mock_case_cmp_001_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "item_id": "case_cmp_001",
+      "shop_id": "mock_shop_1001",
+      "product_url": "mock://shopee.sg/case_cmp_001",
+      "item_status": "NORMAL",
+      "seller_sku": "MOCK_CASE_STRAP_PURPLE_15"
+    },
+    "shop_identity": {
+      "shop_id": "mock_shop_1001",
+      "shop_name": "CaseHub SG",
+      "seller_type": "local_seller",
+      "is_official_shop": false,
+      "is_preferred_seller": true,
+      "region": "SG",
+      "response_rate": 0.94,
+      "response_time_hours": 1.8
+    },
+    "text_content": {
+      "name": "iPhone 15 Silicone Phone Case with Wrist Strap",
+      "description": "Soft silicone iPhone 15 case with wrist strap for daily use.",
+      "bullet_features": [
+        "Wrist strap",
+        "Silicone case",
+        "iPhone 15 fit",
+        "Local delivery"
+      ],
+      "keywords": [
+        "iphone 15 case",
+        "strap case",
+        "silicone case"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://casehub-main.jpg",
+        "mock://casehub-strap.jpg",
+        "mock://casehub-size.jpg"
+      ],
+      "image_count": 6,
+      "vision_tags": [
+        "iphone 15 case",
+        "phone accessory",
+        "strap"
+      ],
+      "image_quality_score": 78
+    },
+    "taxonomy": {
+      "category_id": 101001,
+      "category_path": [
+        "Mobile & Gadgets",
+        "Mobile Accessories",
+        "Cases Covers & Skins"
+      ],
+      "product_type": "phone_case",
+      "condition": "new"
+    },
+    "attributes": {
+      "compatible_model": "iPhone 15",
+      "color": "purple",
+      "material": "silicone",
+      "includes": [
+        "wrist strap"
+      ],
+      "size": "iPhone 15"
+    },
+    "commerce": {
+      "listing_price": 15.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": true,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "free shipping"
+      ]
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "estimated_delivery_days": 2
+    },
+    "trust_and_reviews": {
+      "rating": 4.7,
+      "review_count": 950,
+      "review_pain_points": [
+        "strap quality feels weak",
+        "color differs from photo",
+        "case yellows over time"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 420,
+      "campaign_visibility": "high"
+    },
+    "agent_processing": {
+      "target_use_case": "protective iphone 15 phone case with strap"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "mock.shopee.search.item",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_comment"
+      ],
+      "raw_snapshot_id": "raw_mock_case_cmp_002_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "item_id": "case_cmp_002",
+      "shop_id": "mock_shop_2002",
+      "product_url": "mock://shopee.sg/case_cmp_002",
+      "item_status": "NORMAL",
+      "seller_sku": "MOCK_CLEAR_LANYARD_15"
+    },
+    "shop_identity": {
+      "shop_id": "mock_shop_2002",
+      "shop_name": "MobileStyle Overseas",
+      "seller_type": "overseas_seller",
+      "is_official_shop": false,
+      "is_preferred_seller": false,
+      "region": "SG",
+      "response_rate": 0.82,
+      "response_time_hours": 8
+    },
+    "text_content": {
+      "name": "Clear iPhone 15 Case with Lanyard Strap",
+      "description": "Clear protective lanyard case for iPhone 15.",
+      "bullet_features": [
+        "Lanyard strap",
+        "Clear case",
+        "Shock protection",
+        "Budget price"
+      ],
+      "keywords": [
+        "iphone 15 case",
+        "lanyard case",
+        "clear case"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://mobilestyle-main.jpg",
+        "mock://mobilestyle-lanyard.jpg"
+      ],
+      "image_count": 7,
+      "vision_tags": [
+        "iphone 15 case",
+        "phone accessory",
+        "lanyard"
+      ],
+      "image_quality_score": 74
+    },
+    "taxonomy": {
+      "category_id": 101001,
+      "category_path": [
+        "Mobile & Gadgets",
+        "Mobile Accessories",
+        "Cases Covers & Skins"
+      ],
+      "product_type": "phone_case",
+      "condition": "new"
+    },
+    "attributes": {
+      "compatible_model": "iPhone 15",
+      "color": "clear",
+      "material": "tpu",
+      "includes": [
+        "lanyard strap"
+      ],
+      "size": "iPhone 15"
+    },
+    "commerce": {
+      "listing_price": 9.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": false,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "lowest price"
+      ]
+    },
+    "fulfillment": {
+      "ships_from_region": "CN",
+      "target_region": "SG",
+      "estimated_delivery_days": 8
+    },
+    "trust_and_reviews": {
+      "rating": 4.5,
+      "review_count": 1800,
+      "review_pain_points": [
+        "slow delivery",
+        "strap hook breaks",
+        "thin protection"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 650,
+      "campaign_visibility": "high"
+    },
+    "agent_processing": {
+      "target_use_case": "protective iphone 15 phone case with strap"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "mock.shopee.search.item",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_comment"
+      ],
+      "raw_snapshot_id": "raw_mock_case_cmp_003_sg",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "item_id": "case_cmp_003",
+      "shop_id": "mock_shop_3003",
+      "product_url": "mock://shopee.sg/case_cmp_003",
+      "item_status": "NORMAL",
+      "seller_sku": "MOCK_PREMIUM_MAGSAFE_PURPLE_15"
+    },
+    "shop_identity": {
+      "shop_id": "mock_shop_3003",
+      "shop_name": "Premium Gadget SG",
+      "seller_type": "local_seller",
+      "is_official_shop": false,
+      "is_preferred_seller": true,
+      "region": "SG",
+      "response_rate": 0.91,
+      "response_time_hours": 2.2
+    },
+    "text_content": {
+      "name": "Premium iPhone 15 MagSafe Case Purple",
+      "description": "Premium purple iPhone 15 case with drop protection and MagSafe support.",
+      "bullet_features": [
+        "MagSafe compatible",
+        "Purple color",
+        "Drop protection",
+        "Local delivery"
+      ],
+      "keywords": [
+        "iphone 15 case",
+        "magsafe case",
+        "purple case"
+      ],
+      "language": "en"
+    },
+    "visual_content": {
+      "image_urls": [
+        "mock://premium-main.jpg",
+        "mock://premium-magsafe.jpg",
+        "mock://premium-purple.jpg"
+      ],
+      "image_count": 8,
+      "vision_tags": [
+        "purple phone case",
+        "iphone 15 case",
+        "phone accessory"
+      ],
+      "image_quality_score": 86
+    },
+    "taxonomy": {
+      "category_id": 101001,
+      "category_path": [
+        "Mobile & Gadgets",
+        "Mobile Accessories",
+        "Cases Covers & Skins"
+      ],
+      "product_type": "phone_case",
+      "condition": "new"
+    },
+    "attributes": {
+      "compatible_model": "iPhone 15",
+      "color": "purple",
+      "material": "polycarbonate",
+      "size": "iPhone 15",
+      "custom_attributes": {
+        "magsafe": true
+      }
+    },
+    "commerce": {
+      "listing_price": 29.9,
+      "currency": "SGD",
+      "voucher_available": true,
+      "cod_available": true,
+      "bnpl_available": true,
+      "promotion_tags": [
+        "premium",
+        "local seller"
+      ]
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "estimated_delivery_days": 2
+    },
+    "trust_and_reviews": {
+      "rating": 4.8,
+      "review_count": 620,
+      "review_pain_points": [
+        "expensive",
+        "buttons feel stiff"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 260,
+      "campaign_visibility": "medium"
+    },
+    "agent_processing": {
+      "target_use_case": "protective iphone 15 phone case"
+    }
+  }
+]

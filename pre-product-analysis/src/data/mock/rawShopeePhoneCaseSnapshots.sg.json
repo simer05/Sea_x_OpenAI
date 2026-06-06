@@ -1,0 +1,197 @@
+{
+  "note": "Mock Shopee-like API snapshots for demo only. These are not live Shopee Open API responses.",
+  "region": "SG",
+  "generated_at": "2026-06-06T12:00:00+08:00",
+  "mock_endpoints": {
+    "product.get_item_base_info": [
+      {
+        "item_id": "case_cmp_001",
+        "shop_id": "mock_shop_1001",
+        "item_name": "iPhone 15 Silicone Phone Case with Wrist Strap",
+        "category_id": 101001,
+        "item_status": "NORMAL",
+        "description": "Soft silicone iPhone 15 case with wrist strap for daily use.",
+        "brand": null,
+        "condition": "NEW",
+        "image": {
+          "image_url_list": [
+            "mock://casehub-main.jpg",
+            "mock://casehub-strap.jpg",
+            "mock://casehub-size.jpg"
+          ]
+        },
+        "attribute_list": [
+          {
+            "attribute_name": "Compatible Model",
+            "attribute_value": "iPhone 15"
+          },
+          {
+            "attribute_name": "Color",
+            "attribute_value": "Purple"
+          },
+          {
+            "attribute_name": "Material",
+            "attribute_value": "Silicone"
+          }
+        ]
+      },
+      {
+        "item_id": "case_cmp_002",
+        "shop_id": "mock_shop_2002",
+        "item_name": "Clear iPhone 15 Case with Lanyard Strap",
+        "category_id": 101001,
+        "item_status": "NORMAL",
+        "description": "Clear protective lanyard case for iPhone 15.",
+        "brand": null,
+        "condition": "NEW",
+        "image": {
+          "image_url_list": [
+            "mock://mobilestyle-main.jpg",
+            "mock://mobilestyle-lanyard.jpg"
+          ]
+        },
+        "attribute_list": [
+          {
+            "attribute_name": "Compatible Model",
+            "attribute_value": "iPhone 15"
+          },
+          {
+            "attribute_name": "Color",
+            "attribute_value": "Clear"
+          },
+          {
+            "attribute_name": "Material",
+            "attribute_value": "TPU"
+          }
+        ]
+      },
+      {
+        "item_id": "case_cmp_003",
+        "shop_id": "mock_shop_3003",
+        "item_name": "Premium iPhone 15 MagSafe Case Purple",
+        "category_id": 101001,
+        "item_status": "NORMAL",
+        "description": "Premium purple iPhone 15 case with drop protection and MagSafe support.",
+        "brand": null,
+        "condition": "NEW",
+        "image": {
+          "image_url_list": [
+            "mock://premium-main.jpg",
+            "mock://premium-magsafe.jpg",
+            "mock://premium-purple.jpg"
+          ]
+        },
+        "attribute_list": [
+          {
+            "attribute_name": "Compatible Model",
+            "attribute_value": "iPhone 15"
+          },
+          {
+            "attribute_name": "Color",
+            "attribute_value": "Purple"
+          },
+          {
+            "attribute_name": "Material",
+            "attribute_value": "Polycarbonate"
+          }
+        ]
+      }
+    ],
+    "product.get_model_list": [
+      {
+        "item_id": "case_cmp_001",
+        "model": [
+          {
+            "model_id": "mock_model_1001",
+            "model_sku": "MOCK_CASE_STRAP_PURPLE_15",
+            "price_info": [
+              {
+                "current_price": 15.9,
+                "original_price": 19.9,
+                "currency": "SGD"
+              }
+            ],
+            "stock_info_v2": {
+              "summary_info": {
+                "total_available_stock": 240
+              }
+            }
+          }
+        ]
+      },
+      {
+        "item_id": "case_cmp_002",
+        "model": [
+          {
+            "model_id": "mock_model_2002",
+            "model_sku": "MOCK_CLEAR_LANYARD_15",
+            "price_info": [
+              {
+                "current_price": 9.9,
+                "original_price": 12.9,
+                "currency": "SGD"
+              }
+            ],
+            "stock_info_v2": {
+              "summary_info": {
+                "total_available_stock": 900
+              }
+            }
+          }
+        ]
+      },
+      {
+        "item_id": "case_cmp_003",
+        "model": [
+          {
+            "model_id": "mock_model_3003",
+            "model_sku": "MOCK_PREMIUM_MAGSAFE_PURPLE_15",
+            "price_info": [
+              {
+                "current_price": 29.9,
+                "original_price": 34.9,
+                "currency": "SGD"
+              }
+            ],
+            "stock_info_v2": {
+              "summary_info": {
+                "total_available_stock": 130
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "product.get_comment": [
+      {
+        "item_id": "case_cmp_001",
+        "rating_star": 4.7,
+        "total_comment_count": 950,
+        "comments": [
+          "Strap quality feels weak",
+          "Color differs from photo",
+          "Case yellows over time"
+        ]
+      },
+      {
+        "item_id": "case_cmp_002",
+        "rating_star": 4.5,
+        "total_comment_count": 1800,
+        "comments": [
+          "Slow delivery",
+          "Strap hook breaks",
+          "Thin protection"
+        ]
+      },
+      {
+        "item_id": "case_cmp_003",
+        "rating_star": 4.8,
+        "total_comment_count": 620,
+        "comments": [
+          "Expensive",
+          "Buttons feel stiff"
+        ]
+      }
+    ]
+  }
+}

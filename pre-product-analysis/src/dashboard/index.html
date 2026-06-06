@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AdaptLink Pre-Product Analysis</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Product workspace">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <strong>AdaptLink</strong>
+            <span>Seller Intelligence</span>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="Analysis modes">
+          <button class="nav-tab active" type="button">Pre-Product</button>
+          <button class="nav-tab" type="button" disabled>Post-Product</button>
+        </nav>
+
+        <section class="panel product-panel">
+          <div class="panel-heading">
+            <h2>Product Input</h2>
+          </div>
+
+          <form id="productForm" class="form-grid">
+            <label>
+              Product title
+              <input id="name" name="name" value="Purple iPhone 15 Protective Phone Case with Free Holding String" required>
+            </label>
+
+            <label>
+              Shopee category
+              <input id="category" name="category" list="categorySuggestions" value="Mobile & Gadgets > Mobile Accessories > Cases Covers & Skins" autocomplete="off">
+              <datalist id="categorySuggestions">
+                <option value="Mobile & Gadgets > Mobile Accessories > Cases Covers & Skins"></option>
+                <option value="Home & Living > Kitchenware > Water Bottles"></option>
+                <option value="Men Clothes > Tops > T-Shirts"></option>
+                <option value="Women Clothes > Tops > T-Shirts"></option>
+                <option value="Sports & Outdoors > Sports Accessories > Bottles"></option>
+                <option value="Fashion Accessories > Bags > Tote Bags"></option>
+                <option value="Beauty > Skincare > Serum"></option>
+              </datalist>
+            </label>
+
+            <label>
+              Product type
+              <input id="productType" name="productType" list="productTypeSuggestions" value="phone case" autocomplete="off">
+              <datalist id="productTypeSuggestions">
+                <option value="phone case"></option>
+                <option value="simple plastic bottle"></option>
+                <option value="Stanley-style tumbler"></option>
+                <option value="thermal coated bottle"></option>
+                <option value="plain T-shirt"></option>
+                <option value="sci-fi graphic T-shirt"></option>
+                <option value="customizable T-shirt"></option>
+                <option value="skincare serum"></option>
+              </datalist>
+            </label>
+
+            <div class="split">
+              <label>
+                Price
+                <input id="price" name="price" type="number" min="0" step="0.1" value="40">
+              </label>
+              <label>
+                Target area in Singapore
+                <input id="targetArea" name="targetArea" list="targetAreaSuggestions" value="Central Singapore" autocomplete="off">
+                <datalist id="targetAreaSuggestions">
+                  <option value="Central Singapore"></option>
+                  <option value="East Singapore"></option>
+                  <option value="West Singapore"></option>
+                  <option value="North Singapore"></option>
+                  <option value="North-East Singapore"></option>
+                  <option value="Islandwide Singapore"></option>
+                </datalist>
+              </label>
+            </div>
+
+            <div class="split">
+              <label>
+                Target region
+                <select id="region" name="region">
+                  <option value="SG">Singapore</option>
+                  <option value="MY">Malaysia</option>
+                  <option value="ID">Indonesia</option>
+                </select>
+              </label>
+              <label>
+                Initial launch stock
+                <input id="launchStock" name="launchStock" type="number" min="0" step="1" value="50">
+              </label>
+            </div>
+
+            <div class="split">
+              <label>
+                Shipping cost/order
+                <input id="shippingCost" name="shippingCost" type="number" min="0" step="0.1" value="1.5">
+              </label>
+              <label>
+                Packaging cost/order
+                <input id="packagingCost" name="packagingCost" type="number" min="0" step="0.1" value="0.8">
+              </label>
+            </div>
+
+            <div class="split">
+              <label>
+                Ad cost/order
+                <input id="adCost" name="adCost" type="number" min="0" step="0.1" value="2">
+              </label>
+            </div>
+
+            <label>
+              Colors
+              <input id="colors" name="colors" value="purple">
+            </label>
+
+            <label>
+              Features
+              <textarea id="features" name="features" rows="3">Purple color, Free holding string, iPhone 15 fit, Scratch protection, Lightweight daily use</textarea>
+            </label>
+
+            <label>
+              Description
+              <textarea id="description" name="description" rows="4">Purple protective phone case for iPhone 15 with a free holding string. Designed for daily grip, scratch protection, and easy carrying while keeping the phone lightweight and stylish.</textarea>
+            </label>
+
+            <label>
+              Keywords
+              <input id="keywords" name="keywords" value="iphone 15 case, purple phone case, phone case with strap, iphone case singapore">
+            </label>
+
+            <label class="file-drop">
+              <input id="photo" name="photo" type="file" accept="image/*">
+              <span>Upload product photo</span>
+              <small>Preview is local only. Analysis uses file metadata and your text details.</small>
+            </label>
+
+            <button class="primary-button" type="submit">Run Agent Analysis</button>
+          </form>
+        </section>
+      </aside>
+
+      <main class="main-content">
+        <header class="hero">
+          <div>
+            <p class="eyebrow">Shopee SG mock mode</p>
+            <h1>Pre-Product Launch Dashboard</h1>
+            <p class="hero-copy">Validate product ideas with competitor matching, margin checks, regional fit, listing readiness, and launch actions.</p>
+          </div>
+          <div class="data-pill">
+            <span></span>
+            Mock Shopee API data
+          </div>
+        </header>
+
+        <section class="decision-grid">
+          <article class="decision-card">
+            <div class="decision-top">
+              <div>
+                <p>Launch Recommendation</p>
+                <h2 id="recommendation">Waiting</h2>
+              </div>
+              <div id="scoreGauge" class="score-gauge">--</div>
+            </div>
+            <p id="summary" class="muted">Upload details and run the analysis.</p>
+          </article>
+
+          <article class="preview-card">
+            <div id="photoPreview" class="photo-preview">
+              <span>No photo selected</span>
+            </div>
+            <div>
+              <h3 id="previewTitle">Purple iPhone 15 Protective Phone Case</h3>
+              <p id="previewMeta">SGD 40 · Singapore · Phone Cases</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="metrics-row insight-row" aria-label="Analysis comparisons">
+          <div class="metric-card insight-card">
+            <span>Demand vs market</span>
+            <strong id="demandScore">--</strong>
+            <p id="demandInsight">Waiting for competitor data.</p>
+          </div>
+          <div class="metric-card insight-card">
+            <span>Competition pressure</span>
+            <strong id="competitionScore">--</strong>
+            <p id="competitionInsight">Waiting for competitor data.</p>
+          </div>
+          <div class="metric-card insight-card">
+            <span>Price & cost room</span>
+            <strong id="marginScore">--</strong>
+            <p id="marginInsight">Add selling price and operating costs.</p>
+          </div>
+          <div class="metric-card insight-card">
+            <span>Differentiation</span>
+            <strong id="differentiationScore">--</strong>
+            <p id="differentiationInsight">Waiting for feature comparison.</p>
+          </div>
+          <div class="metric-card insight-card">
+            <span>Listing readiness</span>
+            <strong id="readinessScore">--</strong>
+            <p id="readinessInsight">Waiting for listing checks.</p>
+          </div>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel wide">
+            <div class="panel-heading">
+              <h2>Comparison Snapshot</h2>
+              <span id="comparisonBadge" class="badge">Seller vs mock Shopee SG</span>
+            </div>
+            <div class="comparison-grid">
+              <div class="comparison-card">
+                <span>Your price</span>
+                <strong id="yourPriceComparison">--</strong>
+                <p id="priceComparisonText">Run analysis to compare against competitors.</p>
+              </div>
+              <div class="comparison-card">
+                <span>Competitor benchmark</span>
+                <strong id="competitorPriceComparison">--</strong>
+                <p id="competitorComparisonText">Average competitor price and range.</p>
+              </div>
+              <div class="comparison-card">
+                <span>Review pressure</span>
+                <strong id="reviewPressure">--</strong>
+                <p id="reviewPressureText">How established competitors look.</p>
+              </div>
+              <div class="comparison-card">
+                <span>Best angle</span>
+                <strong id="bestAngle">--</strong>
+                <p id="bestAngleText">Most useful launch positioning.</p>
+              </div>
+              <div class="comparison-card">
+                <span>Initial stock</span>
+                <strong id="stockRecommendation">--</strong>
+                <p id="stockRecommendationText">Suggested launch stock after market evaluation.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-heading">
+              <h2>Singapore Target Area</h2>
+              <span id="areaBadge" class="badge">Area fit</span>
+            </div>
+            <div class="region-dashboard">
+              <div class="region-map" id="regionMap" aria-label="Singapore area fit map"></div>
+              <div class="region-details">
+                <h3 id="bestRegionTitle">Best area: --</h3>
+                <p id="bestRegionReason">Run analysis to see the strongest Singapore target area.</p>
+                <ul id="regionReasonList" class="check-list"></ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-heading">
+              <h2>Market Projection</h2>
+              <span id="projectionBadge" class="badge">Current vs improved</span>
+            </div>
+            <div class="charts-grid">
+              <div class="chart-card">
+                <canvas id="scoreChart" width="760" height="340" aria-label="Score projection chart"></canvas>
+              </div>
+              <div class="chart-card">
+                <canvas id="marketChart" width="520" height="340" aria-label="Market position chart"></canvas>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Margin & Region</h2>
+              <span id="regionBadge" class="badge">SG</span>
+            </div>
+            <div class="margin-grid">
+              <div><span>Selling price</span><strong id="sellingPrice">--</strong></div>
+              <div><span>Operating room</span><strong id="netProfit">--</strong></div>
+              <div><span>Room percentage</span><strong id="netMargin">--</strong></div>
+              <div><span>Safe ad spend</span><strong id="safeAds">--</strong></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Listing Readiness</h2>
+              <span id="confidenceBadge" class="badge">--</span>
+            </div>
+            <ul id="readinessList" class="check-list"></ul>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-heading">
+              <h2>Competitor Matches</h2>
+              <span id="saturationBadge" class="badge">--</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Competitor</th>
+                    <th>Match</th>
+                    <th>Price</th>
+                    <th>Reviews</th>
+                    <th>Ships from</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody id="competitorRows"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Recommended Actions</h2>
+            </div>
+            <ol id="actionList" class="action-list"></ol>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Risks & Data Quality</h2>
+            </div>
+            <ul id="riskList" class="risk-list"></ul>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>

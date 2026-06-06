@@ -1,0 +1,114 @@
+{
+  "source": {
+    "region": "SG",
+    "data_mode": "mock",
+    "fetched_at": "2026-06-06T12:00:00+08:00"
+  },
+  "product_identity": {
+    "seller_sku": "HALAL_VC_SERUM_30ML",
+    "item_status": "PLANNED"
+  },
+  "shop_identity": {
+    "shop_name": "GlowLab SG",
+    "seller_type": "local_seller",
+    "region": "SG"
+  },
+  "text_content": {
+    "name": "Halal Vitamin C Brightening Serum 30ml for Oily Skin",
+    "description": "Lightweight halal-certified vitamin C serum for oily and combination skin. Helps brighten dull skin, supports smoother-looking texture, and comes with clear ingredient transparency for sensitive buyers.",
+    "bullet_features": [
+      "Halal-certified formula",
+      "Vitamin C and niacinamide",
+      "Lightweight texture",
+      "Made for oily and combination skin"
+    ],
+    "keywords": [
+      "halal skincare",
+      "vitamin c serum",
+      "brightening serum",
+      "oily skin"
+    ],
+    "language": "en"
+  },
+  "visual_content": {
+    "image_urls": [
+      "mock://serum-main.jpg",
+      "mock://serum-texture.jpg",
+      "mock://serum-ingredients.jpg",
+      "mock://serum-halal-badge.jpg"
+    ],
+    "image_count": 4,
+    "vision_tags": [
+      "serum bottle",
+      "skincare",
+      "halal badge",
+      "orange packaging"
+    ],
+    "image_quality_score": 82
+  },
+  "taxonomy": {
+    "category_id": 100630,
+    "category_path": [
+      "Beauty",
+      "Skincare",
+      "Serum"
+    ],
+    "product_type": "serum",
+    "brand": "GlowLab",
+    "condition": "new"
+  },
+  "attributes": {
+    "skin_type": [
+      "oily",
+      "combination"
+    ],
+    "volume_ml": 30,
+    "ingredient_highlights": [
+      "vitamin c",
+      "niacinamide"
+    ],
+    "certifications": [
+      "halal"
+    ],
+    "warranty": "authenticity guarantee",
+    "size": "30ml"
+  },
+  "variants": [
+    {
+      "model_sku": "HALAL_VC_SERUM_30ML",
+      "variation_name": "30ml",
+      "price": 18.9,
+      "currency": "SGD",
+      "stock": 80
+    }
+  ],
+  "commerce": {
+    "listing_price": 18.9,
+    "currency": "SGD",
+    "voucher_available": true,
+    "cod_available": true,
+    "bnpl_available": true,
+    "promotion_tags": [
+      "6.6 sale",
+      "free shipping"
+    ]
+  },
+  "fees_and_margin": {
+    "product_cost": 7.2,
+    "fee_assumptions": {
+      "shopeeFeeRate": 0.08,
+      "transactionFeeRate": 0.022,
+      "shippingSubsidy": 1,
+      "voucherCost": 0.8,
+      "packagingCost": 0.6,
+      "adCostPerOrder": 1.2
+    }
+  },
+  "fulfillment": {
+    "ships_from_region": "SG",
+    "delivery_type": "local_delivery"
+  },
+  "agent_processing": {
+    "target_use_case": "brightening serum for oily skin"
+  }
+}
