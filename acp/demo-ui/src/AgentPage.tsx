@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   CreditCard,
   ExternalLink,
+  Lock,
   Mic,
   MicOff,
   Send,
@@ -12,6 +13,7 @@ import {
   Truck,
   Volume2,
   Wallet,
+  X,
 } from "lucide-react";
 import {
   checkAgentApiHealth,
@@ -149,8 +151,22 @@ function normalizeAgentProduct(raw: Partial<AgentProduct> | undefined): AgentPro
   };
 }
 
-function speakShort(text: string) {
-  const short = text.split(/[.!?]/)[0]?.trim().slice(0, 120) ?? text;
+async function speakShort(text: string) {
+  const short = text.split(/[.!?]/)[0]?.trim().slice(0, 200) ?? text;
+  try {
+    const res = await fetch("/api/agent/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: short }),
+    });
+    if (res.ok) {
+      const blob = await res.blob();
+      await new Audio(URL.createObjectURL(blob)).play();
+      return;
+    }
+  } catch {
+    // fall through to browser TTS
+  }
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(short);
@@ -162,6 +178,16 @@ function payIcon(id: PaymentChoice["id"]) {
   if (id === "cod") return <Wallet size={16} />;
   if (id === "bnpl") return <CreditCard size={16} />;
   return <CreditCard size={16} />;
+}
+
+function formatCardNumber(value: string) {
+  return value.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+}
+
+function formatExpiry(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 
 export function AgentPage() {
@@ -185,21 +211,115 @@ export function AgentPage() {
   const [orderSummary, setOrderSummary] = useState<AgentResponse["order"]>();
   const [tracking, setTracking] = useState<AgentResponse["tracking"]>();
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [chosenDeliveryId, setChosenDeliveryId] = useState<string>();
+  const [chosenPaymentId, setChosenPaymentId] = useState<PaymentChoice["id"]>();
+  const [cardModalOpen, setCardModalOpen] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
   const [recording, setRecording] = useState(false);
-  const [voiceOn, setVoiceOn] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [openAiVoice, setOpenAiVoice] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const productsRef = useRef<HTMLDivElement>(null);
+  const lastOrderIdRef = useRef<string | undefined>(undefined);
 
   const statusLabel = flowStatus(currentStep);
+  const showProducts = products.length > 0 && (currentStep === "picks" || currentStep === "chat");
 
   useEffect(() => {
-    void checkAgentApiHealth().then((h) => setApiOnline(h.ok));
+    void checkAgentApiHealth().then((h) => {
+      setApiOnline(h.ok);
+      setOpenAiVoice(Boolean(h.openai));
+    });
   }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (showProducts) {
+      productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showProducts, products.length]);
+
+  function clearCheckoutState() {
+    setProducts([]);
+    setSelected(undefined);
+    setPayments([]);
+    setDeliveries([]);
+    setOrderSummary(undefined);
+    setTracking(undefined);
+    setChosenDeliveryId(undefined);
+    setChosenPaymentId(undefined);
+  }
+
+  function applyAgentState(data: AgentResponse) {
+    setSessionId(data.sessionId);
+    setCurrentStep(data.step);
+
+    if (data.step === "chat" && !data.products?.length) {
+      clearCheckoutState();
+      setSuggestions(data.suggestions ?? []);
+      return;
+    }
+
+    if (data.step === "done") {
+      setDeliveries([]);
+      setPayments([]);
+      setChosenDeliveryId(undefined);
+      setChosenPaymentId(undefined);
+      setProducts([]);
+    }
+
+    if (data.step === "picks") {
+      setSelected(undefined);
+      setPayments([]);
+      setDeliveries([]);
+      setOrderSummary(undefined);
+      setTracking(undefined);
+      setChosenDeliveryId(undefined);
+      setChosenPaymentId(undefined);
+      if (data.products) {
+        setProducts(
+          data.products
+            .map(normalizeAgentProduct)
+            .filter((x): x is AgentProduct => Boolean(x)),
+        );
+      }
+      setSuggestions(data.suggestions ?? []);
+      return;
+    }
+
+    if (data.products) {
+      setProducts(
+        data.products
+          .map(normalizeAgentProduct)
+          .filter((x): x is AgentProduct => Boolean(x)),
+      );
+    }
+    if (data.selected !== undefined) {
+      setSelected(data.selected ? normalizeAgentProduct(data.selected) : undefined);
+    }
+    if (data.deliveryOptions !== undefined) {
+      setDeliveries(data.deliveryOptions);
+    }
+    if (data.paymentOptions !== undefined) {
+      setPayments(data.paymentOptions);
+    }
+    if (data.order !== undefined) {
+      setOrderSummary(data.order);
+      if (data.order?.order_id) lastOrderIdRef.current = data.order.order_id;
+    }
+    if (data.tracking !== undefined) {
+      setTracking(data.tracking);
+    }
+    setSuggestions(data.suggestions ?? []);
+  }
 
   async function sendChat(body: Record<string, unknown>) {
     if (!apiOnline) {
@@ -215,30 +335,24 @@ export function AgentPage() {
       const res = await fetch("/api/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, demoSessionId: getDemoSessionId(), ...body }),
+        body: JSON.stringify({
+          sessionId,
+          demoSessionId: getDemoSessionId(),
+          orderId: orderSummary?.order_id ?? lastOrderIdRef.current,
+          clientStep: currentStep,
+          skuId: selected?.sku_id,
+          deliveryOptionId: chosenDeliveryId,
+          clientProducts: products.length > 0 ? products : undefined,
+          ...body,
+        }),
       });
       const data = (await res.json()) as AgentResponse;
       if (!res.ok) throw new Error(data.error ?? "Request failed");
 
-      setSessionId(data.sessionId);
-      setCurrentStep(data.step);
+      applyAgentState(data);
       setMessages((p) => [...p, { id: crypto.randomUUID(), role: "assistant", content: data.reply }]);
-
-      if (data.products) {
-        setProducts(
-          data.products
-            .map(normalizeAgentProduct)
-            .filter((x): x is AgentProduct => Boolean(x)),
-        );
-      }
-      if (data.selected) setSelected(normalizeAgentProduct(data.selected));
-      if (data.paymentOptions) setPayments(data.paymentOptions);
-      if (data.deliveryOptions) setDeliveries(data.deliveryOptions);
-      if (data.order) setOrderSummary(data.order);
-      if (data.tracking) setTracking(data.tracking);
-      setSuggestions(data.suggestions ?? []);
       if (data.cartSynced) notifyCartSync();
-      if (voiceOn) speakShort(data.reply);
+      if (voiceOn) void speakShort(data.reply);
     } catch (error) {
       setMessages((p) => [
         ...p,
@@ -256,6 +370,14 @@ export function AgentPage() {
   async function onSend(message?: string, extra?: Record<string, unknown>) {
     const text = (message ?? input).trim();
     if (!text && !extra?.action) return;
+
+    if (text === "Start a new search") {
+      setMessages((p) => [...p, { id: crypto.randomUUID(), role: "user", content: text }]);
+      setInput("");
+      await sendChat({ action: "cancel", message: "" });
+      return;
+    }
+
     if (text) setMessages((p) => [...p, { id: crypto.randomUUID(), role: "user", content: text }]);
     setInput("");
     await sendChat({ message: text, ...extra });
@@ -267,6 +389,39 @@ export function AgentPage() {
       { id: crypto.randomUUID(), role: "user", content: `I'll take ${product.title}` },
     ]);
     await sendChat({ message: product.title, action: "select_product", skuId: product.sku_id });
+  }
+
+  async function onChooseDelivery(d: DeliveryChoice) {
+    setChosenDeliveryId(d.id);
+    await onSend(`Use ${d.label.toLowerCase()}`, {
+      action: "select_delivery",
+      deliveryOptionId: d.id,
+    });
+  }
+
+  function onChoosePayment(p: PaymentChoice) {
+    if (!p.available) return;
+    if (p.id === "tokenized_card") {
+      setChosenPaymentId(p.id);
+      setCardModalOpen(true);
+      return;
+    }
+    setChosenPaymentId(p.id);
+    void onSend(`Pay with ${p.id}`, { action: "pay", paymentMethod: p.id });
+  }
+
+  async function onSubmitCardPayment(e: React.FormEvent) {
+    e.preventDefault();
+    const digits = cardNumber.replace(/\D/g, "");
+    if (digits.length < 15 || !cardName.trim() || cardExpiry.length < 5 || cardCvv.length < 3) {
+      return;
+    }
+    setCardModalOpen(false);
+    setCardNumber("");
+    setCardName("");
+    setCardExpiry("");
+    setCardCvv("");
+    await onSend("Pay with card", { action: "pay", paymentMethod: "tokenized_card" });
   }
 
   return (
@@ -298,116 +453,8 @@ export function AgentPage() {
         </div>
       </header>
 
-      <div className="agent-v3-main">
-        <section className="agent-v3-chat">
-          <div className="agent-v3-chat-inner">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`agent-bubble ${msg.role}`}>
-                {msg.content}
-              </div>
-            ))}
-            {loading && <div className="agent-bubble assistant agent-typing">Working on it…</div>}
-            <div ref={bottomRef} />
-          </div>
-        </section>
-
-        <section className="agent-v3-flow">
-          {selected && (
-            <div className="agent-v3-panel">
-              <h3><ShoppingBag size={16} /> Selected</h3>
-              <div className="agent-v3-selected-row">
-                <img src={selected.image_url} alt="" />
-                <div>
-                  <strong>{selected.title}</strong>
-                  <p>{money(selected.price, selected.currency)} · {selected.overall_score}/100</p>
-                  <a className="agent-v3-shop-link" href={shopUrl(selected.product_url)} target="_blank" rel="noreferrer">
-                    <ExternalLink size={12} /> View on shop
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {deliveries.length > 0 && (
-            <div className="agent-v3-panel">
-              <h3><Truck size={16} /> Delivery</h3>
-              <div className="agent-v3-option-grid">
-                {deliveries.map((d) => (
-                  <button
-                    key={d.id}
-                    type="button"
-                    className="agent-v3-option"
-                    onClick={() => void onSend(`Use ${d.label.toLowerCase()}`, {
-                      action: "select_delivery",
-                      deliveryOptionId: d.id,
-                    })}
-                  >
-                    <strong>{d.label}</strong>
-                    <span>{money(d.fee, d.currency)} · {d.eta}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {payments.length > 0 && (
-            <div className="agent-v3-panel">
-              <h3><CreditCard size={16} /> Payment</h3>
-              <div className="agent-v3-option-grid agent-v3-pay-grid">
-                {payments.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className={`agent-v3-option ${p.available ? "" : "disabled"}`}
-                    disabled={!p.available}
-                    onClick={() => void onSend(`Pay with ${p.id}`, { action: "pay", paymentMethod: p.id })}
-                  >
-                    {payIcon(p.id)}
-                    <strong>{p.label}</strong>
-                    <span>{p.available ? p.note : "Unavailable"}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {orderSummary && (
-            <div className="agent-v3-panel agent-v3-success">
-              <h3><CheckCircle2 size={16} /> Order placed</h3>
-              <p className="agent-v3-order-id">{orderSummary.order_id}</p>
-              {orderSummary.summary && (
-                <p>Total: SGD {String(orderSummary.summary.total)}</p>
-              )}
-            </div>
-          )}
-
-          {tracking && (
-            <div className="agent-v3-panel">
-              <h3>Tracking</h3>
-              <p>{tracking.expected_message}</p>
-              <ul className="agent-v3-track">
-                {tracking.events.map((e) => (
-                  <li key={e.step} className={e.completed ? "done" : ""}>{e.label}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {!selected && !deliveries.length && !payments.length && !orderSummary && !tracking && (
-            <div className="agent-v3-panel agent-v3-hint">
-              <h3>How it works</h3>
-              <ol>
-                <li>Type your request in the chat below</li>
-                <li>Pick a verified product card</li>
-                <li>Choose delivery &amp; payment here</li>
-              </ol>
-            </div>
-          )}
-        </section>
-      </div>
-
-      {products.length > 0 && (currentStep === "picks" || currentStep === "chat") && (
-        <section className="agent-v3-products">
+      {showProducts && (
+        <section className="agent-v3-products" ref={productsRef}>
           <div className="agent-v3-products-head">
             <h3>Top verified picks</h3>
             <span>{products.length} Halal-scored options</span>
@@ -452,11 +499,171 @@ export function AgentPage() {
         </section>
       )}
 
+      <div className="agent-v3-main">
+        <section className="agent-v3-chat">
+          <div className="agent-v3-chat-inner">
+            {messages.map((msg) => (
+              <div key={msg.id} className={`agent-v3-msg agent-v3-msg-${msg.role}`}>
+                <span className="agent-v3-msg-label">
+                  {msg.role === "user" ? "You" : msg.role === "error" ? "Notice" : "Agent"}
+                </span>
+                <div className={`agent-bubble ${msg.role}`}>{msg.content}</div>
+              </div>
+            ))}
+            {loading && (
+              <div className="agent-v3-msg agent-v3-msg-assistant">
+                <span className="agent-v3-msg-label">Agent</span>
+                <div className="agent-bubble assistant agent-typing">
+                  <span className="agent-typing-dots" aria-hidden>···</span> Working on it…
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        </section>
+
+        <section className="agent-v3-flow">
+          {selected && (
+            <div className="agent-v3-panel">
+              <h3><ShoppingBag size={16} /> Selected</h3>
+              <div className="agent-v3-selected-row">
+                <img src={selected.image_url} alt="" />
+                <div>
+                  <strong>{selected.title}</strong>
+                  <p>{money(selected.price, selected.currency)} · {selected.overall_score}/100</p>
+                  <a className="agent-v3-shop-link" href={shopUrl(selected.product_url)} target="_blank" rel="noreferrer">
+                    <ExternalLink size={12} /> View on shop
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {deliveries.length > 0 && (
+            <div className="agent-v3-panel">
+              <h3><Truck size={16} /> Delivery</h3>
+              <div className="agent-v3-option-grid">
+                {deliveries.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    className={`agent-v3-option ${chosenDeliveryId === d.id ? "chosen" : ""}`}
+                    onClick={() => void onChooseDelivery(d)}
+                  >
+                    <strong>{d.label}</strong>
+                    <span>{money(d.fee, d.currency)} · {d.eta}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {payments.length > 0 && (
+            <div className="agent-v3-panel">
+              <h3><CreditCard size={16} /> Payment</h3>
+              <div className="agent-v3-option-grid agent-v3-pay-grid">
+                {payments.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`agent-v3-option ${p.available ? "" : "disabled"} ${chosenPaymentId === p.id ? "chosen" : ""}`}
+                    disabled={!p.available}
+                    onClick={() => onChoosePayment(p)}
+                  >
+                    {payIcon(p.id)}
+                    <strong>{p.label}</strong>
+                    <span>{p.available ? p.note : "Unavailable"}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {orderSummary && (
+            <div className="agent-v3-panel agent-v3-success">
+              <h3><CheckCircle2 size={16} /> Order placed</h3>
+              <p className="agent-v3-order-id">{orderSummary.order_id}</p>
+              {orderSummary.summary && (
+                <p>Total: SGD {String(orderSummary.summary.total)}</p>
+              )}
+            </div>
+          )}
+
+          {tracking && (
+            <div className="agent-v3-panel">
+              <h3>Tracking</h3>
+              <p>{tracking.expected_message}</p>
+              <ul className="agent-v3-track">
+                {tracking.events.map((e) => (
+                  <li key={e.step} className={e.completed ? "done" : ""}>{e.label}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      </div>
+
       {suggestions.length > 0 && (currentStep === "done" || currentStep === "tracking") && (
         <div className="agent-suggestions">
           {suggestions.map((s) => (
             <button key={s} type="button" onClick={() => void onSend(s)}>{s}</button>
           ))}
+        </div>
+      )}
+
+      {cardModalOpen && (
+        <div className="agent-card-overlay" onClick={() => setCardModalOpen(false)}>
+          <form className="agent-card-modal" onClick={(e) => e.stopPropagation()} onSubmit={(e) => void onSubmitCardPayment(e)}>
+            <div className="agent-card-modal-head">
+              <h3><Lock size={16} /> Add card</h3>
+              <button type="button" aria-label="Close" onClick={() => setCardModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <p className="agent-card-modal-copy">Secure delegated payment via Shopee ACP — demo only, no real charge.</p>
+            <label>
+              Card number
+              <input
+                value={cardNumber}
+                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                placeholder="4242 4242 4242 4242"
+                inputMode="numeric"
+                autoComplete="cc-number"
+              />
+            </label>
+            <label>
+              Name on card
+              <input
+                value={cardName}
+                onChange={(e) => setCardName(e.target.value)}
+                placeholder="As shown on card"
+                autoComplete="cc-name"
+              />
+            </label>
+            <div className="agent-card-modal-row">
+              <label>
+                Expiry
+                <input
+                  value={cardExpiry}
+                  onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                  placeholder="MM/YY"
+                  inputMode="numeric"
+                  autoComplete="cc-exp"
+                />
+              </label>
+              <label>
+                CVV
+                <input
+                  value={cardCvv}
+                  onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="123"
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
+                />
+              </label>
+            </div>
+            <button type="submit" className="agent-card-submit">Pay securely</button>
+          </form>
         </div>
       )}
 
@@ -484,8 +691,24 @@ export function AgentPage() {
                     headers: { "Content-Type": blob.type },
                     body: blob,
                   });
-                  const data = (await res.json()) as { text?: string };
+                  const data = (await res.json()) as { text?: string; error?: string };
+                  if (!res.ok) {
+                    throw new Error(data.error ?? "Voice input failed");
+                  }
                   if (data.text) await onSend(data.text);
+                  else throw new Error("No speech detected — try again");
+                } catch (error) {
+                  setMessages((p) => [
+                    ...p,
+                    {
+                      id: crypto.randomUUID(),
+                      role: "error",
+                      content:
+                        error instanceof Error
+                          ? error.message
+                          : "Microphone failed — allow mic access and try again",
+                    },
+                  ]);
                 } finally {
                   setLoading(false);
                 }
@@ -498,6 +721,11 @@ export function AgentPage() {
         >
           {recording ? <MicOff size={18} /> : <Mic size={18} />}
         </button>
+        {!openAiVoice && (
+          <span className="agent-v3-mic-hint" title="Set OPENAI_API_KEY on API for Whisper voice input">
+            Mic needs API key
+          </span>
+        )}
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
