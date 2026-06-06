@@ -16,7 +16,7 @@
     "refundRate": 0.035,
     "cancellationRate": 0.018,
     "netMarginPercent": 0.21,
-    "conversionRate": 0.0337,
+    "conversionRate": 0.0674,
     "ctr": 0.05
   },
   "competitors": [

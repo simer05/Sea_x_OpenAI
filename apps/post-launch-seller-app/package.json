@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@adaptlink/post-launch-seller": "0.1.0",
+    "@adaptlink/shared-data": "0.1.0",
     "@adaptlink/shared-types": "0.1.0",
     "next": "^15.1.3",
     "react": "^19.0.0",
