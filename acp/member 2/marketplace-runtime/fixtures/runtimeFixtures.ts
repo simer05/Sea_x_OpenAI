@@ -1,735 +1,234 @@
-import type { BuyerProfile, DeliveryPromise, Seller, SKU } from "../src/types.js";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import type {
+  BPOMStatus,
+  BuyerProfile,
+  City,
+  Country,
+  Currency,
+  DeliveryPromise,
+  HalalStatus,
+  Seller,
+  SKU,
+} from "../src/types.js";
 
-const delivery = (city: DeliveryPromise["city"], min_days: number, max_days: number): DeliveryPromise => ({
-  city,
-  min_days,
-  max_days,
-});
+interface SharedSellerRow {
+  seller_id: string;
+  seller_name: string;
+  country: Country;
+  city: City;
+  default_currency: Currency;
+}
 
-export const sellers: Seller[] = [
-  {
-    seller_id: "seller_001",
-    name: "Jakarta Glow Official",
-    country: "Indonesia",
-    city: "Jakarta",
+interface SharedCatalogRow {
+  product_id: string;
+  variant_id: string;
+  seller_id: string;
+  title: string;
+  category: string;
+  price: number;
+  currency: Currency;
+  country: Country;
+  city: City;
+  halal_status: HalalStatus;
+  halal_certifier: string | null;
+  halal_certificate_id: string | null;
+  bpom_status: BPOMStatus;
+  bpom_registration_number: string | null;
+  cod_available: boolean;
+  cod_max_amount: number;
+  cod_supported_cities: City[];
+  bnpl_available: boolean;
+}
+
+interface SellerRuntimeMetadata {
+  rating: number;
+  seller_category: string;
+  cod_return_rate: number;
+  tokenized_card: boolean;
+  bnpl_min_amount: number;
+  bnpl_max_amount: number;
+  bnpl_installment_months: number[];
+}
+
+const sellerRuntimeMetadata: Record<string, SellerRuntimeMetadata> = {
+  seller_001: {
     rating: 4.8,
     seller_category: "beauty",
     cod_return_rate: 0.06,
-    payment_capability: {
-      tokenized_card: true,
-      cod: {
-        enabled: true,
-        supported_cities: ["Jakarta"],
-        amount_limit: 1500000,
-        currencies: ["IDR"],
-      },
-      bnpl: {
-        enabled: true,
-        min_amount: 100000,
-        max_amount: 2000000,
-        installment_months: [3, 6],
-      },
-    },
+    tokenized_card: true,
+    bnpl_min_amount: 100000,
+    bnpl_max_amount: 2000000,
+    bnpl_installment_months: [3, 6],
   },
-  {
-    seller_id: "seller_002",
-    name: "Nusantara Daily Care",
-    country: "Indonesia",
-    city: "Jakarta",
-    rating: 4.4,
-    seller_category: "beauty",
-    cod_return_rate: 0.18,
-    payment_capability: {
-      tokenized_card: true,
-      cod: {
-        enabled: false,
-        supported_cities: [],
-        amount_limit: 0,
-        currencies: ["IDR"],
-      },
-      bnpl: {
-        enabled: true,
-        min_amount: 150000,
-        max_amount: 1200000,
-        installment_months: [3],
-      },
-    },
-  },
-  {
-    seller_id: "seller_003",
-    name: "Lion City Wellness",
-    country: "Singapore",
-    city: "Singapore",
+  seller_002: {
     rating: 4.9,
-    seller_category: "wellness",
-    cod_return_rate: 0.02,
-    payment_capability: {
-      tokenized_card: true,
-      cod: {
-        enabled: false,
-        supported_cities: [],
-        amount_limit: 0,
-        currencies: ["SGD"],
-      },
-      bnpl: {
-        enabled: true,
-        min_amount: 25,
-        max_amount: 600,
-        installment_months: [3, 6, 12],
-      },
-    },
-  },
-  {
-    seller_id: "seller_004",
-    name: "KL Beauty Lab",
-    country: "Malaysia",
-    city: "Kuala Lumpur",
-    rating: 4.6,
-    seller_category: "beauty",
-    cod_return_rate: 0.11,
-    payment_capability: {
-      tokenized_card: true,
-      cod: {
-        enabled: true,
-        supported_cities: ["Kuala Lumpur"],
-        amount_limit: 350,
-        currencies: ["MYR"],
-      },
-      bnpl: {
-        enabled: true,
-        min_amount: 80,
-        max_amount: 900,
-        installment_months: [3, 6],
-      },
-    },
-  },
-  {
-    seller_id: "seller_005",
-    name: "Manila Smart Bazaar",
-    country: "Philippines",
-    city: "Manila",
-    rating: 4.1,
     seller_category: "electronics",
+    cod_return_rate: 0.02,
+    tokenized_card: true,
+    bnpl_min_amount: 25,
+    bnpl_max_amount: 600,
+    bnpl_installment_months: [3, 6, 12],
+  },
+  seller_003: {
+    rating: 4.6,
+    seller_category: "wellness",
+    cod_return_rate: 0.11,
+    tokenized_card: true,
+    bnpl_min_amount: 80,
+    bnpl_max_amount: 900,
+    bnpl_installment_months: [3, 6],
+  },
+  seller_004: {
+    rating: 4.1,
+    seller_category: "family",
     cod_return_rate: 0.29,
+    tokenized_card: true,
+    bnpl_min_amount: 1000,
+    bnpl_max_amount: 15000,
+    bnpl_installment_months: [3, 6],
+  },
+  seller_005: {
+    rating: 4.4,
+    seller_category: "lifestyle",
+    cod_return_rate: 0.18,
+    tokenized_card: true,
+    bnpl_min_amount: 300,
+    bnpl_max_amount: 9000,
+    bnpl_installment_months: [3],
+  },
+};
+
+const stockByProductId: Record<string, number> = {
+  prod_001: 42,
+  prod_002: 55,
+  prod_003: 30,
+  prod_004: 120,
+  prod_005: 0,
+  prod_006: 65,
+  prod_007: 18,
+  prod_008: 33,
+  prod_009: 22,
+  prod_010: 80,
+  prod_011: 44,
+  prod_012: 95,
+  prod_013: 12,
+  prod_014: 0,
+  prod_015: 24,
+  prod_016: 16,
+  prod_017: 40,
+  prod_018: 60,
+  prod_019: 100,
+  prod_020: 18,
+  prod_021: 9,
+  prod_022: 26,
+  prod_023: 31,
+  prod_024: 75,
+  prod_025: 14,
+  prod_026: 50,
+  prod_027: 90,
+  prod_028: 0,
+  prod_029: 20,
+  prod_030: 48,
+  prod_031: 100,
+  prod_032: 34,
+  prod_033: 27,
+  prod_034: 15,
+  prod_035: 0,
+  prod_036: 39,
+};
+
+function readSharedJson<T>(relativePathFromAcp: string): T {
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+
+  for (let depth = 0; depth < 8; depth += 1) {
+    const candidate = path.join(dir, "data", relativePathFromAcp);
+    if (existsSync(candidate)) {
+      return JSON.parse(readFileSync(candidate, "utf8")) as T;
+    }
+    dir = path.dirname(dir);
+  }
+
+  throw new Error(`Unable to locate shared data file: data/${relativePathFromAcp}`);
+}
+
+function delivery(city: City, min_days: number, max_days: number): DeliveryPromise {
+  return {
+    city,
+    min_days,
+    max_days,
+  };
+}
+
+function deliveryWindowFor(row: SharedCatalogRow): DeliveryPromise {
+  const productNumber = Number(row.product_id.replace("prod_", ""));
+  const minDays = row.city === "Jakarta" || row.city === "Singapore" ? 1 : 2;
+  const maxDays = Math.min(9, minDays + 1 + (productNumber % 5));
+  return delivery(row.city, minDays, maxDays);
+}
+
+const sharedSellers = readSharedJson<SharedSellerRow[]>("sellers.json");
+const sharedCatalog = readSharedJson<SharedCatalogRow[]>("catalog.json");
+
+export const sellers: Seller[] = sharedSellers.map((seller) => {
+  const metadata = sellerRuntimeMetadata[seller.seller_id];
+
+  if (!metadata) {
+    throw new Error(`Missing runtime metadata for ${seller.seller_id}`);
+  }
+
+  const sellerRows = sharedCatalog.filter((row) => row.seller_id === seller.seller_id);
+  const codRows = sellerRows.filter((row) => row.cod_available);
+  const bnplRows = sellerRows.filter((row) => row.bnpl_available);
+
+  return {
+    seller_id: seller.seller_id,
+    name: seller.seller_name,
+    country: seller.country,
+    city: seller.city,
+    rating: metadata.rating,
+    seller_category: metadata.seller_category,
+    cod_return_rate: metadata.cod_return_rate,
     payment_capability: {
-      tokenized_card: true,
+      tokenized_card: metadata.tokenized_card,
       cod: {
-        enabled: true,
-        supported_cities: ["Manila"],
-        amount_limit: 5000,
-        currencies: ["PHP"],
+        enabled: codRows.length > 0,
+        supported_cities: [...new Set(codRows.flatMap((row) => row.cod_supported_cities))],
+        amount_limit: Math.max(0, ...codRows.map((row) => row.cod_max_amount)),
+        currencies: [...new Set(codRows.map((row) => row.currency))],
       },
       bnpl: {
-        enabled: false,
-        min_amount: 0,
-        max_amount: 0,
-        installment_months: [],
+        enabled: bnplRows.length > 0,
+        min_amount: metadata.bnpl_min_amount,
+        max_amount: metadata.bnpl_max_amount,
+        installment_months: metadata.bnpl_installment_months,
       },
     },
-  },
-];
-
-const sku = (
-  n: number,
-  data: Omit<SKU, "sku_id" | "variant_id">,
-): SKU => ({
-  sku_id: `sku_${String(n).padStart(3, "0")}`,
-  variant_id: `variant_${String(n).padStart(3, "0")}`,
-  ...data,
+  };
 });
 
-export const skus: SKU[] = [
-  sku(1, {
-    seller_id: "seller_001",
-    title: "Halal Brightening Serum",
-    category: "beauty",
-    price: 145000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 42,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "MUI",
-      halal_certificate_id: "HALAL-ID-001",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182401001",
-    },
-    cod_available: true,
-    bnpl_available: true,
-    delivery_promises: [delivery("Jakarta", 1, 3)],
-  }),
-  sku(2, {
-    seller_id: "seller_001",
-    title: "BPOM Vitamin C Toner",
-    category: "beauty",
-    price: 89000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 55,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182401002",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 1, 2)],
-  }),
-  sku(3, {
-    seller_id: "seller_001",
-    title: "Halal Sunscreen Gel SPF50",
-    category: "beauty",
-    price: 129000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 30,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "MUI",
-      halal_certificate_id: "HALAL-ID-003",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182401003",
-    },
-    cod_available: true,
-    bnpl_available: true,
-    delivery_promises: [delivery("Jakarta", 2, 4)],
-  }),
-  sku(4, {
-    seller_id: "seller_001",
-    title: "Jakarta Acne Patch Pack",
-    category: "beauty",
-    price: 39000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 120,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182401004",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 1, 2)],
-  }),
-  sku(5, {
-    seller_id: "seller_001",
-    title: "Hydrating Sheet Mask Bundle",
-    category: "beauty",
-    price: 76000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 0,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 1, 5)],
-  }),
-  sku(6, {
-    seller_id: "seller_001",
-    title: "Tea Tree Facial Wash",
-    category: "beauty",
-    price: 68000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 65,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "MUI",
-      halal_certificate_id: "HALAL-ID-006",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182401006",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 1, 4)],
-  }),
-  sku(7, {
-    seller_id: "seller_001",
-    title: "Beauty Starter Gift Set",
-    category: "beauty",
-    price: 245000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 18,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "MUI",
-      halal_certificate_id: "HALAL-ID-007",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182401007",
-    },
-    cod_available: true,
-    bnpl_available: true,
-    delivery_promises: [delivery("Jakarta", 2, 5)],
-  }),
-  sku(8, {
-    seller_id: "seller_002",
-    title: "Rice Water Serum",
-    category: "beauty",
-    price: 99000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 33,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182402008",
-    },
-    cod_available: false,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 2, 6)],
-  }),
-  sku(9, {
-    seller_id: "seller_002",
-    title: "Halal Aloe Body Lotion",
-    category: "beauty",
-    price: 118000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 22,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "MUI",
-      halal_certificate_id: "HALAL-ID-009",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182402009",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Jakarta", 2, 5)],
-  }),
-  sku(10, {
-    seller_id: "seller_002",
-    title: "Daily Shampoo Refill",
-    category: "personal_care",
-    price: 64000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 80,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182402010",
-    },
-    cod_available: false,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 3, 6)],
-  }),
-  sku(11, {
-    seller_id: "seller_002",
-    title: "Matte Lip Cream",
-    category: "beauty",
-    price: 79000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 44,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "MUI",
-      halal_certificate_id: "HALAL-ID-011",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182402011",
-    },
-    cod_available: false,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 2, 4)],
-  }),
-  sku(12, {
-    seller_id: "seller_002",
-    title: "Family Soap Multi Pack",
-    category: "household",
-    price: 52000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 95,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 1, 3)],
-  }),
-  sku(13, {
-    seller_id: "seller_002",
-    title: "Retinol Night Cream",
-    category: "beauty",
-    price: 189000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 12,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182402013",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Jakarta", 4, 8)],
-  }),
-  sku(14, {
-    seller_id: "seller_002",
-    title: "Micellar Cleansing Water",
-    category: "beauty",
-    price: 72000,
-    currency: "IDR",
-    country: "Indonesia",
-    stock_quantity: 0,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "registered",
-      bpom_registration_number: "BPOM-NA182402014",
-    },
-    cod_available: false,
-    bnpl_available: false,
-    delivery_promises: [delivery("Jakarta", 2, 5)],
-  }),
-  sku(15, {
-    seller_id: "seller_003",
-    title: "Orchard Collagen Drink",
-    category: "wellness",
-    price: 49,
-    currency: "SGD",
-    country: "Singapore",
-    stock_quantity: 24,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Singapore", 1, 2)],
-  }),
-  sku(16, {
-    seller_id: "seller_003",
-    title: "Sensitive Skin Serum",
-    category: "beauty",
-    price: 38,
-    currency: "SGD",
-    country: "Singapore",
-    stock_quantity: 16,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Singapore", 1, 3)],
-  }),
-  sku(17, {
-    seller_id: "seller_003",
-    title: "Probiotic Capsules",
-    category: "wellness",
-    price: 64,
-    currency: "SGD",
-    country: "Singapore",
-    stock_quantity: 40,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Singapore", 2, 4)],
-  }),
-  sku(18, {
-    seller_id: "seller_003",
-    title: "Kids Vitamin Gummies",
-    category: "wellness",
-    price: 28,
-    currency: "SGD",
-    country: "Singapore",
-    stock_quantity: 60,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Singapore", 1, 2)],
-  }),
-  sku(19, {
-    seller_id: "seller_003",
-    title: "Reusable Cotton Pads",
-    category: "beauty",
-    price: 12,
-    currency: "SGD",
-    country: "Singapore",
-    stock_quantity: 100,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: false,
-    delivery_promises: [delivery("Singapore", 1, 2)],
-  }),
-  sku(20, {
-    seller_id: "seller_003",
-    title: "Mineral Sunscreen Stick",
-    category: "beauty",
-    price: 32,
-    currency: "SGD",
-    country: "Singapore",
-    stock_quantity: 18,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Singapore", 2, 5)],
-  }),
-  sku(21, {
-    seller_id: "seller_003",
-    title: "Wellness Gift Box",
-    category: "wellness",
-    price: 118,
-    currency: "SGD",
-    country: "Singapore",
-    stock_quantity: 9,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: true,
-    delivery_promises: [delivery("Singapore", 3, 7)],
-  }),
-  sku(22, {
-    seller_id: "seller_004",
-    title: "KL Halal Rose Serum",
-    category: "beauty",
-    price: 88,
-    currency: "MYR",
-    country: "Malaysia",
-    stock_quantity: 26,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "JAKIM",
-      halal_certificate_id: "HALAL-MY-022",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: true,
-    delivery_promises: [delivery("Kuala Lumpur", 1, 3)],
-  }),
-  sku(23, {
-    seller_id: "seller_004",
-    title: "Cica Repair Cream",
-    category: "beauty",
-    price: 72,
-    currency: "MYR",
-    country: "Malaysia",
-    stock_quantity: 31,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Kuala Lumpur", 2, 4)],
-  }),
-  sku(24, {
-    seller_id: "seller_004",
-    title: "Halal Lip Balm Duo",
-    category: "beauty",
-    price: 36,
-    currency: "MYR",
-    country: "Malaysia",
-    stock_quantity: 75,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "JAKIM",
-      halal_certificate_id: "HALAL-MY-024",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Kuala Lumpur", 1, 2)],
-  }),
-  sku(25, {
-    seller_id: "seller_004",
-    title: "Bright Peel Serum",
-    category: "beauty",
-    price: 110,
-    currency: "MYR",
-    country: "Malaysia",
-    stock_quantity: 14,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: true,
-    delivery_promises: [delivery("Kuala Lumpur", 3, 6)],
-  }),
-  sku(26, {
-    seller_id: "seller_004",
-    title: "Body Scrub Jar",
-    category: "beauty",
-    price: 49,
-    currency: "MYR",
-    country: "Malaysia",
-    stock_quantity: 50,
-    compliance: {
-      halal_status: "certified",
-      halal_certifier: "JAKIM",
-      halal_certificate_id: "HALAL-MY-026",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Kuala Lumpur", 2, 5)],
-  }),
-  sku(27, {
-    seller_id: "seller_004",
-    title: "Beauty Travel Pouch",
-    category: "accessories",
-    price: 39,
-    currency: "MYR",
-    country: "Malaysia",
-    stock_quantity: 90,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Kuala Lumpur", 1, 3)],
-  }),
-  sku(28, {
-    seller_id: "seller_004",
-    title: "Premium Facial Oil",
-    category: "beauty",
-    price: 180,
-    currency: "MYR",
-    country: "Malaysia",
-    stock_quantity: 6,
-    compliance: {
-      halal_status: "unknown",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: true,
-    delivery_promises: [delivery("Kuala Lumpur", 5, 9)],
-  }),
-  sku(29, {
-    seller_id: "seller_005",
-    title: "Manila Bluetooth Earbuds",
-    category: "electronics",
-    price: 2450,
-    currency: "PHP",
-    country: "Philippines",
-    stock_quantity: 20,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Manila", 2, 5)],
-  }),
-  sku(30, {
-    seller_id: "seller_005",
-    title: "USB-C Fast Charger",
-    category: "electronics",
-    price: 890,
-    currency: "PHP",
-    country: "Philippines",
-    stock_quantity: 48,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Manila", 1, 3)],
-  }),
-  sku(31, {
-    seller_id: "seller_005",
-    title: "Smart Watch Strap",
-    category: "electronics",
-    price: 560,
-    currency: "PHP",
-    country: "Philippines",
-    stock_quantity: 100,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Manila", 2, 4)],
-  }),
-  sku(32, {
-    seller_id: "seller_005",
-    title: "Portable Desk Fan",
-    category: "electronics",
-    price: 1290,
-    currency: "PHP",
-    country: "Philippines",
-    stock_quantity: 34,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Manila", 3, 7)],
-  }),
-  sku(33, {
-    seller_id: "seller_005",
-    title: "Phone Camera Lens Kit",
-    category: "electronics",
-    price: 760,
-    currency: "PHP",
-    country: "Philippines",
-    stock_quantity: 27,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Manila", 4, 8)],
-  }),
-  sku(34, {
-    seller_id: "seller_005",
-    title: "Beauty LED Mirror",
-    category: "beauty",
-    price: 1750,
-    currency: "PHP",
-    country: "Philippines",
-    stock_quantity: 15,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: false,
-    bnpl_available: false,
-    delivery_promises: [delivery("Manila", 2, 6)],
-  }),
-  sku(35, {
-    seller_id: "seller_005",
-    title: "Compact Power Bank",
-    category: "electronics",
-    price: 1990,
-    currency: "PHP",
-    country: "Philippines",
-    stock_quantity: 0,
-    compliance: {
-      halal_status: "not_certified",
-      bpom_status: "not_required",
-    },
-    cod_available: true,
-    bnpl_available: false,
-    delivery_promises: [delivery("Manila", 3, 6)],
-  }),
-];
+export const skus: SKU[] = sharedCatalog.map((row) => ({
+  sku_id: row.product_id.replace("prod_", "sku_"),
+  variant_id: row.variant_id,
+  seller_id: row.seller_id,
+  title: row.title,
+  category: row.category,
+  price: row.price,
+  currency: row.currency,
+  country: row.country,
+  stock_quantity: stockByProductId[row.product_id] ?? 25,
+  compliance: {
+    halal_status: row.halal_status,
+    halal_certifier: row.halal_certifier ?? undefined,
+    halal_certificate_id: row.halal_certificate_id ?? undefined,
+    bpom_status: row.bpom_status,
+    bpom_registration_number: row.bpom_registration_number ?? undefined,
+  },
+  cod_available: row.cod_available,
+  bnpl_available: row.bnpl_available,
+  delivery_promises: [deliveryWindowFor(row)],
+}));
 
 export const buyerProfiles: BuyerProfile[] = [
   {
