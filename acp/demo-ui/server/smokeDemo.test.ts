@@ -8,6 +8,22 @@ import {
   runProductSearch,
 } from "./acpGateway.js";
 import { handleAgentChat } from "./agentLogic.js";
+import {
+  buildRichOrder,
+  cancelCheckoutSession,
+  clearCheckoutSessions,
+  completeCheckoutSession,
+  createCheckoutSession,
+  delegatePayment,
+  getAcpWellKnown,
+  getCheckoutSession,
+  getUcpWellKnown,
+  toAcpCheckoutResponse,
+  toUcpCheckoutResponse,
+  updateCheckoutSession,
+} from "./checkoutBridge.js";
+import { clearOrderWebhookEvents, listOrderWebhookEvents } from "./orderWebhooks.js";
+import { clearIdempotencyStore } from "./idempotency.js";
 
 async function smokeJudgeFlow() {
   const manifest = getCapabilityManifest();
@@ -52,6 +68,90 @@ async function smokeJudgeFlow() {
   assert.ok(tracking.current_status.length > 0);
 }
 
+async function smokeAcpUcpBridge() {
+  clearCheckoutSessions();
+  clearOrderWebhookEvents();
+  clearIdempotencyStore();
+
+  const base = "http://127.0.0.1:8787";
+  const acp = getAcpWellKnown(base);
+  assert.equal(acp.protocol.name, "acp");
+  assert.equal(acp.protocol.version, "2026-04-17");
+  assert.ok(acp.capabilities.services.includes("checkout"));
+
+  const ucp = getUcpWellKnown(base);
+  assert.equal(ucp.ucp.version, "2026-04-08");
+  assert.ok(ucp.ucp.capabilities["dev.ucp.shopping.checkout"]);
+
+  const search = runProductSearch({
+    query: "noodles",
+    max_price: 10,
+    currency: "SGD",
+    category: "groceries",
+    halal_required: true,
+    location: "Singapore",
+    session_id: "bridge-smoke",
+  });
+  const productId = search.products[0]!.product_id;
+
+  const session = createCheckoutSession({
+    items: [{ product_id: productId, quantity: 1 }],
+    delivery_option_id: "standard",
+    demo_session_id: "bridge-smoke",
+    session_id: "bridge-smoke",
+  });
+  assert.match(session.id, /^cs_/);
+  assert.equal(session.status, "ready_for_payment");
+
+  const acpView = toAcpCheckoutResponse(session);
+  assert.equal(acpView.protocol.name, "acp");
+  assert.ok(acpView.payment_handlers?.length >= 3);
+  assert.ok(acpView.capabilities.payment.handlers.length >= 4);
+  assert.ok(acpView.line_items[0].base_amount > 0);
+
+  const ucpView = toUcpCheckoutResponse(session);
+  assert.equal(ucpView.status, "ready_for_complete");
+  assert.ok(ucpView.totals.some((t) => t.type === "total"));
+
+  updateCheckoutSession(session.id, { payment_method: "cod" });
+  const updated = getCheckoutSession(session.id);
+  assert.equal(updated.payment_method, "cod");
+
+  const delegated = delegatePayment({
+    allowance: {
+      checkout_session_id: session.id,
+      merchant_id: "acct_shopee_acp_sea_demo",
+      max_amount: 1500,
+      currency: "sgd",
+    },
+  });
+  assert.match(delegated.id, /^vt_/);
+  assert.equal(delegated.type, "shared_payment_token");
+
+  const completed = completeCheckoutSession(session.id, {
+    payment_method: "cod",
+    demo_session_id: "bridge-smoke",
+    session_id: "bridge-smoke",
+  });
+  assert.equal(completed.session.status, "completed");
+  assert.ok(completed.session.order_id);
+  assert.match(completed.session.order_id!, /^ACP-SHP-/);
+
+  const rich = buildRichOrder(completed.session.order_id!, session.id);
+  assert.equal(rich.id, completed.session.order_id);
+  assert.ok(rich.totals.length >= 2);
+
+  const events = listOrderWebhookEvents(5);
+  assert.ok(events.length >= 2);
+  assert.equal(events[0]?.type, "order_create");
+
+  const canceledSession = createCheckoutSession({
+    items: [{ product_id: productId, quantity: 1 }],
+  });
+  const canceled = cancelCheckoutSession(canceledSession.id);
+  assert.equal(canceled.status, "canceled");
+}
+
 async function smokeAgentChatWithoutOpenAi() {
   const previous = process.env.OPENAI_API_KEY;
   delete process.env.OPENAI_API_KEY;
@@ -91,10 +191,73 @@ async function smokeAgentChatWithInvalidOpenAi() {
   }
 }
 
+async function smokeAgentTrackingAfterNewSearch() {
+  const previous = process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+
+  try {
+    let sessionId = crypto.randomUUID();
+    const demoSessionId = "smoke-tracking";
+
+    const picks = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "I want to buy a Halal noodles pack under $10",
+    });
+    sessionId = picks.sessionId;
+    const sku = picks.products?.[0]?.sku_id;
+    assert.ok(sku);
+
+    await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "pick",
+      action: "select_product",
+      skuId: sku,
+    });
+    await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "standard",
+      action: "select_delivery",
+      deliveryOptionId: "standard",
+    });
+    const paid = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "cod",
+      action: "pay",
+      paymentMethod: "cod",
+      deliveryOptionId: "standard",
+    });
+    assert.equal(paid.step, "done");
+    assert.ok(paid.order?.order_id);
+
+    const newSearch = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "I want halal snacks under 5 dollars",
+    });
+    assert.equal(newSearch.step, "picks");
+
+    const tracking = await handleAgentChat({
+      sessionId,
+      demoSessionId,
+      message: "Where is my order?",
+    });
+    assert.equal(tracking.step, "tracking");
+    assert.ok(tracking.tracking?.current_status);
+  } finally {
+    if (previous) process.env.OPENAI_API_KEY = previous;
+  }
+}
+
 async function main() {
   await smokeJudgeFlow();
+  await smokeAcpUcpBridge();
   await smokeAgentChatWithoutOpenAi();
   await smokeAgentChatWithInvalidOpenAi();
+  await smokeAgentTrackingAfterNewSearch();
   console.log("demo-ui smoke tests passed");
 }
 
