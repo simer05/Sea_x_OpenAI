@@ -871,7 +871,8 @@ function benchmarkRow(label, you, averageValue, gap, positive) {
 }
 
 function themeBar(theme, type) {
-  return `<div class="theme-row"><span>${escapeHtml(theme.label)}</span><div><i style="width:${theme.value}%"></i></div><strong>${theme.value}%</strong></div>`;
+  const negative = type === "negative";
+  return `<div class="theme-bar${negative ? " negative" : ""}"><span>${escapeHtml(theme.label)}</span><div><i style="width:${theme.value}%"></i></div><strong>${theme.value}%</strong></div>`;
 }
 
 function metricTile(label, value, detail) {
