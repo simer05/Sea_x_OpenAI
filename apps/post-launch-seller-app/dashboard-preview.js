@@ -290,7 +290,18 @@ const state = {
   mode: "post",
   productIndex: 0,
   timeframeIndex: 1,
-  preIdeaIndex: 2
+  preIdeaIndex: 2,
+  preAnalyzed: false,
+  photoDataUrl: "",
+  photoName: "",
+  aiInsight: null,
+  aiLoading: false,
+  preDraft: {
+    productType: "",
+    description: "",
+    keywords: "",
+    targetArea: "Islandwide Singapore"
+  }
 };
 
 function init() {
@@ -301,29 +312,43 @@ function init() {
     renderPost();
   });
 
-  html("pre-idea", preIdeas.map((idea, index) => `<option value="${index}">${escapeHtml(idea.title)}</option>`).join(""));
-  byId("pre-idea").value = String(state.preIdeaIndex);
-  byId("pre-idea").addEventListener("change", (event) => {
-    state.preIdeaIndex = Number(event.target.value);
-    hydratePreForm(preIdeas[state.preIdeaIndex]);
-    renderPre();
-  });
   byId("pre-form").addEventListener("submit", (event) => {
     event.preventDefault();
-    renderPre();
+    void runPreAnalysis();
   });
+
+  const photoInput = byId("prelaunch-photo-upload");
+  if (photoInput) {
+    photoInput.addEventListener("change", (event) => {
+      void handlePrePhoto(event.target.files?.[0] || null);
+    });
+  }
+
+  ["pre-change-product-header", "pre-change-product-footer"].forEach((id) => {
+    const button = byId(id);
+    if (button) button.addEventListener("click", cancelPreProduct);
+  });
+
+  byId("pre-form").addEventListener("input", updatePreChangeProductButton);
 
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   });
 
-  hydratePreForm(preIdeas[state.preIdeaIndex]);
+  clearPreForm();
   renderProductList();
   render();
 }
 
 function setMode(mode) {
-  state.mode = mode === "pre" ? "pre" : "post";
+  const nextMode = mode === "pre" ? "pre" : "post";
+  if (nextMode === "pre" && state.mode !== "pre" && !state.photoDataUrl) {
+    state.preAnalyzed = false;
+    state.aiInsight = null;
+    clearPreForm();
+    resetPreUploadUi();
+  }
+  state.mode = nextMode;
   render();
 }
 
@@ -333,30 +358,39 @@ function render() {
   });
   byId("post-view").classList.toggle("hidden", state.mode !== "post");
   byId("pre-view").classList.toggle("hidden", state.mode !== "pre");
-  byId("page-title").textContent = state.mode === "post" ? "Post-Launch Product Intelligence" : "Pre-Launch Product Intelligence";
+  byId("post-head-actions").classList.toggle("hidden", state.mode !== "post");
+  text("workspace-title", state.mode === "post" ? "Post-Launch Seller Intelligence" : "Pre-Launch Seller Intelligence");
+  text("seller-perspective-copy", state.mode === "post"
+    ? "Optimize live listings, reviews, and campaign spend"
+    : "Validate new listing ideas before launch");
+  byId("page-title").textContent = state.mode === "post" ? "Post-Launch Product Dashboard" : "Pre-Launch Product Validation";
   byId("page-copy").textContent =
     state.mode === "post"
-      ? "Track performance, benchmark competitors, and optimize existing listings for growth."
-      : "Validate product ideas before launch with market, margin, competitor, and readiness analysis.";
+      ? "Choose a live seller product to generate product health, market trend, competitor, review, and action dashboards."
+      : "Enter a new product idea to estimate launch fit, comparison pressure, Singapore target area, and initial stock size.";
   renderProductList();
   if (state.mode === "post") {
     renderPost();
-  } else {
+  } else if (state.preAnalyzed) {
     renderPre();
+  } else {
+    togglePrePanels(false);
   }
 }
 
 function renderProductList() {
-  byId("sidebar-product-count").textContent = String(products.length);
+  byId("sidebar-product-count").textContent = `${products.length} live items`;
   html(
     "product-list",
     products
       .map((item, index) => {
         const product = item.product;
         const isActive = state.mode === "post" && index === state.productIndex;
-        return `<button class="product-option ${isActive ? "active" : ""}" type="button" data-product-index="${index}">
+        return `<button class="live-product-card ${isActive ? "active" : ""}" type="button" data-product-index="${index}">
           ${productImage(item.imageKind, product.title)}
-          <span><strong>${escapeHtml(shortProductName(product.title))}</strong><small>${escapeHtml(product.productId)}</small></span>
+          <span><strong>${escapeHtml(product.title)}</strong><small>${escapeHtml(product.productId)} · ${escapeHtml(product.category)}</small></span>
+          <b>${currency(product.price)}</b>
+          <em>${product.orders} orders</em>
         </button>`;
       })
       .join("")
@@ -572,6 +606,47 @@ function renderImprovementAreas(input, health, actions) {
   );
 }
 
+function togglePrePanels(showResults) {
+  byId("pre-empty-panel").classList.toggle("hidden", showResults || state.aiLoading);
+  byId("pre-decision-panel").classList.toggle("hidden", !showResults);
+  document.querySelectorAll(".pre-result-panel").forEach((panel) => {
+    if (panel.id === "pre-ai-panel") return;
+    panel.classList.toggle("hidden", !showResults);
+  });
+  updatePreChangeProductButton();
+}
+
+function hasPreProductDraft() {
+  const form = readPreForm();
+  return Boolean(
+    state.photoDataUrl ||
+      state.preAnalyzed ||
+      form.title ||
+      form.category ||
+      form.productType ||
+      form.description ||
+      form.features
+  );
+}
+
+function updatePreChangeProductButton() {
+  const show = hasPreProductDraft();
+  const headerButton = byId("pre-change-product-header");
+  if (headerButton) headerButton.classList.toggle("hidden", !show);
+}
+
+function cancelPreProduct() {
+  state.preAnalyzed = false;
+  state.aiInsight = null;
+  state.aiLoading = false;
+  state.photoDataUrl = "";
+  state.photoName = "";
+  clearPreForm();
+  resetPreUploadUi();
+  togglePrePanels(false);
+  updatePreChangeProductButton();
+}
+
 function renderPre() {
   const input = readPreForm();
   const analysis = analyzePre(input);
@@ -625,25 +700,327 @@ function renderPre() {
       .map((action, index) => `<div class="action-item"><span class="action-number">${index + 1}</span><p>${escapeHtml(action)}</p><b class="${index === 0 ? "high" : "medium"}">${index === 0 ? "High" : "Medium"}</b></div>`)
       .join("")
   );
+  togglePrePanels(true);
 }
 
-function hydratePreForm(idea) {
-  byId("pre-title").value = idea.title;
-  byId("pre-category").value = idea.category;
-  byId("pre-price").value = idea.price;
-  byId("pre-stock").value = idea.stock;
-  byId("pre-features").value = idea.features;
+async function runPreAnalysis() {
+  state.preAnalyzed = true;
+  state.aiLoading = true;
+  renderAiSummary();
+  const report = analyzePre(readPreForm());
+  renderPre();
+  const insight = await requestSellerAi("pre", readPreFormPayload(), report);
+  state.aiInsight = insight || state.aiInsight || localPhotoFallbackInsight();
+  state.aiLoading = false;
+  renderAiSummary();
+}
+
+async function handlePrePhoto(file) {
+  if (!file) {
+    state.photoDataUrl = "";
+    state.photoName = "";
+    resetPreUploadUi();
+    return;
+  }
+
+  if (!isImageFile(file)) {
+    setPreUploadUi("", false, "Please choose a PNG, JPG, WEBP, GIF, HEIC, or other image file.");
+    return;
+  }
+
+  state.aiLoading = true;
+  state.preAnalyzed = false;
+  state.aiInsight = null;
+  setPreUploadUi(file.name, true);
+  togglePrePanels(false);
+
+  try {
+    state.photoDataUrl = await preparePhotoDataUrl(file);
+    state.photoName = file.name;
+    const imageOnlyForm = emptyPrePayload(state.photoName, state.photoDataUrl);
+    const insight = await requestSellerAi("pre", imageOnlyForm, {}, state.photoDataUrl);
+    const draftForm = buildPreDraftForm(imageOnlyForm, insight || localPhotoFallbackInsight());
+    applyPreDraftToDom(draftForm);
+    state.preAnalyzed = true;
+    state.aiInsight = insight || localPhotoFallbackInsight();
+    renderPre();
+    setPreUploadUi(file.name, false);
+  } catch (error) {
+    const draftForm = buildPreDraftForm(emptyPrePayload(file.name, ""), localPhotoFallbackInsight());
+    applyPreDraftToDom(draftForm);
+    state.preAnalyzed = true;
+    state.aiInsight = localPhotoFallbackInsight();
+    renderPre();
+    setPreUploadUi(file.name, false, error instanceof Error ? error.message : "Could not read image. Try PNG or JPG.");
+  } finally {
+    state.aiLoading = false;
+    renderAiSummary();
+    togglePrePanels(state.preAnalyzed);
+  }
+}
+
+async function requestSellerAi(mode, productInput, computedReport, photoDataUrlOverride) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch("/api/seller-ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        mode,
+        productInput,
+        computedReport,
+        photoDataUrl: photoDataUrlOverride
+      })
+    });
+    if (!response.ok) throw new Error("Seller AI request failed");
+    return await response.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function isImageFile(file) {
+  if (file.type && file.type.startsWith("image/")) return true;
+  return /\.(png|jpe?g|gif|webp|bmp|tiff?|heic|heif|avif)$/i.test(file.name);
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Could not read the selected image."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function preparePhotoDataUrl(file) {
+  const original = await readFileAsDataUrl(file);
+  try {
+    return await compressDataUrl(original, 1280, 0.82);
+  } catch {
+    return original;
+  }
+}
+
+function compressDataUrl(dataUrl, maxEdge, quality) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.min(1, maxEdge / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Could not process image."));
+        return;
+      }
+      ctx.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    image.onerror = () => reject(new Error("This image format is not supported in the browser. Try PNG or JPG."));
+    image.src = dataUrl;
+  });
+}
+
+function localPhotoFallbackInsight() {
+  return {
+    modeUsed: "fallback",
+    summary: "Image uploaded. Review the AI-filled draft on the left, then run pre-launch analysis.",
+    imageUnderstanding: "Product photo received. OpenAI vision refines this draft when the API key is active.",
+    safeChanges: [
+      { field: "productType", value: "phone case" },
+      { field: "targetArea", value: "Islandwide Singapore" },
+      { field: "features", value: "Clear protection, corner shock absorption, camera lip, wireless charging friendly" },
+      { field: "description", value: "Protective clear case draft from uploaded image. Add model compatibility, material proof, and delivery details before launch." },
+      { field: "keywords", value: "phone case singapore, clear case, shockproof case" },
+      { field: "launchStock", value: "30" },
+      { field: "shippingCost", value: "1" },
+      { field: "packagingCost", value: "0.5" },
+      { field: "adCost", value: "1" }
+    ],
+    blockedChanges: [
+      { field: "title", value: "Shockproof Clear Phone Case with Camera Lip" },
+      { field: "price", value: "9.9" },
+      { field: "category", value: "Mobile Accessories > Phone Cases" }
+    ],
+    actionPlan: []
+  };
+}
+
+function emptyPrePayload(photoName, photoDataUrl) {
+  return {
+    title: "",
+    category: "",
+    productType: "",
+    price: "",
+    launchStock: "",
+    shippingCost: "",
+    packagingCost: "",
+    adCost: "",
+    targetArea: "",
+    colors: "",
+    features: "",
+    description: "",
+    keywords: "",
+    photoName,
+    photoDataUrl,
+  };
+}
+
+function buildPreDraftForm(base, insight) {
+  const draft = { ...base };
+  for (const change of [...(insight.safeChanges || []), ...(insight.blockedChanges || [])]) {
+    if (change.field in draft && change.value) draft[change.field] = change.value;
+  }
+  return {
+    ...draft,
+    title: draft.title || "AI drafted product title",
+    category: draft.category || "Mobile Accessories > Phone Cases",
+    productType: draft.productType || "image-detected product",
+    price: draft.price || "19.9",
+    launchStock: draft.launchStock || "30",
+    shippingCost: draft.shippingCost || "1",
+    packagingCost: draft.packagingCost || "0.5",
+    adCost: draft.adCost || "1",
+    targetArea: draft.targetArea || "Islandwide Singapore",
+    colors: draft.colors || "",
+    features: draft.features || "Visible product photo, local seller, fast delivery",
+    description: draft.description || "AI drafted product description. Seller should confirm product proof, sizing, compatibility, and local delivery details before launch.",
+    keywords: draft.keywords || "shopee singapore, local seller, fast delivery",
+  };
+}
+
+function applyPreDraftToDom(draft) {
+  byId("pre-title").value = draft.title;
+  byId("pre-category").value = draft.category;
+  byId("pre-product-type").value = draft.productType;
+  byId("pre-price").value = draft.price;
+  byId("pre-stock").value = draft.launchStock;
+  byId("pre-shipping").value = draft.shippingCost;
+  byId("pre-packaging").value = draft.packagingCost;
+  byId("pre-ad-cost").value = draft.adCost;
+  byId("pre-target-area").value = draft.targetArea;
+  byId("pre-colors").value = draft.colors || "";
+  byId("pre-features").value = draft.features;
+  byId("pre-description").value = draft.description;
+  byId("pre-keywords").value = draft.keywords;
+}
+
+function readPreFormPayload(includePhoto = false) {
+  const idea = readPreForm();
+  return {
+    title: idea.title,
+    category: idea.category,
+    productType: idea.productType,
+    price: String(idea.price),
+    launchStock: String(idea.stock),
+    shippingCost: String(idea.shippingCost),
+    packagingCost: String(idea.packagingCost),
+    adCost: String(idea.adCost),
+    targetArea: idea.targetArea,
+    colors: idea.colors,
+    features: idea.features,
+    description: idea.description,
+    keywords: idea.keywords,
+    photoName: state.photoName,
+    photoDataUrl: includePhoto ? state.photoDataUrl : ""
+  };
+}
+
+function resetPreUploadUi() {
+  text("pre-upload-label", "Upload Product Photo");
+  text("pre-upload-status", "No image added yet");
+  text("pre-empty-title", "No pre-launch product loaded");
+  text("pre-empty-copy", "Upload a product photo here. OpenAI will fill the editable form with suggested title, category, price, target region, features, description, and keywords.");
+  const input = byId("prelaunch-photo-upload");
+  if (input) input.value = "";
+}
+
+function setPreUploadUi(fileName, loading, errorMessage) {
+  text("pre-upload-label", loading ? "Reading product image..." : errorMessage ? "Upload failed" : "Upload Product Photo");
+  text("pre-upload-status", loading ? "OpenAI is filling the form." : errorMessage || fileName || "Image added");
+  if (!loading && fileName && !errorMessage) {
+    text("pre-empty-title", "Pre-launch draft ready");
+    text("pre-empty-copy", "Review the editable form on the left, then run analysis or adjust any AI-filled fields.");
+  }
+  if (errorMessage) {
+    text("pre-empty-title", "No pre-launch product loaded");
+    text("pre-empty-copy", errorMessage);
+  }
+}
+
+function renderAiSummary() {
+  const panel = byId("pre-ai-panel");
+  if (!panel) return;
+  panel.classList.add("hidden");
+  const insight = state.aiInsight;
+  text("pre-ai-mode", state.aiLoading ? "Generating" : insight ? `${insight.modeUsed === "openai" ? "OpenAI" : "Fallback"} mode` : "Waiting");
+  text("pre-ai-summary", state.aiLoading
+    ? "Reading seller metrics, listing details, and uploaded product evidence..."
+    : insight?.summary || "Run analysis or upload a product photo to generate seller guidance.");
+  text("pre-ai-image-note", insight?.imageUnderstanding || "Upload a product photo to include visual understanding.");
+}
+
+function clearPreForm() {
+  const defaults = {
+    "pre-title": "",
+    "pre-category": "",
+    "pre-product-type": "",
+    "pre-price": "",
+    "pre-stock": "",
+    "pre-shipping": "1",
+    "pre-packaging": "0.5",
+    "pre-ad-cost": "1",
+    "pre-target-area": "Islandwide Singapore",
+    "pre-colors": "",
+    "pre-features": "",
+    "pre-description": "",
+    "pre-keywords": ""
+  };
+  for (const [id, value] of Object.entries(defaults)) {
+    const field = byId(id);
+    if (field) field.value = value;
+  }
+}
+
+function pickPreContext(form) {
+  const hay = `${form.category} ${form.productType} ${form.title}`.toLowerCase();
+  if (hay.includes("bottle") || hay.includes("drinkware") || hay.includes("water")) return preIdeas[0];
+  if (hay.includes("shirt") || hay.includes("clothing") || hay.includes("tee")) return preIdeas[1];
+  return preIdeas[2];
 }
 
 function readPreForm() {
-  const idea = preIdeas[state.preIdeaIndex];
+  const form = {
+    title: byId("pre-title").value.trim(),
+    category: byId("pre-category").value.trim(),
+    productType: byId("pre-product-type").value.trim(),
+    price: Number(byId("pre-price").value) || 0,
+    stock: Number(byId("pre-stock").value) || 30,
+    shippingCost: Number(byId("pre-shipping").value) || 1,
+    packagingCost: Number(byId("pre-packaging").value) || 0.5,
+    adCost: Number(byId("pre-ad-cost").value) || 1,
+    targetArea: byId("pre-target-area").value.trim() || "Islandwide Singapore",
+    colors: byId("pre-colors").value.trim(),
+    features: byId("pre-features").value.trim(),
+    description: byId("pre-description").value.trim(),
+    keywords: byId("pre-keywords").value.trim()
+  };
+  const ctx = pickPreContext(form);
   return {
-    ...idea,
-    title: byId("pre-title").value.trim() || idea.title,
-    category: byId("pre-category").value.trim() || idea.category,
-    price: Number(byId("pre-price").value) || idea.price,
-    stock: Number(byId("pre-stock").value) || idea.stock,
-    features: byId("pre-features").value.trim() || idea.features
+    ...ctx,
+    ...form,
+    price: form.price || ctx.price,
+    stock: form.stock || ctx.stock,
+    features: form.features || ctx.features,
+    description: form.description || form.features || ctx.features
   };
 }
 
@@ -853,7 +1230,8 @@ function benchmarkRow(label, you, averageValue, gap, positive) {
 }
 
 function themeBar(theme, type) {
-  return `<div class="theme-row"><span>${escapeHtml(theme.label)}</span><div><i style="width:${theme.value}%"></i></div><strong>${theme.value}%</strong></div>`;
+  const negative = type === "negative";
+  return `<div class="theme-bar${negative ? " negative" : ""}"><span>${escapeHtml(theme.label)}</span><div><i style="width:${theme.value}%"></i></div><strong>${theme.value}%</strong></div>`;
 }
 
 function metricTile(label, value, detail) {
