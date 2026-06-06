@@ -402,10 +402,13 @@ function renderPost() {
   renderFunnel(input);
   html("sales-trend", lineChart(input, timeframe));
   renderBenchmark(input, competitorAverage, rank);
+  renderHealthDrivers(report.health);
+  renderResponseExperience(input);
   renderThemes(input);
   renderSentiment(input);
   renderQuestions(input);
   renderActions(report.actions);
+  renderImprovementAreas(input, report.health, report.actions);
 }
 
 function renderFunnel(input) {
@@ -454,6 +457,42 @@ function renderBenchmark(input, averages, rank) {
     ${benchmarkRow("Reviews", product.reviews.toLocaleString(), averages.reviews.toLocaleString(), signed(product.reviews - averages.reviews, ""), product.reviews >= averages.reviews)}
     ${benchmarkRow("Shipping Days", "2.0", averages.shippingDays.toFixed(1), signed(averages.shippingDays - 2, "days"), averages.shippingDays >= 2)}
     ${benchmarkRow("Voucher Coverage", "9%", `${Math.round(averages.voucherPercent)}%`, signed(9 - averages.voucherPercent, "pp"), 9 >= averages.voucherPercent)}`
+  );
+}
+
+function renderHealthDrivers(health) {
+  const drivers = [
+    ["Conversion", health.conversion, "Click-to-order strength"],
+    ["Margin", health.margin, "Profit after costs and ads"],
+    ["Reviews", health.reviewRating, "Rating and trust quality"],
+    ["Competition", health.competitorPosition, "Price, reviews, rating position"],
+    ["Traffic", health.traffic, "Listing demand and reach"],
+    ["Buyer response", health.customerInteraction, "Chat speed and answer coverage"],
+    ["Fulfillment", health.fulfillment, "Refund and cancellation control"]
+  ];
+  text("health-driver-summary", `${health.overall}/100 overall`);
+  html("health-drivers", drivers.map(([label, value, note]) => driverCard(label, value, note)).join(""));
+}
+
+function renderResponseExperience(input) {
+  const communication = input.communication;
+  const responseRisk =
+    communication.averageResponseMinutes > 120 || communication.unansweredRate > 0.1
+      ? "Response timing may be hurting conversion"
+      : communication.responseWithinOneHourPercent >= 0.75
+        ? "Fast response supports buyer confidence"
+        : "Response timing should be watched";
+  text("response-summary", responseRisk);
+  html(
+    "response-metrics",
+    [
+      ["Avg response", `${communication.averageResponseMinutes}m`, "Lower is better"],
+      ["Within 1h", percent(communication.responseWithinOneHourPercent), "Fast-answer rate"],
+      ["Unanswered", percent(communication.unansweredRate), "Lost confidence risk"],
+      ["Buyer CSAT", `${communication.buyerSatisfactionScore.toFixed(1)}/5`, "Chat experience"]
+    ]
+      .map(([label, value, note]) => `<div class="response-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></div>`)
+      .join("")
   );
 }
 
@@ -510,6 +549,29 @@ function renderActions(actions) {
   );
 }
 
+function renderImprovementAreas(input, health, actions) {
+  const weakDrivers = [
+    ["Margin", health.margin, "Protect profit with bundles, voucher limits, and ad caps."],
+    ["Conversion", health.conversion, "Improve image one, title clarity, FAQ, and trust proof."],
+    ["Buyer response", health.customerInteraction, "Use quick replies for repeated buyer questions."],
+    ["Reviews", health.reviewRating, "Fix repeated negative themes before asking for more reviews."],
+    ["Competition", health.competitorPosition, "Watch competitor voucher, price, shipping, and review gaps."]
+  ]
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, 4);
+  text("improvement-summary", `${weakDrivers.length} ranked areas`);
+  html(
+    "improvement-areas",
+    weakDrivers
+      .map(([label, value, note], index) => `<div class="improvement-row">
+        <span>${index + 1}</span>
+        <div><strong>${escapeHtml(label)}</strong><small>${escapeHtml(note)}</small></div>
+        <b>${value}</b>
+      </div>`)
+      .join("")
+  );
+}
+
 function renderPre() {
   const input = readPreForm();
   const analysis = analyzePre(input);
@@ -538,6 +600,25 @@ function renderPre() {
         .join("")
   );
   text("pre-action-count", `${analysis.actions.length} actions`);
+  text("pre-margin-badge", `${currency(input.price)} target`);
+  html(
+    "pre-margin",
+    [
+      ["Target price", currency(input.price), "Seller selling price"],
+      ["Unit cost", currency(input.cost), "Product cost"],
+      ["Safe ad room", currency(analysis.safeAdSpend), "Before margin becomes weak"],
+      ["Launch stock", `${analysis.launchStock} units`, "Controlled first batch"]
+    ]
+      .map(([label, value, note]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></div>`)
+      .join("")
+  );
+  text("pre-readiness-badge", `${analysis.metrics.readiness}/100`);
+  html(
+    "pre-readiness",
+    analysis.readinessChecks
+      .map((item) => `<div class="readiness-row ${item.ready ? "ready" : "watch"}"><span>${item.ready ? "✓" : "!"}</span><div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.note)}</small></div></div>`)
+      .join("")
+  );
   html(
     "pre-actions",
     analysis.actions
@@ -674,8 +755,26 @@ function analyzePre(input) {
     `Set launch stock near ${Math.max(40, Math.round(input.stock * 0.65))} units first, then scale after conversion proof.`,
     "Prepare FAQ answers before launch to reduce first-week chat friction."
   ];
+  const launchStock = Math.max(40, Math.round(input.stock * 0.65));
+  const safeAdSpend = Math.max(0.5, roundMoney(input.price - input.cost - input.price * 0.22));
+  const readinessChecks = [
+    { label: "Title and category", ready: input.title.length > 18 && input.category.includes(">"), note: "Clear enough for Shopee category matching." },
+    { label: "Feature differentiation", ready: featureCount >= 4, note: "Enough proof points for launch positioning." },
+    { label: "Margin room", ready: marginRate >= 0.25, note: "Enough room for ads, vouchers, and shipping buffer." },
+    { label: "Initial stock control", ready: input.stock <= 250, note: "First batch avoids overstock risk before conversion proof." }
+  ];
 
-  return { score, confidence: Math.min(94, Math.max(62, score + 8)), recommendation, summary, metrics, actions: actions.slice(0, 5) };
+  return {
+    score,
+    confidence: Math.min(94, Math.max(62, score + 8)),
+    recommendation,
+    summary,
+    metrics,
+    launchStock,
+    safeAdSpend,
+    readinessChecks,
+    actions: actions.slice(0, 5)
+  };
 }
 
 function competitorAverages(competitors) {
@@ -760,6 +859,15 @@ function themeBar(theme, type) {
 function metricTile(label, value, detail) {
   const stateClass = value >= 75 ? "strong" : value >= 60 ? "watch" : "weak";
   return `<div class="pre-metric ${stateClass}"><span>${escapeHtml(label)}</span><strong>${value}</strong><p>${escapeHtml(detail)}</p></div>`;
+}
+
+function driverCard(label, value, note) {
+  const stateClass = value >= 75 ? "strong" : value >= 60 ? "watch" : "weak";
+  return `<div class="driver-card ${stateClass}">
+    <div><span>${escapeHtml(label)}</span><strong>${value}</strong></div>
+    <div class="driver-track"><i style="width:${value}%"></i></div>
+    <small>${escapeHtml(note)}</small>
+  </div>`;
 }
 
 function chartPoint(value, index, length, min, max, width, height, pad) {
