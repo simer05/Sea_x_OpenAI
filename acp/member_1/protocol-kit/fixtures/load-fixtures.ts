@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import type {
   FulfillmentMode,
   SupportedCity,
@@ -38,8 +40,11 @@ import { MARKETPLACE_EXTENSION_NAMESPACE } from "../extension-models/marketplace
 import type { PostPurchaseExtensionPayload } from "../extension-models/postpurchase";
 import { POSTPURCHASE_EXTENSION_NAMESPACE } from "../extension-models/postpurchase";
 import type { PaymentHandlerDeclaration } from "../payment-handler-models/handlers";
-import catalogJson from "./catalog.json";
-import sellersJson from "./sellers.json";
+
+function readSharedJson<T>(relativePathFromAcp: string): T {
+  const dataUrl = new URL(`../../../data/${relativePathFromAcp}`, import.meta.url);
+  return JSON.parse(readFileSync(fileURLToPath(dataUrl), "utf8")) as T;
+}
 
 export interface SellerFixture {
   seller_id: string;
@@ -88,8 +93,8 @@ export interface ProductExtensionBundle {
   postpurchase: PostPurchaseExtensionPayload;
 }
 
-export const sellers = sellersJson as SellerFixture[];
-export const catalogRows = catalogJson as CatalogFixtureRow[];
+export const sellers = readSharedJson<SellerFixture[]>("sellers.json");
+export const catalogRows = readSharedJson<CatalogFixtureRow[]>("catalog.json");
 
 function sellerFor(row: CatalogFixtureRow): SellerFixture {
   const seller = sellers.find((candidate) => candidate.seller_id === row.seller_id);

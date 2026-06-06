@@ -4,7 +4,7 @@ This module is the Member 2 implementation for ACP-SEA Bridge. It is a from-scra
 
 ## Scope
 
-- Local runtime fixtures with 5 sellers and 35 SKUs.
+- Shared mock catalog fixtures from `../../data`, mapped into runtime sellers and SKUs.
 - Product search and SEA marketplace filtering.
 - Agent-facing marketplace cart creation across multiple sellers.
 - Seller-scoped checkout session splitting.
