@@ -225,7 +225,7 @@ export function AgentPage() {
   const chunks = useRef<Blob[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const productsRef = useRef<HTMLDivElement>(null);
-  const lastOrderIdRef = useRef<string>();
+  const lastOrderIdRef = useRef<string | undefined>(undefined);
 
   const statusLabel = flowStatus(currentStep);
   const showProducts = products.length > 0 && (currentStep === "picks" || currentStep === "chat");
