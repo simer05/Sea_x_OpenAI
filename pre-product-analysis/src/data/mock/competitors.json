@@ -1,0 +1,236 @@
+[
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "cmp_001"
+    },
+    "shop_identity": {
+      "shop_name": "SkinDaily SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Vitamin C Brightening Serum 30ml for Oily Skin",
+      "description": "Brightening serum with vitamin C for daily skincare.",
+      "bullet_features": [
+        "Vitamin C",
+        "Lightweight texture",
+        "30ml bottle"
+      ],
+      "keywords": [
+        "vitamin c serum",
+        "brightening serum"
+      ]
+    },
+    "visual_content": {
+      "image_count": 5,
+      "vision_tags": [
+        "serum bottle",
+        "skincare",
+        "orange packaging"
+      ]
+    },
+    "taxonomy": {
+      "category_path": [
+        "Beauty",
+        "Skincare",
+        "Serum"
+      ],
+      "product_type": "serum"
+    },
+    "attributes": {
+      "skin_type": [
+        "oily",
+        "combination"
+      ],
+      "volume_ml": 30,
+      "ingredient_highlights": [
+        "vitamin c"
+      ],
+      "size": "30ml"
+    },
+    "commerce": {
+      "listing_price": 17.9,
+      "currency": "SGD",
+      "cod_available": true,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "SG"
+    },
+    "trust_and_reviews": {
+      "rating": 4.7,
+      "review_count": 820,
+      "review_pain_points": [
+        "sticky texture",
+        "unclear ingredients"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 360
+    },
+    "agent_processing": {
+      "target_use_case": "brightening serum for oily skin"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "cmp_002"
+    },
+    "shop_identity": {
+      "shop_name": "KBeauty Outlet",
+      "seller_type": "overseas_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Korean Brightening Niacinamide Serum 30ml",
+      "description": "Niacinamide serum for glow and tone care.",
+      "bullet_features": [
+        "Niacinamide",
+        "Glow care",
+        "Affordable serum"
+      ],
+      "keywords": [
+        "niacinamide serum",
+        "brightening serum"
+      ]
+    },
+    "visual_content": {
+      "image_count": 6,
+      "vision_tags": [
+        "serum bottle",
+        "skincare",
+        "white packaging"
+      ]
+    },
+    "taxonomy": {
+      "category_path": [
+        "Beauty",
+        "Skincare",
+        "Serum"
+      ],
+      "product_type": "serum"
+    },
+    "attributes": {
+      "skin_type": [
+        "all"
+      ],
+      "volume_ml": 30,
+      "ingredient_highlights": [
+        "niacinamide"
+      ],
+      "size": "30ml"
+    },
+    "commerce": {
+      "listing_price": 12.9,
+      "currency": "SGD",
+      "cod_available": false,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "KR"
+    },
+    "trust_and_reviews": {
+      "rating": 4.5,
+      "review_count": 540,
+      "review_pain_points": [
+        "slow delivery",
+        "weak packaging"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 280
+    },
+    "agent_processing": {
+      "target_use_case": "brightening serum for dull skin"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "cmp_003"
+    },
+    "shop_identity": {
+      "shop_name": "BeautyLab Official",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Premium Vitamin C Serum with Warranty 30ml",
+      "description": "Premium skincare serum with authenticity support.",
+      "bullet_features": [
+        "Vitamin C",
+        "Warranty",
+        "Premium packaging"
+      ],
+      "keywords": [
+        "vitamin c serum",
+        "premium serum"
+      ]
+    },
+    "visual_content": {
+      "image_count": 7,
+      "vision_tags": [
+        "serum bottle",
+        "skincare",
+        "premium packaging"
+      ]
+    },
+    "taxonomy": {
+      "category_path": [
+        "Beauty",
+        "Skincare",
+        "Serum"
+      ],
+      "product_type": "serum"
+    },
+    "attributes": {
+      "skin_type": [
+        "oily",
+        "combination"
+      ],
+      "volume_ml": 30,
+      "ingredient_highlights": [
+        "vitamin c"
+      ],
+      "warranty": "7 days",
+      "size": "30ml"
+    },
+    "commerce": {
+      "listing_price": 22.9,
+      "currency": "SGD",
+      "cod_available": true,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "SG"
+    },
+    "trust_and_reviews": {
+      "rating": 4.8,
+      "review_count": 1200,
+      "review_pain_points": [
+        "expensive",
+        "sells out often"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 410
+    },
+    "agent_processing": {
+      "target_use_case": "brightening serum for oily skin"
+    }
+  }
+]

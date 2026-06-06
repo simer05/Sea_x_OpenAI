@@ -1,0 +1,160 @@
+{
+  "source": {
+    "region": "SG",
+    "data_mode": "mock",
+    "fetched_at": "2026-06-06T12:00:00+08:00",
+    "source_endpoints": [
+      "seller_input",
+      "mock.shopee.product.get_item_base_info",
+      "mock.shopee.product.get_model_list"
+    ],
+    "raw_snapshot_id": "raw_mock_phone_case_idea_sg_20260606",
+    "is_live_data": false
+  },
+  "product_identity": {
+    "seller_sku": "IPHONE15_PURPLE_CASE_STRING",
+    "item_status": "PLANNED"
+  },
+  "shop_identity": {
+    "shop_name": "Seller Draft SG",
+    "seller_type": "local_seller",
+    "region": "SG"
+  },
+  "text_content": {
+    "name": "Purple iPhone 15 Protective Phone Case with Free Holding String",
+    "description": "Purple protective phone case for iPhone 15 with a free holding string. Designed for daily grip, scratch protection, and easy carrying while keeping the phone lightweight and stylish.",
+    "bullet_features": [
+      "Purple color",
+      "Free holding string",
+      "iPhone 15 fit",
+      "Scratch protection",
+      "Lightweight daily use"
+    ],
+    "keywords": [
+      "iphone 15 case",
+      "purple phone case",
+      "phone case with strap",
+      "iphone case singapore"
+    ],
+    "language": "en",
+    "detected_languages": [
+      "en"
+    ]
+  },
+  "visual_content": {
+    "image_urls": [
+      "/Users/ananyayadav/Downloads/test1.avif"
+    ],
+    "main_image_url": "/Users/ananyayadav/Downloads/test1.avif",
+    "image_count": 1,
+    "image_alt_text": [
+      "Purple iPhone 15 phone case with holding string"
+    ],
+    "vision_tags": [
+      "purple phone case",
+      "iphone 15 case",
+      "holding string",
+      "phone accessory"
+    ],
+    "image_quality_score": null,
+    "missing_visuals": [
+      "no lifestyle photo",
+      "no close-up texture photo",
+      "no packaging photo",
+      "no strap attachment close-up"
+    ]
+  },
+  "taxonomy": {
+    "category_id": 101001,
+    "category_path": [
+      "Mobile & Gadgets",
+      "Mobile Accessories",
+      "Cases Covers & Skins"
+    ],
+    "category_depth": 3,
+    "product_type": "phone_case",
+    "brand": null,
+    "condition": "new"
+  },
+  "attributes": {
+    "compatible_model": "iPhone 15",
+    "color": "purple",
+    "material": null,
+    "includes": [
+      "holding string"
+    ],
+    "size": "iPhone 15",
+    "custom_attributes": {
+      "strap_type": "holding string",
+      "target_region": "Singapore"
+    }
+  },
+  "variants": [
+    {
+      "model_sku": "IPHONE15_PURPLE_CASE_STRING",
+      "variation_name": "Purple iPhone 15",
+      "variation_options": {
+        "color": "purple",
+        "model": "iPhone 15"
+      },
+      "price": 40,
+      "currency": "SGD",
+      "stock": 50,
+      "model_status": "PLANNED"
+    }
+  ],
+  "commerce": {
+    "listing_price": 40,
+    "min_price": 40,
+    "max_price": 40,
+    "currency": "SGD",
+    "voucher_available": null,
+    "cod_available": true,
+    "bnpl_available": true,
+    "promotion_tags": [
+      "free strap",
+      "local seller"
+    ]
+  },
+  "fees_and_margin": {
+    "product_cost": 12,
+    "fee_assumptions": {
+      "shopeeFeeRate": 0.08,
+      "transactionFeeRate": 0.022,
+      "shippingSubsidy": 1.5,
+      "voucherCost": 1,
+      "packagingCost": 0.8,
+      "adCostPerOrder": 2
+    }
+  },
+  "fulfillment": {
+    "ships_from_region": "SG",
+    "target_region": "SG",
+    "delivery_type": "local_delivery",
+    "estimated_delivery_days": 2
+  },
+  "trust_and_reviews": {},
+  "performance": {},
+  "competitor_context": {
+    "target_region": "SG",
+    "currency": "SGD",
+    "comparison_note": "Mock competitor data simulates Shopee Singapore listings because live Shopee Open API credentials are unavailable."
+  },
+  "agent_processing": {
+    "target_use_case": "protective iphone 15 phone case with strap",
+    "seller_question": "Should I launch this purple iPhone 15 case at SGD 40 in Singapore?"
+  },
+  "data_quality": {
+    "missing_fields": [
+      "material",
+      "live_api_price_snapshot",
+      "live_api_search_volume",
+      "image_quality_score"
+    ],
+    "warnings": [
+      "Live Shopee Open API credentials are unavailable; this is mock SG marketplace data.",
+      "The supplied AVIF image could not be decoded locally, so image quality is not verified."
+    ],
+    "confidence": "low"
+  }
+}
