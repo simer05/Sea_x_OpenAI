@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { baseUrl } from "./config.js";
+import { baseUrl, isRemoteGateway } from "./config.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const demoUiDir = join(here, "..", "..", "demo-ui");
@@ -17,18 +17,13 @@ async function isHealthy(): Promise<boolean> {
   }
 }
 
-function isLocalGateway(): boolean {
-  const url = baseUrl();
-  return url.includes("127.0.0.1") || url.includes("localhost");
-}
-
 export async function ensureApiRunning(): Promise<void> {
   if (await isHealthy()) return;
-  if (!isLocalGateway()) {
-    throw new Error(`Remote API not reachable at ${baseUrl()}`);
+  if (isRemoteGateway()) {
+    throw new Error(`Shopping API not reachable at ${baseUrl()}`);
   }
 
-  console.log("Starting ACP API in background…");
+  console.log("Starting local API…");
   const child = spawn("pnpm", ["dev:api"], {
     cwd: demoUiDir,
     detached: true,

@@ -191,6 +191,23 @@ async function smokeAgentChatWithInvalidOpenAi() {
   }
 }
 
+async function smokeAgentGreetingDoesNotSearch() {
+  const previous = process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+
+  try {
+    const response = await handleAgentChat({
+      message: "Hello, hello, hello.",
+      demoSessionId: "smoke-greeting",
+    });
+    assert.equal(response.step, "chat");
+    assert.ok(!response.products?.length);
+    assert.ok(response.reply.toLowerCase().includes("tell me"));
+  } finally {
+    if (previous) process.env.OPENAI_API_KEY = previous;
+  }
+}
+
 async function smokeAgentNaturalLanguageFlow() {
   const previous = process.env.OPENAI_API_KEY;
   delete process.env.OPENAI_API_KEY;
@@ -322,6 +339,7 @@ async function main() {
   await smokeAcpUcpBridge();
   await smokeAgentChatWithoutOpenAi();
   await smokeAgentChatWithInvalidOpenAi();
+  await smokeAgentGreetingDoesNotSearch();
   await smokeAgentNaturalLanguageFlow();
   await smokeAgentTrackingAfterNewSearch();
   console.log("demo-ui smoke tests passed");
