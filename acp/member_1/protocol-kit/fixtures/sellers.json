@@ -1,0 +1,37 @@
+[
+  {
+    "seller_id": "seller_001",
+    "seller_name": "Jakarta Beauty Mart",
+    "country": "Indonesia",
+    "city": "Jakarta",
+    "default_currency": "IDR"
+  },
+  {
+    "seller_id": "seller_002",
+    "seller_name": "Lion City Essentials",
+    "country": "Singapore",
+    "city": "Singapore",
+    "default_currency": "SGD"
+  },
+  {
+    "seller_id": "seller_003",
+    "seller_name": "KL Wellness Hub",
+    "country": "Malaysia",
+    "city": "Kuala Lumpur",
+    "default_currency": "MYR"
+  },
+  {
+    "seller_id": "seller_004",
+    "seller_name": "Manila Family Store",
+    "country": "Philippines",
+    "city": "Manila",
+    "default_currency": "PHP"
+  },
+  {
+    "seller_id": "seller_005",
+    "seller_name": "SEA Lifestyle Collective",
+    "country": "Thailand",
+    "city": "Bangkok",
+    "default_currency": "THB"
+  }
+]
