@@ -153,7 +153,9 @@ function buildFallback(body) {
   const title = String(input.title || readNestedString(input, ["product", "title"]) || "this listing");
   const stock = readNestedNumber(report, ["stock", "suggested"]);
   const area = readNestedString(report, ["bestRegion", "name"]);
-  const actions = Array.isArray(report.actions) ? report.actions.map(String) : [];
+  const actions = Array.isArray(report.actions)
+    ? report.actions.map((action) => (typeof action === "string" ? action : action.action || String(action)))
+    : [];
 
   const safeChanges = [];
   if (imageOnlyDraft) {
