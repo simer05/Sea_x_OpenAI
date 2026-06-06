@@ -41,9 +41,17 @@ import {
   getEnrichedCart,
   removeFromSharedCart,
 } from "./sharedStore.js";
+import { registerAcpRoutes } from "./acpRoutes.js";
+import { registerUcpRoutes } from "./ucpRoutes.js";
 
 const app = express();
-const port = Number(process.env.AGENT_API_PORT ?? 8787);
+const port = Number(process.env.PORT ?? process.env.AGENT_API_PORT ?? 8787);
+const host = process.env.HOST ?? "0.0.0.0";
+const baseUrl =
+  process.env.ACP_BASE_URL ??
+  (process.env.FLY_APP_NAME
+    ? `https://${process.env.FLY_APP_NAME}.fly.dev`
+    : `http://127.0.0.1:${port}`);
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
@@ -61,6 +69,9 @@ app.get("/api/health", (_req, res) => {
 app.get("/.well-known/shopee-acp.json", (_req, res) => {
   res.json(getCapabilityManifest());
 });
+
+registerAcpRoutes(app, baseUrl);
+registerUcpRoutes(app, baseUrl);
 
 app.post("/v1/products/search", (req, res) => {
   try {
@@ -260,7 +271,10 @@ app.post("/api/agent/tts", async (req, res) => {
   }
 });
 
-app.listen(port, "127.0.0.1", () => {
-  console.log(`Shopee ACP Gateway listening on http://127.0.0.1:${port}`);
-  console.log(`Capability discovery: http://127.0.0.1:${port}/.well-known/shopee-acp.json`);
+app.listen(port, host, () => {
+  console.log(`Shopee ACP Gateway listening on http://${host}:${port}`);
+  console.log(`Public base URL: ${baseUrl}`);
+  console.log(`Capability discovery: ${baseUrl}/.well-known/shopee-acp.json`);
+  console.log(`ACP bridge: ${baseUrl}/.well-known/acp.json`);
+  console.log(`UCP bridge: ${baseUrl}/.well-known/ucp`);
 });
