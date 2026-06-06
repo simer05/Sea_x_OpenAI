@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   BadgeCheck,
+  CheckCircle2,
+  CreditCard,
   ExternalLink,
   Mic,
   MicOff,
   Send,
+  ShoppingBag,
   Sparkles,
+  Truck,
   Volume2,
+  Wallet,
 } from "lucide-react";
 import {
   checkAgentApiHealth,
@@ -29,12 +34,8 @@ type AgentProduct = {
   sku_id: string;
   product_id: string;
   title: string;
-  description: string;
   price: number;
   currency: string;
-  seller_name: string;
-  halal_status: string;
-  certificate_authority: string | null;
   certificate_status: string;
   overall_score: number;
   tier: string;
@@ -63,18 +64,7 @@ type DeliveryChoice = {
   reliability_score: number;
 };
 
-type TraceEntry = {
-  id: string;
-  timestamp: string;
-  message: string;
-  detail?: string;
-};
-
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant" | "error";
-  content: string;
-};
+type ChatMessage = { id: string; role: "user" | "assistant" | "error"; content: string };
 
 type AgentResponse = {
   sessionId: string;
@@ -84,37 +74,16 @@ type AgentResponse = {
   selected?: AgentProduct;
   paymentOptions?: PaymentChoice[];
   deliveryOptions?: DeliveryChoice[];
-  order?: { order_id: string; lifecycle_state: string; summary?: Record<string, unknown> };
+  order?: { order_id: string; summary?: Record<string, unknown> };
   tracking?: {
     current_status: string;
     expected_message: string;
     events: Array<{ step: number; label: string; completed: boolean }>;
   };
-  trace?: TraceEntry[];
-  filterSummary?: {
-    total_found: number;
-    eligible_count: number;
-    rejections: Array<{ title: string; reason: string }>;
-  };
   suggestions?: string[];
   cartSynced?: boolean;
   error?: string;
 };
-
-function money(price: number, currency: string) {
-  const decimals = currency === "IDR" || currency === "VND" ? 0 : 2;
-  return `${currency} ${new Intl.NumberFormat("en-SG", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(price)}`;
-}
-
-function tierClass(tier: string) {
-  if (tier === "Legendary Pick") return "tier-legendary";
-  if (tier === "Elite Pick") return "tier-elite";
-  if (tier === "Safe Pick") return "tier-safe";
-  return "tier-backup";
-}
 
 const EMPTY_BREAKDOWN: ScoreBreakdown = {
   halal_trust: 0,
@@ -126,31 +95,50 @@ const EMPTY_BREAKDOWN: ScoreBreakdown = {
   delivery_fit: 0,
 };
 
+function money(price: number, currency: string) {
+  return `${currency} ${price.toFixed(currency === "IDR" || currency === "VND" ? 0 : 2)}`;
+}
+
+function tierClass(tier: string) {
+  if (tier === "Legendary Pick") return "tier-legendary";
+  if (tier === "Elite Pick") return "tier-elite";
+  return "tier-safe";
+}
+
+function shopUrl(productUrl: string) {
+  if (productUrl.startsWith("http")) return productUrl;
+  return productUrl.startsWith("/") ? productUrl : `/${productUrl}`;
+}
+
+function flowStatus(step: string) {
+  if (step === "delivery") return "Choosing delivery";
+  if (step === "payment") return "Checkout";
+  if (step === "done" || step === "tracking") return "Order placed";
+  if (step === "picks") return "Reviewing picks";
+  return null;
+}
+
 function normalizeAgentProduct(raw: Partial<AgentProduct> | undefined): AgentProduct | undefined {
   if (!raw?.sku_id && !raw?.product_id) return undefined;
-  const breakdown = raw.score_breakdown ?? EMPTY_BREAKDOWN;
+  const b = raw.score_breakdown ?? EMPTY_BREAKDOWN;
   return {
     rank: raw.rank ?? 0,
     sku_id: raw.sku_id ?? "",
     product_id: raw.product_id ?? "",
-    title: raw.title ?? "Unknown product",
-    description: raw.description ?? "",
+    title: raw.title ?? "Product",
     price: raw.price ?? 0,
     currency: raw.currency ?? "SGD",
-    seller_name: raw.seller_name ?? "",
-    halal_status: raw.halal_status ?? "unknown",
-    certificate_authority: raw.certificate_authority ?? null,
-    certificate_status: raw.certificate_status ?? "No active certificate",
+    certificate_status: raw.certificate_status ?? "Verified",
     overall_score: raw.overall_score ?? 0,
-    tier: raw.tier ?? "Not recommended",
+    tier: raw.tier ?? "Pick",
     score_breakdown: {
-      halal_trust: breakdown.halal_trust ?? 0,
-      price_fit: breakdown.price_fit ?? 0,
-      product_rating: breakdown.product_rating ?? 0,
-      customer_reviews: breakdown.customer_reviews ?? 0,
-      seller_trust: breakdown.seller_trust ?? 0,
-      sold_count: breakdown.sold_count ?? 0,
-      delivery_fit: breakdown.delivery_fit ?? 0,
+      halal_trust: b.halal_trust ?? 0,
+      price_fit: b.price_fit ?? 0,
+      product_rating: b.product_rating ?? 0,
+      customer_reviews: b.customer_reviews ?? 0,
+      seller_trust: b.seller_trust ?? 0,
+      sold_count: b.sold_count ?? 0,
+      delivery_fit: b.delivery_fit ?? 0,
     },
     recommendation_reason: raw.recommendation_reason ?? "",
     product_url: raw.product_url ?? "/",
@@ -161,35 +149,31 @@ function normalizeAgentProduct(raw: Partial<AgentProduct> | undefined): AgentPro
   };
 }
 
-async function speak(text: string) {
-  try {
-    const res = await fetch("/api/agent/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    await audio.play();
-  } catch {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(utterance);
-    }
-  }
+function speakShort(text: string) {
+  const short = text.split(/[.!?]/)[0]?.trim().slice(0, 120) ?? text;
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(short);
+  utterance.rate = 1.05;
+  window.speechSynthesis.speak(utterance);
+}
+
+function payIcon(id: PaymentChoice["id"]) {
+  if (id === "cod") return <Wallet size={16} />;
+  if (id === "bnpl") return <CreditCard size={16} />;
+  return <CreditCard size={16} />;
 }
 
 export function AgentPage() {
   const [sessionId, setSessionId] = useState<string>();
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+  const [currentStep, setCurrentStep] = useState("chat");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
       content:
-        'Hi! I use the Shopee ACP gateway to shop for you. Try: "I want to buy a Halal noodles pack under $10."',
+        "Hi — I'm your shopping assistant. Tell me what you need: product, Halal preference, budget, and city.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -198,51 +182,30 @@ export function AgentPage() {
   const [selected, setSelected] = useState<AgentProduct>();
   const [payments, setPayments] = useState<PaymentChoice[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryChoice[]>([]);
-  const [trace, setTrace] = useState<TraceEntry[]>([]);
-  const [filterSummary, setFilterSummary] = useState<AgentResponse["filterSummary"]>();
   const [orderSummary, setOrderSummary] = useState<AgentResponse["order"]>();
   const [tracking, setTracking] = useState<AgentResponse["tracking"]>();
-  const [suggestions, setSuggestions] = useState<string[]>([
-    "I want to buy a Halal noodles pack under $10",
-  ]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [recording, setRecording] = useState(false);
-  const [voiceOn, setVoiceOn] = useState(true);
+  const [voiceOn, setVoiceOn] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const statusLabel = flowStatus(currentStep);
+
   useEffect(() => {
-    void checkAgentApiHealth().then((health) => setApiOnline(health.ok));
-    void fetch("/.well-known/shopee-acp.json")
-      .then((res) => res.json())
-      .then((manifest) => {
-        if (manifest.capabilities) {
-          setTrace([
-            {
-              id: "boot",
-              timestamp: new Date().toISOString(),
-              message: "ACP capability discovery completed",
-              detail: manifest.capabilities.join(", "),
-            },
-          ]);
-        }
-      })
-      .catch(() => undefined);
+    void checkAgentApiHealth().then((h) => setApiOnline(h.ok));
   }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, products, payments, deliveries, loading]);
+  }, [messages, loading]);
 
   async function sendChat(body: Record<string, unknown>) {
     if (!apiOnline) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "error",
-          content: "Agent API offline. Run `cd acp/demo-ui && pnpm dev`.",
-        },
+      setMessages((p) => [
+        ...p,
+        { id: crypto.randomUUID(), role: "error", content: "Agent offline — run pnpm dev in acp/demo-ui" },
       ]);
       return;
     }
@@ -252,43 +215,38 @@ export function AgentPage() {
       const res = await fetch("/api/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          demoSessionId: getDemoSessionId(),
-          ...body,
-        }),
+        body: JSON.stringify({ sessionId, demoSessionId: getDemoSessionId(), ...body }),
       });
       const data = (await res.json()) as AgentResponse;
-      if (!res.ok) throw new Error(data.error ?? "Agent request failed");
+      if (!res.ok) throw new Error(data.error ?? "Request failed");
 
       setSessionId(data.sessionId);
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: data.reply },
-      ]);
+      setCurrentStep(data.step);
+      setMessages((p) => [...p, { id: crypto.randomUUID(), role: "assistant", content: data.reply }]);
+
       if (data.products) {
         setProducts(
           data.products
-            .map((product) => normalizeAgentProduct(product))
-            .filter((product): product is AgentProduct => Boolean(product)),
+            .map(normalizeAgentProduct)
+            .filter((x): x is AgentProduct => Boolean(x)),
         );
       }
       if (data.selected) setSelected(normalizeAgentProduct(data.selected));
       if (data.paymentOptions) setPayments(data.paymentOptions);
       if (data.deliveryOptions) setDeliveries(data.deliveryOptions);
-      if (data.trace) setTrace(data.trace);
-      if (data.filterSummary) setFilterSummary(data.filterSummary);
       if (data.order) setOrderSummary(data.order);
       if (data.tracking) setTracking(data.tracking);
       setSuggestions(data.suggestions ?? []);
       if (data.cartSynced) notifyCartSync();
-      if (voiceOn) void speak(data.reply);
-      return data;
+      if (voiceOn) speakShort(data.reply);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Agent request failed";
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "error", content: message },
+      setMessages((p) => [
+        ...p,
+        {
+          id: crypto.randomUUID(),
+          role: "error",
+          content: error instanceof Error ? error.message : "Something went wrong",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -298,333 +256,255 @@ export function AgentPage() {
   async function onSend(message?: string, extra?: Record<string, unknown>) {
     const text = (message ?? input).trim();
     if (!text && !extra?.action) return;
-    if (text) {
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: text }]);
-    }
+    if (text) setMessages((p) => [...p, { id: crypto.randomUUID(), role: "user", content: text }]);
     setInput("");
     await sendChat({ message: text, ...extra });
   }
 
   async function onPick(product: AgentProduct) {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: `I'll go with option ${product.rank}`,
-      },
+    setMessages((p) => [
+      ...p,
+      { id: crypto.randomUUID(), role: "user", content: `I'll take ${product.title}` },
     ]);
-    await sendChat({
-      message: `I'll go with option ${product.rank}`,
-      action: "select_product",
-      skuId: product.sku_id,
-    });
-  }
-
-  async function onDelivery(option: DeliveryChoice) {
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content: `Use ${option.label.toLowerCase()}` },
-    ]);
-    await sendChat({
-      message: `Use ${option.label.toLowerCase()}`,
-      action: "select_delivery",
-      deliveryOptionId: option.id,
-    });
-  }
-
-  async function onPay(method: PaymentChoice["id"]) {
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content: `Pay with ${method}` },
-    ]);
-    await sendChat({ message: `Pay with ${method}`, action: "pay", paymentMethod: method });
-  }
-
-  async function toggleRecording() {
-    if (recording) {
-      mediaRecorder.current?.stop();
-      setRecording(false);
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      chunks.current = [];
-      recorder.ondataavailable = (e) => chunks.current.push(e.data);
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunks.current, { type: "audio/webm" });
-        setLoading(true);
-        try {
-          const res = await fetch("/api/agent/transcribe", {
-            method: "POST",
-            headers: { "Content-Type": blob.type },
-            body: blob,
-          });
-          const data = (await res.json()) as { text?: string; error?: string };
-          if (!res.ok) throw new Error(data.error ?? "Transcription failed");
-          if (data.text) await onSend(data.text);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : "Voice input failed";
-          setMessages((prev) => [
-            ...prev,
-            { id: crypto.randomUUID(), role: "error", content: message },
-          ]);
-        } finally {
-          setLoading(false);
-        }
-      };
-      mediaRecorder.current = recorder;
-      recorder.start();
-      setRecording(true);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "error",
-          content: "Microphone permission denied or unavailable.",
-        },
-      ]);
-    }
+    await sendChat({ message: product.title, action: "select_product", skuId: product.sku_id });
   }
 
   return (
-    <div className="agent-page agent-standalone">
-      <header className="agent-topbar">
-        <div>
-          <p className="agent-kicker">
-            <Sparkles size={16} /> Shopee ACP Agent
-          </p>
-          <h1>Halal-aware agentic commerce</h1>
+    <div className="agent-page agent-v3">
+      <div className="agent-v3-bg" aria-hidden />
+
+      <header className="agent-v3-header">
+        <div className="agent-v3-brand">
+          <div className="agent-v3-logo">
+            <Sparkles size={18} />
+          </div>
+          <div>
+            <p className="agent-v3-kicker">Shopee ACP · Agentic Commerce</p>
+            <h1>Shopping Assistant</h1>
+          </div>
         </div>
-        <a className="agent-shop-link" href="/" target="_blank" rel="noreferrer">
-          <ExternalLink size={16} /> Open Shopee shop
-        </a>
+        <div className="agent-v3-header-actions">
+          {statusLabel && <span className="agent-v3-status">{statusLabel}</span>}
+          <button
+            type="button"
+            className={`agent-voice-toggle ${voiceOn ? "on" : ""}`}
+            onClick={() => setVoiceOn((v) => !v)}
+          >
+            <Volume2 size={14} /> Voice {voiceOn ? "on" : "off"}
+          </button>
+          <a className="agent-shop-link" href="/" target="_blank" rel="noreferrer">
+            <ExternalLink size={14} /> Shop
+          </a>
+        </div>
       </header>
 
-      {apiOnline === false && (
-        <div className="agent-error-banner">
-          Shopee ACP Gateway offline — start with <code>cd acp/demo-ui && pnpm dev</code>
-        </div>
-      )}
+      <div className="agent-v3-main">
+        <section className="agent-v3-chat">
+          <div className="agent-v3-chat-inner">
+            {messages.map((msg) => (
+              <div key={msg.id} className={`agent-bubble ${msg.role}`}>
+                {msg.content}
+              </div>
+            ))}
+            {loading && <div className="agent-bubble assistant agent-typing">Working on it…</div>}
+            <div ref={bottomRef} />
+          </div>
+        </section>
 
-      <section className="agent-hero">
-        <div>
-          <h2>Halal noodles under $10 · Singapore</h2>
-          <p>Search → verify → score → pay → deliver → track via Shopee ACP.</p>
-        </div>
-        <button
-          type="button"
-          className={`agent-voice-toggle ${voiceOn ? "on" : ""}`}
-          onClick={() => setVoiceOn((v) => !v)}
-        >
-          <Volume2 size={16} /> Voice {voiceOn ? "on" : "off"}
-        </button>
-      </section>
-
-      <div className="agent-layout agent-layout-3col">
-        <aside className="agent-trace-panel">
-          <h3>ACP Trace</h3>
-          {filterSummary && (
-            <div className="agent-filter-summary">
-              <p>
-                {filterSummary.total_found} found → {filterSummary.eligible_count} eligible
-              </p>
-              <ul>
-                {filterSummary.rejections.slice(0, 5).map((r) => (
-                  <li key={r.title}>
-                    <strong>{r.title}</strong>: {r.reason}
-                  </li>
-                ))}
-              </ul>
+        <section className="agent-v3-flow">
+          {selected && (
+            <div className="agent-v3-panel">
+              <h3><ShoppingBag size={16} /> Selected</h3>
+              <div className="agent-v3-selected-row">
+                <img src={selected.image_url} alt="" />
+                <div>
+                  <strong>{selected.title}</strong>
+                  <p>{money(selected.price, selected.currency)} · {selected.overall_score}/100</p>
+                  <a className="agent-v3-shop-link" href={shopUrl(selected.product_url)} target="_blank" rel="noreferrer">
+                    <ExternalLink size={12} /> View on shop
+                  </a>
+                </div>
+              </div>
             </div>
           )}
-          <ol className="agent-trace-list">
-            {trace.map((entry, index) => (
-              <li key={entry.id}>
-                <span className="trace-num">{index + 1}</span>
-                <div>
-                  <strong>{entry.message}</strong>
-                  {entry.detail && <pre>{entry.detail}</pre>}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </aside>
 
-        <div className="agent-chat">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`agent-bubble ${msg.role}`}>
-              {msg.content}
-            </div>
-          ))}
-          {loading && <div className="agent-bubble assistant agent-typing">Thinking…</div>}
-          <div ref={bottomRef} />
-        </div>
-
-        <aside className="agent-side">
-          {products.length > 0 && (
-            <div className="agent-cards">
-              <h3>Top 3 explainable picks</h3>
-              <div className="agent-card-grid agent-card-grid-single">
-                {products.map((product) => (
-                  <article
-                    key={product.sku_id}
-                    className={`agent-card agent-score-card ${tierClass(product.tier)}`}
+          {deliveries.length > 0 && (
+            <div className="agent-v3-panel">
+              <h3><Truck size={16} /> Delivery</h3>
+              <div className="agent-v3-option-grid">
+                {deliveries.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    className="agent-v3-option"
+                    onClick={() => void onSend(`Use ${d.label.toLowerCase()}`, {
+                      action: "select_delivery",
+                      deliveryOptionId: d.id,
+                    })}
                   >
-                    <div className="agent-card-tier">{product.tier}</div>
-                    <div className="agent-card-rank">#{product.rank}</div>
-                    <img src={product.image_url} alt={product.title} />
-                    <div className="agent-card-body">
-                      <p className="agent-card-badge">
-                        <BadgeCheck size={12} /> {product.certificate_status}
-                      </p>
-                      <h4>{product.title}</h4>
-                      <p className="agent-card-price">{money(product.price, product.currency)}</p>
-                      <p className="agent-card-score">Overall: {product.overall_score}/100</p>
-                      <div className="score-breakdown">
-                        <span>Halal {product.score_breakdown.halal_trust}/25</span>
-                        <span>Price {product.score_breakdown.price_fit}/20</span>
-                        <span>Rating {product.score_breakdown.product_rating}/15</span>
-                        <span>Reviews {product.score_breakdown.customer_reviews}/15</span>
-                        <span>Seller {product.score_breakdown.seller_trust}/10</span>
-                        <span>Sold {product.score_breakdown.sold_count}/10</span>
-                        <span>Delivery {product.score_breakdown.delivery_fit}/5</span>
-                      </div>
-                      <p className="agent-card-why">{product.recommendation_reason}</p>
-                      <div className="agent-card-tags">
-                        {product.cod_available && <span className="tag">COD</span>}
-                        {product.bnpl_available && <span className="tag">BNPL</span>}
-                        <span className="tag muted">{product.delivery_days}</span>
-                      </div>
-                      <a className="agent-product-link" href={product.product_url} target="_blank" rel="noreferrer">
-                        View original product
-                      </a>
-                      <button type="button" className="agent-pick-btn" onClick={() => onPick(product)}>
-                        Select option {product.rank}
-                      </button>
-                    </div>
-                  </article>
+                    <strong>{d.label}</strong>
+                    <span>{money(d.fee, d.currency)} · {d.eta}</span>
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
-          {selected && (
-            <div className="agent-selected">
-              <h3>Your selection</h3>
-              <img src={selected.image_url} alt={selected.title} />
-              <strong>{selected.title}</strong>
-              <p>{money(selected.price, selected.currency)}</p>
-              <p className="agent-card-score">{selected.tier} · {selected.overall_score}/100</p>
-            </div>
-          )}
-
-          {deliveries.length > 0 && (
-            <div className="agent-deliveries">
-              <h3>Delivery options</h3>
-              {deliveries.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  className="agent-delivery-btn"
-                  onClick={() => onDelivery(d)}
-                >
-                  <strong>{d.label}</strong>
-                  <span>
-                    {money(d.fee, d.currency)} · {d.eta} · {d.reliability_score}% reliable
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
           {payments.length > 0 && (
-            <div className="agent-payments">
-              <h3>Payment options</h3>
-              {payments.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`agent-pay-btn ${p.available ? "" : "disabled"}`}
-                  disabled={!p.available}
-                  onClick={() => onPay(p.id)}
-                >
-                  <strong>{p.label}</strong>
-                  <span>{p.available ? p.note : "Not available for this order"}</span>
-                </button>
-              ))}
+            <div className="agent-v3-panel">
+              <h3><CreditCard size={16} /> Payment</h3>
+              <div className="agent-v3-option-grid agent-v3-pay-grid">
+                {payments.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`agent-v3-option ${p.available ? "" : "disabled"}`}
+                    disabled={!p.available}
+                    onClick={() => void onSend(`Pay with ${p.id}`, { action: "pay", paymentMethod: p.id })}
+                  >
+                    {payIcon(p.id)}
+                    <strong>{p.label}</strong>
+                    <span>{p.available ? p.note : "Unavailable"}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
           {orderSummary && (
-            <div className="agent-order-summary">
-              <h3>Order placed</h3>
-              <p>
-                <strong>{orderSummary.order_id}</strong>
-              </p>
+            <div className="agent-v3-panel agent-v3-success">
+              <h3><CheckCircle2 size={16} /> Order placed</h3>
+              <p className="agent-v3-order-id">{orderSummary.order_id}</p>
               {orderSummary.summary && (
-                <ul>
-                  {Object.entries(orderSummary.summary).map(([key, value]) => (
-                    <li key={key}>
-                      {key}: {String(value)}
-                    </li>
-                  ))}
-                </ul>
+                <p>Total: SGD {String(orderSummary.summary.total)}</p>
               )}
             </div>
           )}
 
           {tracking && (
-            <div className="agent-tracking">
-              <h3>Delivery tracking</h3>
+            <div className="agent-v3-panel">
+              <h3>Tracking</h3>
               <p>{tracking.expected_message}</p>
-              <ol>
-                {tracking.events.map((event) => (
-                  <li key={event.step} className={event.completed ? "done" : ""}>
-                    {event.label}
-                  </li>
+              <ul className="agent-v3-track">
+                {tracking.events.map((e) => (
+                  <li key={e.step} className={e.completed ? "done" : ""}>{e.label}</li>
                 ))}
+              </ul>
+            </div>
+          )}
+
+          {!selected && !deliveries.length && !payments.length && !orderSummary && !tracking && (
+            <div className="agent-v3-panel agent-v3-hint">
+              <h3>How it works</h3>
+              <ol>
+                <li>Type your request in the chat below</li>
+                <li>Pick a verified product card</li>
+                <li>Choose delivery &amp; payment here</li>
               </ol>
             </div>
           )}
-        </aside>
+        </section>
       </div>
 
-      <div className="agent-suggestions">
-        {suggestions.map((s) => (
-          <button key={s} type="button" onClick={() => onSend(s)}>
-            {s}
-          </button>
-        ))}
-      </div>
+      {products.length > 0 && (currentStep === "picks" || currentStep === "chat") && (
+        <section className="agent-v3-products">
+          <div className="agent-v3-products-head">
+            <h3>Top verified picks</h3>
+            <span>{products.length} Halal-scored options</span>
+          </div>
+          <div className="agent-v3-product-row">
+            {products.map((product) => (
+              <article key={product.sku_id} className={`agent-v3-card ${tierClass(product.tier)}`}>
+                <div className="agent-v3-card-top">
+                  <span className="agent-v3-rank">#{product.rank}</span>
+                  <span className="agent-v3-tier">{product.tier}</span>
+                </div>
+                <img src={product.image_url} alt={product.title} />
+                <div className="agent-v3-card-body">
+                  <p className="agent-v3-halal"><BadgeCheck size={11} /> {product.certificate_status}</p>
+                  <h4>{product.title}</h4>
+                  <p className="agent-v3-price">{money(product.price, product.currency)}</p>
+                  <div className="agent-v3-score-ring">
+                    <span>{product.overall_score}</span>
+                    <small>/100</small>
+                  </div>
+                  <p className="agent-v3-mini-scores">
+                    Halal {product.score_breakdown.halal_trust} · Price {product.score_breakdown.price_fit}
+                  </p>
+                  <div className="agent-v3-card-actions">
+                    <a
+                      className="agent-v3-view-shop"
+                      href={shopUrl(product.product_url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink size={12} /> Shop
+                    </a>
+                    <button type="button" className="agent-v3-pick" onClick={() => void onPick(product)}>
+                      Select
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <form
-        className="agent-input"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void onSend();
-        }}
-      >
+      {suggestions.length > 0 && (currentStep === "done" || currentStep === "tracking") && (
+        <div className="agent-suggestions">
+          {suggestions.map((s) => (
+            <button key={s} type="button" onClick={() => void onSend(s)}>{s}</button>
+          ))}
+        </div>
+      )}
+
+      <form className="agent-input agent-v3-input" onSubmit={(e) => { e.preventDefault(); void onSend(); }}>
         <button
           type="button"
           className={`agent-mic ${recording ? "recording" : ""}`}
-          onClick={() => void toggleRecording()}
-          aria-label={recording ? "Stop recording" : "Start voice input"}
+          onClick={() => {
+            if (recording) {
+              mediaRecorder.current?.stop();
+              setRecording(false);
+              return;
+            }
+            void navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+              const recorder = new MediaRecorder(stream);
+              chunks.current = [];
+              recorder.ondataavailable = (e) => chunks.current.push(e.data);
+              recorder.onstop = async () => {
+                stream.getTracks().forEach((t) => t.stop());
+                const blob = new Blob(chunks.current, { type: "audio/webm" });
+                setLoading(true);
+                try {
+                  const res = await fetch("/api/agent/transcribe", {
+                    method: "POST",
+                    headers: { "Content-Type": blob.type },
+                    body: blob,
+                  });
+                  const data = (await res.json()) as { text?: string };
+                  if (data.text) await onSend(data.text);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              mediaRecorder.current = recorder;
+              recorder.start();
+              setRecording(true);
+            });
+          }}
         >
           {recording ? <MicOff size={18} /> : <Mic size={18} />}
         </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder='e.g. I want to buy a Halal noodles pack under $10'
+          placeholder="Describe what you want to buy…"
           disabled={loading}
         />
-        <button type="submit" disabled={loading || !input.trim()}>
-          <Send size={18} />
-        </button>
+        <button type="submit" disabled={loading || !input.trim()}><Send size={18} /></button>
       </form>
     </div>
   );

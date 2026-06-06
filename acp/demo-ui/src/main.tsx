@@ -153,6 +153,7 @@ function ShopApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [sessionPreview, setSessionPreview] = useState(false);
   const [apiOnline, setApiOnline] = useState(true);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   const productGridRef = useRef<HTMLDivElement>(null);
 
   const syncCartFromServer = async () => {
@@ -191,6 +192,31 @@ function ShopApp() {
   useEffect(() => {
     productGridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [category, city, codOnly, query]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const highlight = params.get("highlight");
+    if (!highlight) return;
+
+    const product = typedCatalog.find((p) => p.product_id === highlight);
+    if (!product) return;
+
+    setHighlightId(highlight);
+    setQuery("");
+    setCategory("all");
+    setCity("all");
+    setCodOnly(false);
+    setToast(`Showing “${product.title}” from agent`);
+
+    const timer = window.setTimeout(() => {
+      document.getElementById(`product-${highlight}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const categories = useMemo(
     () => [...new Set(typedCatalog.map((p) => p.category))].sort(),
@@ -495,7 +521,12 @@ function ShopApp() {
           ) : (
             <div className="product-grid">
               {filteredProducts.map((product) => (
-                <ProductCard key={product.product_id} product={product} onAdd={addToCart} />
+                <ProductCard
+                  key={product.product_id}
+                  product={product}
+                  onAdd={addToCart}
+                  highlighted={highlightId === product.product_id}
+                />
               ))}
             </div>
           )}
@@ -641,7 +672,15 @@ function ShopApp() {
   );
 }
 
-function ProductCard({ product, onAdd }: { product: Product; onAdd: (product: Product) => void }) {
+function ProductCard({
+  product,
+  onAdd,
+  highlighted = false,
+}: {
+  product: Product;
+  onAdd: (product: Product) => void;
+  highlighted?: boolean;
+}) {
   const price = money(product.price, product.currency);
   const rating = product.rating ?? 4.8;
   const sold = stableSoldCount(product.product_id, product.sold_count ?? 0);
@@ -649,7 +688,8 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (product: Pr
 
   return (
     <article
-      className="product-card"
+      id={`product-${product.product_id}`}
+      className={`product-card${highlighted ? " product-highlight" : ""}`}
       role="button"
       tabIndex={0}
       aria-label={`Add ${product.title} to cart`}
