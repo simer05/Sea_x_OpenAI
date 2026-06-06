@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { postLaunchSamples } from "@adaptlink/shared-data";
 import { analyzePostLaunchProduct } from "@adaptlink/post-launch-seller";
 import type { PostLaunchInput } from "@adaptlink/shared-types";
@@ -8,154 +8,119 @@ import type { PostLaunchInput } from "@adaptlink/shared-types";
 const inputs = postLaunchSamples as PostLaunchInput[];
 
 const timeframes = [
-  {
-    label: "Last 30 days",
-    volumeFactor: 0.34,
-    ctrFactor: 0.98,
-    conversionFactor: 0.92,
-    adSpendFactor: 0.42,
-    reviewFactor: 0.28,
-    marginDelta: -0.02,
-    chatFactor: 0.36,
-    responseMinutesFactor: 1.12,
-    oneHourDelta: -0.06,
-    unansweredDelta: 0.03,
-    csatDelta: -0.1
-  },
-  {
-    label: "Last 3 months",
-    volumeFactor: 1,
-    ctrFactor: 1,
-    conversionFactor: 1,
-    adSpendFactor: 1,
-    reviewFactor: 1,
-    marginDelta: 0,
-    chatFactor: 1,
-    responseMinutesFactor: 1,
-    oneHourDelta: 0,
-    unansweredDelta: 0,
-    csatDelta: 0
-  },
-  {
-    label: "Last 6 months",
-    volumeFactor: 1.92,
-    ctrFactor: 1.04,
-    conversionFactor: 1.06,
-    adSpendFactor: 1.78,
-    reviewFactor: 1.72,
-    marginDelta: 0.01,
-    chatFactor: 1.85,
-    responseMinutesFactor: 0.9,
-    oneHourDelta: 0.05,
-    unansweredDelta: -0.02,
-    csatDelta: 0.12
-  }
+  { label: "Last 30 days", volumeFactor: 0.34, ctrFactor: 0.98, conversionFactor: 0.92, adSpendFactor: 0.42, reviewFactor: 0.28, marginDelta: -0.02 },
+  { label: "Last 3 months", volumeFactor: 1, ctrFactor: 1, conversionFactor: 1, adSpendFactor: 1, reviewFactor: 1, marginDelta: 0 },
+  { label: "Last 6 months", volumeFactor: 1.92, ctrFactor: 1.04, conversionFactor: 1.06, adSpendFactor: 1.78, reviewFactor: 1.72, marginDelta: 0.01 }
 ];
 
-const preIdeas = [
-  {
-    title: "Insulated Stainless Steel Water Bottle",
-    category: "Home & Living > Drinkware",
-    score: 78,
-    price: 18.9,
-    metrics: [78, 66, 75, 72, 81],
-    actions: ["Lead with leak-test image", "Use two-pack bundle to protect margin", "Add capacity guide before launch"]
-  },
-  {
-    title: "Oversized Cotton T-Shirt",
-    category: "Fashion > Men Clothing",
-    score: 66,
-    price: 15.9,
-    metrics: [72, 61, 58, 63, 68],
-    actions: ["Add model-height size chart", "Show fabric GSM and texture", "Limit launch colors to top variants"]
-  },
-  {
-    title: "Shockproof Clear Phone Case",
-    category: "Mobile Accessories > Phone Cases",
-    score: 82,
-    price: 9.9,
-    metrics: [84, 64, 77, 73, 86],
-    actions: ["Make model compatibility visible in image one", "Show camera-lip close-up", "Mention realistic yellowing expectation"]
-  }
+const categorySuggestions = [
+  "Mobile & Gadgets > Mobile Accessories > Cases Covers & Skins",
+  "Home & Living > Kitchenware > Water Bottles",
+  "Men Clothes > Tops > T-Shirts",
+  "Women Clothes > Tops > T-Shirts",
+  "Sports & Outdoors > Sports Accessories > Hydration Bottles",
+  "Beauty > Skincare > Serum"
 ];
+
+type Mode = "pre" | "post";
+
+type PreForm = {
+  title: string;
+  category: string;
+  productType: string;
+  price: string;
+  launchStock: string;
+  shippingCost: string;
+  packagingCost: string;
+  adCost: string;
+  targetArea: string;
+  colors: string;
+  features: string;
+  description: string;
+  keywords: string;
+  photoName: string;
+};
+
+type PreReport = ReturnType<typeof analyzePreLaunch>;
+
+const emptyPreForm: PreForm = {
+  title: "",
+  category: "",
+  productType: "",
+  price: "",
+  launchStock: "",
+  shippingCost: "",
+  packagingCost: "",
+  adCost: "",
+  targetArea: "Islandwide Singapore",
+  colors: "",
+  features: "",
+  description: "",
+  keywords: "",
+  photoName: ""
+};
 
 export default function Page() {
-  const [mode, setMode] = useState<"pre" | "post">("post");
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [mode, setMode] = useState<Mode>("post");
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedTimeframeIndex, setSelectedTimeframeIndex] = useState(1);
-  const [preIdeaIndex, setPreIdeaIndex] = useState(2);
+  const [preForm, setPreForm] = useState<PreForm>(emptyPreForm);
+  const [preReport, setPreReport] = useState<PreReport | null>(null);
+
   const timeframe = timeframes[selectedTimeframeIndex];
-  const input = useMemo(() => applyTimeframe(inputs[selectedIndex], timeframe), [selectedIndex, timeframe]);
-  const report = useMemo(() => analyzePostLaunchProduct(input), [input]);
-  const product = input.product;
-  const selectedPreIdea = preIdeas[preIdeaIndex];
-  const competitorRank = product.rating >= 4.65 && product.reviews > 250 ? 1 : product.rating >= 4.4 ? 2 : 3;
+  const selectedInput = selectedIndex === null ? null : applyTimeframe(inputs[selectedIndex], timeframe);
+  const postReport = useMemo(() => selectedInput ? analyzePostLaunchProduct(selectedInput) : null, [selectedInput]);
+
+  function updatePreField(field: keyof PreForm, value: string) {
+    setPreForm((current) => ({ ...current, [field]: value }));
+    setPreReport(null);
+  }
+
+  function runPreAnalysis(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPreReport(analyzePreLaunch(preForm));
+  }
+
+  function applyRecommendedPreChanges() {
+    if (!preReport) return;
+    const updated = applySafePreLaunchChanges(preForm, preReport);
+    setPreForm(updated);
+    setPreReport(analyzePreLaunch(updated));
+  }
 
   return (
-    <div className="seller-console">
-      <aside className="seller-sidebar" aria-label="Shopee seller navigation">
+    <div className="seller-console two-mode-console">
+      <aside className="seller-sidebar" aria-label="Seller intelligence navigation">
         <div className="shopee-lockup">
-          <button className="icon-button" type="button" aria-label="Menu">
-            <span />
-            <span />
-            <span />
-          </button>
-          <div className="shopee-logo" aria-label="Shopee">
-            <span className="bag-mark">S</span>
-            <strong>Shopee</strong>
+          <div className="shopee-logo" aria-label="AdaptLink">
+            <span className="bag-mark">A</span>
+            <strong>AdaptLink</strong>
           </div>
         </div>
-        <nav className="side-nav">
-          <a href="#"><span className="nav-icon home" />Overview</a>
-          <a className="open" href="#"><span className="nav-icon analytics" />Product Analytics</a>
-          <button className={mode === "pre" ? "side-subnav active" : "side-subnav"} type="button" onClick={() => setMode("pre")}>Pre-Launch</button>
-          <button className={mode === "post" ? "side-subnav active" : "side-subnav"} type="button" onClick={() => setMode("post")}>Post-Launch</button>
-          <a href="#"><span className="nav-icon trend" />Performance Trends</a>
-          <a href="#"><span className="nav-icon competitor" />Competitor Insights</a>
-          <a href="#"><span className="nav-icon market" />Market Insights</a>
-          <a href="#"><span className="nav-icon report" />Reports</a>
+
+        <nav className="side-nav compact-nav" aria-label="Workflow">
+          <button className={mode === "pre" ? "mode-nav active" : "mode-nav"} type="button" onClick={() => setMode("pre")}>
+            <strong>Pre-Launch</strong>
+            <span>Validate a new product idea</span>
+          </button>
+          <button className={mode === "post" ? "mode-nav active" : "mode-nav"} type="button" onClick={() => setMode("post")}>
+            <strong>Post-Launch</strong>
+            <span>Improve live Shopee items</span>
+          </button>
         </nav>
-        <section className="sidebar-card product-switcher" aria-label="Seller existing products">
-          <div className="sidebar-card-title">
-            <span>Seller Existing Products</span>
-            <strong>{inputs.length}</strong>
-          </div>
-          <div className="product-list">
-            {inputs.map((item, index) => (
-              <button
-                className={mode === "post" && index === selectedIndex ? "product-option active" : "product-option"}
-                key={item.product.productId}
-                onClick={() => {
-                  setSelectedIndex(index);
-                  setMode("post");
-                }}
-                type="button"
-              >
-                <img className="product-thumb" src={productImageSrc(imageKind(item.product.title))} alt={item.product.title} />
-                <span>
-                  <strong>{shortProductName(item.product.title)}</strong>
-                  <small>{item.product.productId}</small>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
+
       </aside>
 
       <main className="seller-main">
         <header className="global-bar">
           <div className="brand-area">
             <span className="adapt-mark" />
-            <strong>AdaptLink</strong>
-            <span>Seller Intelligence</span>
+            <strong>{mode === "post" ? "Post-Launch Seller Intelligence" : "Pre-Launch Seller Intelligence"}</strong>
           </div>
           <div className="store-area">
-            <div className="store-card">
-              <span className="store-icon" />
-              <div>
-                <strong>My Home Living Store</strong>
-                <small>Shopee Mall</small>
-              </div>
+            <div className="openai-pill" aria-label="Powered by OpenAI">
+              <span className="openai-logo" />
+              <strong>OpenAI-ready insights</strong>
             </div>
           </div>
         </header>
@@ -163,161 +128,505 @@ export default function Page() {
         <div className="dashboard-content">
           <section className="page-head">
             <div>
-              <h1>{mode === "post" ? "Post-Launch Product Intelligence" : "Pre-Launch Product Intelligence"}</h1>
+              <h1>{mode === "post" ? "Post-Launch Product Dashboard" : "Pre-Launch Product Validation"}</h1>
               <p>
                 {mode === "post"
-                  ? "Track performance, benchmark competitors, and optimize existing listings for growth."
-                  : "Validate product ideas before launch with market, margin, competitor, and readiness analysis."}
+                  ? "Choose a live seller product to generate product health, market trend, competitor, review, and action dashboards."
+                  : "Enter a new product idea to estimate launch fit, comparison pressure, Singapore target area, and initial stock size."}
               </p>
             </div>
-            <div className="head-actions">
-              <label className="range-picker">
-                <span className="calendar-icon" />
-                <select value={selectedTimeframeIndex} onChange={(event) => setSelectedTimeframeIndex(Number(event.target.value))}>
-                  {timeframes.map((item, index) => (
-                    <option key={item.label} value={index}>{item.label}</option>
-                  ))}
-                </select>
-              </label>
-              <div className="openai-pill" aria-label="Powered by OpenAI">
-                <span className="openai-logo" />
-                <strong>Powered by OpenAI</strong>
+            {mode === "post" ? (
+              <div className="head-actions">
+                <label className="range-picker">
+                  <span className="calendar-icon" />
+                  <select value={selectedTimeframeIndex} onChange={(event) => setSelectedTimeframeIndex(Number(event.target.value))}>
+                    {timeframes.map((item, index) => <option key={item.label} value={index}>{item.label}</option>)}
+                  </select>
+                </label>
               </div>
-            </div>
+            ) : null}
           </section>
 
-          <section className="mode-switch" aria-label="Analysis stage">
-            <button className={mode === "pre" ? "mode-button active" : "mode-button"} type="button" onClick={() => setMode("pre")}>
-              <span>Pre-Launch</span>
-              <strong>Validate new product idea</strong>
-            </button>
-            <button className={mode === "post" ? "mode-button active" : "mode-button"} type="button" onClick={() => setMode("post")}>
-              <span>Post-Launch</span>
-              <strong>Improve existing product</strong>
-            </button>
-          </section>
-
-          {mode === "post" ? (
-            <section className="analysis-view">
-              <section className="kpi-grid" aria-label="Post-launch key metrics">
-                <KpiCard accent="orange" icon="sales" label="Sales" value={currency(product.revenue)} detail={`${product.orders} orders`} />
-                <KpiCard accent="orange" icon="funnel" label="Conversion Rate" value={percent(product.conversionRate)} detail="orders divided by clicks" />
-                <KpiCard accent="green" icon="health" label="Product Health Score" value={`${report.health.overall}/100`} detail={healthLabel(report.health.overall)} />
-                <KpiCard accent="orange" icon="margin" label="Net Margin" value={percent(product.netMarginPercent)} detail={`ROAS ${(product.revenue / Math.max(product.adSpend, 1)).toFixed(1)}x`} />
-                <KpiCard accent="purple" icon="reviews" label="Reviews" value={product.reviews.toLocaleString()} detail={`${product.rating.toFixed(2)} rating`} />
-                <KpiCard accent="blue" icon="trophy" label="Competitor Position" value={`#${competitorRank}`} detail="current benchmark set" />
-              </section>
-
-              <section className="main-grid">
-                <article className="panel sales-funnel-panel">
-                  <div className="panel-heading"><h2>Sales Funnel</h2><span>{timeframe.label}</span></div>
-                  <div className="funnel-layout">
-                    <div className="funnel-visual">
-                      <div className="funnel-slice slice-1"><span>Impressions</span></div>
-                      <div className="funnel-slice slice-2"><span>Clicks</span></div>
-                      <div className="funnel-slice slice-3"><span>Add-to-Cart</span></div>
-                      <div className="funnel-slice slice-4"><span>Orders</span></div>
-                      <div className="funnel-circle">{percent(product.conversionRate)}</div>
-                    </div>
-                    <div className="funnel-table">
-                      <FunnelRow label="Impressions" value={product.views.toLocaleString()} rate="" />
-                      <FunnelRow label="Clicks" value={product.clicks.toLocaleString()} rate={percent(product.ctr)} />
-                      <FunnelRow label="Orders" value={product.orders.toLocaleString()} rate={percent(product.conversionRate)} />
-                    </div>
-                  </div>
-                  <p className="panel-note">CTR means click-through rate: clicks divided by listing views. It shows whether shoppers who saw the product were interested enough to click.</p>
-                </article>
-
-                <article className="panel trend-panel">
-                  <div className="panel-heading"><h2>Sales Trend</h2><span>{timeframe.label}</span></div>
-                  <MiniTrend />
-                </article>
-
-                <article className="panel benchmark-panel">
-                  <div className="panel-heading"><h2>Competitor Benchmark</h2><span>Current product</span></div>
-                  <div className="benchmark-table">
-                    <div className="table-row head"><span>Metric</span><span>You</span><span>Competitor Avg</span><span>Gap</span></div>
-                    <div className="table-row"><span>Price</span><span>{currency(product.price)}</span><span>{currency(average(input.competitors.map((item) => item.price)))}</span><span className="positive">watch</span></div>
-                    <div className="table-row"><span>Rating</span><span>{product.rating.toFixed(2)}</span><span>{average(input.competitors.map((item) => item.rating)).toFixed(2)}</span><span className="positive">trust gap</span></div>
-                    <div className="table-row"><span>Reviews</span><span>{product.reviews.toLocaleString()}</span><span>{Math.round(average(input.competitors.map((item) => item.reviews))).toLocaleString()}</span><span className="negative">build base</span></div>
-                  </div>
-                </article>
-
-                <article className="panel questions-panel">
-                  <div className="panel-heading"><h2>Buyer Questions Insights</h2><span>{input.buyerQuestions.length} themes</span></div>
-                  <div className="question-list">
-                    {input.buyerQuestions.map((question) => (
-                      <div className="question-row" key={question.questionId}><span>{question.text}</span><strong>{question.frequency}</strong></div>
-                    ))}
-                  </div>
-                </article>
-
-                <article className="panel action-panel">
-                  <div className="panel-heading"><h2>AI Action Plan</h2><span>{report.actions.length} actions</span></div>
-                  <div className="action-plan">
-                    {report.actions.map((action, index) => (
-                      <div className="action-item" key={`${action.area}-${index}`}>
-                        <span className="action-number">{index + 1}</span>
-                        <p>{action.action}</p>
-                        <b className={action.priority.toLowerCase()}>{action.priority}</b>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              </section>
-            </section>
+          {mode === "pre" ? (
+            <PreLaunchView form={preForm} report={preReport} onApplyRecommendations={applyRecommendedPreChanges} onChange={updatePreField} onSubmit={runPreAnalysis} />
           ) : (
-            <section className="analysis-view">
-              <section className="pre-grid">
-                <article className="panel pre-input-panel">
-                  <div className="panel-heading"><h2>Pre-Launch Product Input</h2><span>Idea</span></div>
-                  <form className="pre-form">
-                    <label>
-                      Product idea
-                      <select value={preIdeaIndex} onChange={(event) => setPreIdeaIndex(Number(event.target.value))}>
-                        {preIdeas.map((idea, index) => (
-                          <option key={idea.title} value={index}>{idea.title}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>Product title<input value={selectedPreIdea.title} readOnly /></label>
-                    <label>Shopee category<input value={selectedPreIdea.category} readOnly /></label>
-                    <label>Target price<input value={currency(selectedPreIdea.price)} readOnly /></label>
-                  </form>
-                </article>
-                <article className="panel pre-decision-panel">
-                  <div className="panel-heading"><h2>Launch Decision</h2><span>{selectedPreIdea.score + 8}% confidence</span></div>
-                  <div className="decision-card">
-                    <div>
-                      <span>Recommendation</span>
-                      <strong>{selectedPreIdea.score >= 78 ? "Launch with focused positioning" : "Launch after improvements"}</strong>
-                      <p>{selectedPreIdea.title} should launch only after the first action item is reflected in listing images and copy.</p>
-                    </div>
-                    <div className="score-ring" style={{ background: `conic-gradient(#ee4d2d 0 ${selectedPreIdea.score}%, #eef0f4 ${selectedPreIdea.score}% 100%)` }}>{selectedPreIdea.score}</div>
-                  </div>
-                </article>
-                <article className="panel pre-metrics-panel">
-                  <div className="panel-heading"><h2>Market Readiness</h2><span>Before launch</span></div>
-                  <div className="pre-metrics">
-                    {["Demand", "Competition", "Margin", "Differentiation", "Readiness"].map((label, index) => (
-                      <div className="pre-metric watch" key={label}><span>{label}</span><strong>{selectedPreIdea.metrics[index]}</strong><p>Pre-launch signal</p></div>
-                    ))}
-                  </div>
-                </article>
-                <article className="panel pre-actions-panel">
-                  <div className="panel-heading"><h2>Launch Action Plan</h2><span>{selectedPreIdea.actions.length} actions</span></div>
-                  <div className="action-plan">
-                    {selectedPreIdea.actions.map((action, index) => (
-                      <div className="action-item" key={action}><span className="action-number">{index + 1}</span><p>{action}</p><b className={index === 0 ? "high" : "medium"}>{index === 0 ? "High" : "Medium"}</b></div>
-                    ))}
-                  </div>
-                </article>
-              </section>
-            </section>
+            <PostLaunchView inputs={inputs} selectedIndex={selectedIndex} input={selectedInput} report={postReport} timeframeLabel={timeframe.label} onSelect={setSelectedIndex} />
           )}
         </div>
       </main>
     </div>
+  );
+}
+
+function PreLaunchView({
+  form,
+  report,
+  onApplyRecommendations,
+  onChange,
+  onSubmit
+}: {
+  form: PreForm;
+  report: PreReport | null;
+  onApplyRecommendations: () => void;
+  onChange: (field: keyof PreForm, value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <section className="analysis-view">
+      <section className="pre-workspace">
+        <article className="panel pre-input-panel">
+          <div className="panel-heading"><h2>New Product Details</h2><span>Mock Shopee SG</span></div>
+          <form className="pre-form live-pre-form" onSubmit={onSubmit}>
+            <label>Product title<input value={form.title} onChange={(event) => onChange("title", event.target.value)} placeholder="e.g. Purple iPhone 15 case with strap" required /></label>
+            <label>Shopee category<input list="category-suggestions" value={form.category} onChange={(event) => onChange("category", event.target.value)} placeholder="Type or choose category path" required /></label>
+            <datalist id="category-suggestions">{categorySuggestions.map((item) => <option key={item} value={item} />)}</datalist>
+            <label>Product type<input value={form.productType} onChange={(event) => onChange("productType", event.target.value)} placeholder="e.g. phone case, thermal bottle, custom tee" required /></label>
+            <div className="form-pair">
+              <label>Selling price<input type="number" min="0" step="0.1" value={form.price} onChange={(event) => onChange("price", event.target.value)} placeholder="SGD" required /></label>
+              <label>Initial launch stock<input type="number" min="0" step="1" value={form.launchStock} onChange={(event) => onChange("launchStock", event.target.value)} placeholder="Units seller plans to list" /></label>
+            </div>
+            <div className="form-pair">
+              <label>Shipping/order<input type="number" min="0" step="0.1" value={form.shippingCost} onChange={(event) => onChange("shippingCost", event.target.value)} placeholder="SGD" /></label>
+              <label>Packaging/order<input type="number" min="0" step="0.1" value={form.packagingCost} onChange={(event) => onChange("packagingCost", event.target.value)} placeholder="SGD" /></label>
+            </div>
+            <div className="form-pair">
+              <label>Ad cost/order<input type="number" min="0" step="0.1" value={form.adCost} onChange={(event) => onChange("adCost", event.target.value)} placeholder="SGD" /></label>
+              <label>Target area in Singapore<input value={form.targetArea} onChange={(event) => onChange("targetArea", event.target.value)} placeholder="Central, East, West, North-East, Islandwide" /></label>
+            </div>
+            <label>Colors<input value={form.colors} onChange={(event) => onChange("colors", event.target.value)} placeholder="purple, black, white" /></label>
+            <label>Features<textarea rows={3} value={form.features} onChange={(event) => onChange("features", event.target.value)} placeholder="Comma-separated features" /></label>
+            <label>Description<textarea rows={4} value={form.description} onChange={(event) => onChange("description", event.target.value)} placeholder="Main buyer benefits and proof points" required /></label>
+            <label>Keywords<input value={form.keywords} onChange={(event) => onChange("keywords", event.target.value)} placeholder="Comma-separated buyer search keywords" /></label>
+            <label className="file-control">Photo upload<input type="file" accept="image/*" onChange={(event) => onChange("photoName", event.target.files?.[0]?.name || "")} /><small>{form.photoName || "No photo selected"}</small></label>
+            <button className="primary-cta" type="submit">Generate Pre-Launch Analysis</button>
+          </form>
+        </article>
+
+        {report ? <PreLaunchReport report={report} onApplyRecommendations={onApplyRecommendations} /> : <EmptyPreLaunch />}
+      </section>
+    </section>
+  );
+}
+
+function EmptyPreLaunch() {
+  return (
+    <article className="panel empty-state-panel">
+      <div className="empty-state">
+        <span className="empty-icon">+</span>
+        <h2>No pre-launch product loaded</h2>
+        <p>Enter product details on the left. The dashboard will stay empty until the seller provides a new product idea.</p>
+      </div>
+    </article>
+  );
+}
+
+function PreLaunchReport({ report, onApplyRecommendations }: { report: PreReport; onApplyRecommendations: () => void }) {
+  return (
+    <section className="pre-results">
+      <article className="panel pre-decision-panel">
+        <div className="panel-heading"><h2>Launch Decision</h2><span>{report.confidence} confidence</span></div>
+        <div className="decision-card">
+          <div>
+            <span>Recommendation</span>
+            <strong>{report.recommendation}</strong>
+            <p>{report.summary}</p>
+          </div>
+          <div className="score-ring" style={{ background: `conic-gradient(#ee4d2d 0 ${report.overall}%, #eef0f4 ${report.overall}% 100%)` }}>{report.overall}</div>
+        </div>
+      </article>
+
+      <article className="panel comparison-panel">
+        <div className="panel-heading"><h2>Comparison Snapshot</h2><span>{report.competitors.length} matched competitors</span></div>
+        <div className="comparison-cards">
+          <InsightBox label="Your price" value={currency(report.price)} detail={report.pricePosition} />
+          <InsightBox label="Competitor avg" value={currency(report.competitorAveragePrice)} detail={`Range ${currency(report.competitorMinPrice)} - ${currency(report.competitorMaxPrice)}`} />
+          <InsightBox label="Initial stock" value={`${report.stock.suggested} units`} detail={`Suggested range ${report.stock.min}-${report.stock.max}; planned ${report.stock.planned || "not provided"}`} />
+          <InsightBox label="Best SG area" value={report.bestRegion.name} detail={report.bestRegion.reason} />
+        </div>
+      </article>
+
+      <article className="panel pre-metrics-panel">
+        <div className="panel-heading"><h2>Current vs Potential Market Fit</h2><span>After suggested fixes</span></div>
+        <div className="bar-chart" aria-label="Pre-launch score comparison">
+          {report.metricRows.map((row) => (
+            <div className="bar-row" key={row.label}>
+              <span>{row.label}</span>
+              <div className="bar-track"><i style={{ width: `${row.current}%` }} /><b style={{ width: `${row.potential}%` }} /></div>
+              <strong>{row.current} → {row.potential}</strong>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="panel competitor-match-panel">
+        <div className="panel-heading"><h2>Competitor Matches</h2><span>{report.competitors.length} mock Shopee matches</span></div>
+        <div className="competitor-match-table">
+          <div className="competitor-row head"><span>Competitor</span><span>Match</span><span>Price</span><span>Reviews</span><span>Risk</span></div>
+          {report.competitors.map((competitor) => (
+            <div className="competitor-row" key={competitor.title}>
+              <span>{competitor.title}</span>
+              <strong>{competitor.matchScore}/100</strong>
+              <span>{currency(competitor.price)}</span>
+              <span>{competitor.reviews.toLocaleString()}</span>
+              <em>{competitor.risk}</em>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="panel listing-readiness-panel">
+        <div className="panel-heading"><h2>Listing Readiness</h2><span>{report.readinessItems.filter((item) => item.status === "complete").length}/{report.readinessItems.length} complete</span></div>
+        <div className="readiness-list">
+          {report.readinessItems.map((item) => (
+            <div className={`readiness-item ${item.status}`} key={item.label}>
+              <strong>{item.status === "complete" ? "Complete" : "Missing"}</strong>
+              <span>{item.label}</span>
+              <p>{item.fix}</p>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="panel region-panel">
+        <div className="panel-heading"><h2>Singapore Area Fit</h2><span>{report.bestRegion.name}</span></div>
+        <div className="region-mini-grid">
+          {report.regions.map((region) => (
+            <div className={region.name === report.bestRegion.name ? "region-pill active" : "region-pill"} key={region.name}>
+              <strong>{region.name.replace(" Singapore", "")}</strong>
+              <span>{region.score}/100</span>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="panel pre-actions-panel">
+        <div className="panel-heading">
+          <h2>Recommended Changes</h2>
+          <button className="panel-action-button" type="button" onClick={onApplyRecommendations}>Apply Safe Changes</button>
+        </div>
+        <div className="action-plan">
+          {report.actions.map((action, index) => (
+            <div className="action-item" key={action}><span className="action-number">{index + 1}</span><p>{action}</p><b className={index === 0 ? "high" : "medium"}>{index === 0 ? "High" : "Medium"}</b></div>
+          ))}
+        </div>
+      </article>
+    </section>
+  );
+}
+
+function PostLaunchView({
+  inputs,
+  selectedIndex,
+  input,
+  report,
+  timeframeLabel,
+  onSelect
+}: {
+  inputs: PostLaunchInput[];
+  selectedIndex: number | null;
+  input: PostLaunchInput | null;
+  report: ReturnType<typeof analyzePostLaunchProduct> | null;
+  timeframeLabel: string;
+  onSelect: (index: number) => void;
+}) {
+  if (!input || !report) {
+    return (
+      <section className="analysis-view">
+        <SellerProductGrid inputs={inputs} selectedIndex={selectedIndex} onSelect={onSelect} />
+      </section>
+    );
+  }
+
+  const product = input.product;
+  const competitorRank = product.rating >= 4.65 && product.reviews > 250 ? 1 : product.rating >= 4.4 ? 2 : 3;
+
+  return (
+    <section className="analysis-view">
+      <SellerProductGrid inputs={inputs} selectedIndex={selectedIndex} onSelect={onSelect} />
+
+      <section className="selected-product-strip">
+        <img className="selected-product-image" src={productImageSrc(imageKind(product.title))} alt={product.title} />
+        <div>
+          <span>Selected live item</span>
+          <h2>{product.title}</h2>
+          <p>{product.productId} · {product.category} · {timeframeLabel}</p>
+        </div>
+      </section>
+
+      <section className="kpi-grid compact-kpis" aria-label="Post-launch key metrics">
+        <KpiCard accent="orange" icon="sales" label="Sales" value={currency(product.revenue)} detail={`${product.orders} orders`} />
+        <KpiCard accent="orange" icon="funnel" label="Conversion Rate" value={percent(product.conversionRate)} detail="orders divided by clicks" />
+        <KpiCard accent="green" icon="health" label="Product Health Score" value={`${report.health.overall}/100`} detail={healthLabel(report.health.overall)} />
+        <KpiCard accent="orange" icon="margin" label="Net Margin" value={percent(product.netMarginPercent)} detail={`ROAS ${(product.revenue / Math.max(product.adSpend, 1)).toFixed(1)}x`} />
+        <KpiCard accent="purple" icon="reviews" label="Reviews" value={product.reviews.toLocaleString()} detail={`${product.rating.toFixed(2)} rating`} />
+        <KpiCard accent="blue" icon="trophy" label="Competitor Position" value={`#${competitorRank}`} detail="current benchmark set" />
+      </section>
+
+      <section className="post-evaluation-grid">
+        <SalesMarketingPanel input={input} timeframeLabel={timeframeLabel} />
+        <MarketTrendsPanel input={input} />
+        <CompetitorBenchmarkPanel input={input} />
+        <HealthDriversPanel report={report} />
+        <SellerResponsePanel input={input} report={report} />
+        <ReviewInsightsPanel input={input} />
+        <ReviewSentimentPanel input={input} />
+        <BuyerQuestionsPanel input={input} />
+        <ActionPlanPanel report={report} />
+        <NextImprovementPanel report={report} />
+      </section>
+    </section>
+  );
+}
+
+function InsightBox({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return <div className="insight-box"><span>{label}</span><strong>{value}</strong><p>{detail}</p></div>;
+}
+
+function SellerProductGrid({ inputs, selectedIndex, onSelect }: { inputs: PostLaunchInput[]; selectedIndex: number | null; onSelect: (index: number) => void }) {
+  return (
+    <section className="seller-product-grid" aria-label="Seller live Shopee products">
+      <div className="product-grid-heading">
+        <div>
+          <h2>Seller Live Shopee Items</h2>
+          <p>Select an item to expand market evaluation metrics.</p>
+        </div>
+        <span>{inputs.length} live items</span>
+      </div>
+      <div className="live-product-cards">
+        {inputs.map((item, index) => (
+          <button className={selectedIndex === index ? "live-product-card active" : "live-product-card"} key={item.product.productId} type="button" onClick={() => onSelect(index)}>
+            <img src={productImageSrc(imageKind(item.product.title))} alt={item.product.title} />
+            <span>
+              <strong>{item.product.title}</strong>
+              <small>{item.product.productId} · {item.product.category}</small>
+            </span>
+            <b>{currency(item.product.price)}</b>
+            <em>{item.product.orders} orders</em>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SalesMarketingPanel({ input, timeframeLabel }: { input: PostLaunchInput; timeframeLabel: string }) {
+  const product = input.product;
+  const ctrPercent = product.ctr * 100;
+  const conversionPercent = product.conversionRate * 100;
+  const roas = product.revenue / Math.max(product.adSpend, 1);
+  const costPerOrder = product.adSpend / Math.max(product.orders, 1);
+
+  return (
+    <article className="panel sales-marketing-panel">
+      <div className="panel-heading">
+        <h2>Sales & Marketing</h2>
+        <span>{timeframeLabel}</span>
+      </div>
+      <div className="sales-marketing-grid">
+        <div className="sales-score-card">
+          <span>Revenue</span>
+          <strong>{currency(product.revenue)}</strong>
+          <p>{product.orders.toLocaleString()} orders from {product.clicks.toLocaleString()} clicks</p>
+        </div>
+        <div className="sales-score-card">
+          <span>Ad Spend</span>
+          <strong>{currency(product.adSpend)}</strong>
+          <p>{roas.toFixed(1)}x ROAS · {currency(costPerOrder)} per order</p>
+        </div>
+        <div className="sales-score-card">
+          <span>Conversion</span>
+          <strong>{percent(product.conversionRate)}</strong>
+          <p>{ctrPercent.toFixed(1)}% CTR · {conversionPercent.toFixed(1)}% click-to-order</p>
+        </div>
+      </div>
+      <div className="marketing-funnel" aria-label="Sales funnel">
+        <FunnelRow label="Views" value={product.views.toLocaleString()} rate="Top of funnel" />
+        <FunnelRow label="Clicks" value={product.clicks.toLocaleString()} rate={`${ctrPercent.toFixed(1)}% CTR`} />
+        <FunnelRow label="Orders" value={product.orders.toLocaleString()} rate={`${conversionPercent.toFixed(1)}% CVR`} />
+      </div>
+    </article>
+  );
+}
+
+function MarketTrendsPanel({ input }: { input: PostLaunchInput }) {
+  const product = input.product;
+  return (
+    <article className="panel market-trends-panel">
+      <div className="panel-heading">
+        <h2>Market Trends</h2>
+        <span>{trendDemandLabel(product.views, product.orders)} demand</span>
+      </div>
+      <MiniTrend />
+      <div className="market-summary-grid">
+        <InsightBox label="Reach" value={product.views.toLocaleString()} detail="Shop and search exposure" />
+        <InsightBox label="Sales Velocity" value={`${Math.round(product.orders / 12)}/mo`} detail="Estimated monthly orders" />
+        <InsightBox label="Review Trust" value={product.rating.toFixed(2)} detail={`${product.reviews.toLocaleString()} buyer reviews`} />
+      </div>
+    </article>
+  );
+}
+
+function CompetitorBenchmarkPanel({ input }: { input: PostLaunchInput }) {
+  const product = input.product;
+  const competitors = input.competitors.slice(0, 3);
+  return (
+    <article className="panel competitor-benchmark-panel">
+      <div className="panel-heading">
+        <h2>Competitor Benchmark</h2>
+        <span>{competitors.length} closest Shopee matches</span>
+      </div>
+      <div className="competitor-benchmark-grid">
+        <div className="benchmark-lead">
+          <span>Your live item</span>
+          <strong>{currency(product.price)}</strong>
+          <p>{product.rating.toFixed(2)} rating · {product.reviews.toLocaleString()} reviews · {percent(product.conversionRate)} conversion</p>
+        </div>
+        {competitors.map((competitor) => (
+          <div className="benchmark-card" key={competitor.title}>
+            <span>{competitor.title}</span>
+            <strong>{currency(competitor.price)}</strong>
+            <p>{competitor.rating.toFixed(2)} rating · {competitor.reviews.toLocaleString()} reviews</p>
+            <b>{competitor.price < product.price ? "Cheaper" : "Premium"}</b>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function HealthDriversPanel({ report }: { report: ReturnType<typeof analyzePostLaunchProduct> }) {
+  const drivers = [
+    ["Conversion", report.health.conversion, "Click-to-order strength"],
+    ["Margin", report.health.margin, "Profit after costs and ads"],
+    ["Reviews", report.health.reviewRating, "Rating and trust quality"],
+    ["Competition", report.health.competitorPosition, "Price, reviews, rating position"],
+    ["Traffic", report.health.traffic, "Listing demand and reach"],
+    ["Buyer response", report.health.customerInteraction, "Chat speed and answer coverage"],
+    ["Fulfillment", report.health.fulfillment, "Refund and cancellation control"]
+  ] as const;
+  return (
+    <article className="panel health-drivers-panel">
+      <div className="panel-heading"><h2>Health Score Drivers</h2><span>{report.health.overall}/100 overall</span></div>
+      <div className="driver-grid">
+        {drivers.map(([label, score, detail]) => <DriverCard key={label} label={label} score={score} detail={detail} />)}
+      </div>
+    </article>
+  );
+}
+
+function DriverCard({ label, score, detail }: { label: string; score: number; detail: string }) {
+  return (
+    <div className="driver-card">
+      <div><strong>{label}</strong><b>{score}</b></div>
+      <div className="driver-bar"><span style={{ width: `${score}%` }} className={score < 55 ? "danger" : score < 70 ? "warn" : ""} /></div>
+      <p>{detail}</p>
+    </div>
+  );
+}
+
+function SellerResponsePanel({ input }: { input: PostLaunchInput; report: ReturnType<typeof analyzePostLaunchProduct> }) {
+  const communication = input.communication;
+  return (
+    <article className="panel seller-response-panel">
+      <div className="panel-heading"><h2>Seller Response Experience</h2><span>Response timing should be watched</span></div>
+      <div className="response-grid">
+        <ResponseMetric label="Avg response" value={communication ? `${communication.averageResponseMinutes}m` : "N/A"} detail="Lower is better" />
+        <ResponseMetric label="Within 1h" value={communication ? percent(communication.responseWithinOneHourPercent) : "N/A"} detail="Fast-answer rate" />
+        <ResponseMetric label="Unanswered" value={communication ? percent(communication.unansweredRate) : "N/A"} detail="Lost confidence risk" />
+        <ResponseMetric label="Buyer CSAT" value={communication ? `${communication.buyerSatisfactionScore.toFixed(1)}/5` : "N/A"} detail="Chat experience" />
+      </div>
+    </article>
+  );
+}
+
+function ResponseMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return <div className="response-metric"><span>{label}</span><strong>{value}</strong><p>{detail}</p></div>;
+}
+
+function ReviewInsightsPanel({ input }: { input: PostLaunchInput }) {
+  const positive = themeRows(input.reviews.filter((review) => review.sentiment === "positive"), input.reviews.length, "positive");
+  const negative = themeRows(input.reviews.filter((review) => review.sentiment !== "positive"), input.reviews.length, "negative");
+  return (
+    <article className="panel review-insights-panel">
+      <div className="panel-heading"><h2>Review Insights</h2><span>Based on {input.product.reviews} reviews</span></div>
+      <div className="review-theme-columns">
+        <div><h3>Positive Themes</h3>{positive.map((row) => <ThemeBar key={row.label} row={row} />)}</div>
+        <div><h3>Negative Themes</h3>{negative.map((row) => <ThemeBar key={row.label} row={row} negative />)}</div>
+      </div>
+    </article>
+  );
+}
+
+function ReviewSentimentPanel({ input }: { input: PostLaunchInput }) {
+  const counts = sentimentCounts(input.reviews);
+  const total = Math.max(input.reviews.length, 1);
+  const positive = Math.round((counts.positive / total) * 100);
+  const neutral = Math.round((counts.neutral / total) * 100);
+  const negative = Math.max(0, 100 - positive - neutral);
+  const score = positive - negative;
+  return (
+    <article className="panel review-sentiment-panel">
+      <div className="panel-heading"><h2>Review Sentiment</h2></div>
+      <div className="donut" style={{ background: `conic-gradient(#10b981 0 ${positive}%, #d1d5db ${positive}% ${positive + neutral}%, #ef4444 ${positive + neutral}% 100%)` }}><span>+{score}</span></div>
+      <div className="sentiment-legend">
+        <span><i className="good" />Positive <b>{positive.toFixed(1)}%</b></span>
+        <span><i className="neutral" />Neutral <b>{neutral.toFixed(1)}%</b></span>
+        <span><i className="bad" />Negative <b>{negative.toFixed(1)}%</b></span>
+      </div>
+      <div className="sentiment-score"><span>Sentiment Score</span><strong>+{score}</strong></div>
+    </article>
+  );
+}
+
+function BuyerQuestionsPanel({ input }: { input: PostLaunchInput }) {
+  const total = input.buyerQuestions.reduce((sum, question) => sum + question.frequency, 0);
+  return (
+    <article className="panel buyer-question-panel">
+      <div className="panel-heading"><h2>Buyer Questions Insights</h2><span>{total} signals</span></div>
+      <div className="question-list">
+        {input.buyerQuestions.map((question) => <div className="question-row" key={question.questionId}><span>{question.text}</span><strong>{question.frequency}</strong></div>)}
+      </div>
+    </article>
+  );
+}
+
+function ActionPlanPanel({ report }: { report: ReturnType<typeof analyzePostLaunchProduct> }) {
+  return (
+    <article className="panel ai-action-panel">
+      <div className="panel-heading"><h2>AI Action Plan</h2><span>{report.actions.length} actions</span></div>
+      <div className="action-plan">
+        {report.actions.map((action, index) => (
+          <div className="action-item" key={`${action.area}-${index}`}>
+            <span className="action-number">{index + 1}</span>
+            <p>{action.action}</p>
+            <b className={action.priority.toLowerCase()}>{action.priority}</b>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function NextImprovementPanel({ report }: { report: ReturnType<typeof analyzePostLaunchProduct> }) {
+  const areas = [
+    ["Competition", report.health.competitorPosition, "Watch competitor voucher, price, shipping, and review gaps."],
+    ["Margin", report.health.margin, "Protect profit with bundles, voucher limits, and ad caps."],
+    ["Buyer response", report.health.customerInteraction, "Use quick replies for repeated buyer questions."],
+    ["Reviews", report.health.reviewRating, "Fix repeated negative themes before asking for more reviews."]
+  ].sort((a, b) => Number(a[1]) - Number(b[1]));
+  return (
+    <article className="panel next-improvement-panel">
+      <div className="panel-heading"><h2>Next Improvement Areas</h2><span>{areas.length} ranked areas</span></div>
+      <div className="improvement-list">
+        {areas.map(([label, score, detail], index) => (
+          <div className="improvement-row" key={label}>
+            <span>{index + 1}</span>
+            <div><strong>{label}</strong><p>{detail}</p></div>
+            <b>{score}</b>
+          </div>
+        ))}
+      </div>
+    </article>
   );
 }
 
@@ -354,11 +663,243 @@ function MiniTrend() {
   );
 }
 
+function analyzePreLaunch(form: PreForm) {
+  const price = numberValue(form.price);
+  const shipping = numberValue(form.shippingCost);
+  const packaging = numberValue(form.packagingCost);
+  const ad = numberValue(form.adCost);
+  const stock = numberValue(form.launchStock);
+  const competitors = mockCompetitorsFor(form.productType, form.category).map((competitor) => ({
+    ...competitor,
+    matchScore: competitorMatchScore(competitor, form.productType, form.category, price),
+    risk: competitorRisk(competitor, price)
+  }));
+  const competitorPrices = competitors.map((item) => item.price);
+  const competitorAveragePrice = average(competitorPrices);
+  const competitorMinPrice = Math.min(...competitorPrices);
+  const competitorMaxPrice = Math.max(...competitorPrices);
+  const priceGap = competitorAveragePrice ? ((price - competitorAveragePrice) / competitorAveragePrice) * 100 : 0;
+  const operatingRoom = price - price * 0.102 - shipping - packaging - ad - (price >= 25 ? 1 : 0.5);
+  const operatingRoomPercent = price ? Math.round((operatingRoom / price) * 100) : 0;
+
+  const demand = clamp(Math.round(72 + average(competitors.map((item) => Math.min(24, Math.log10(item.reviews + 1) * 6)))), 25, 100);
+  const competition = clamp(Math.round(82 - competitors.filter((item) => item.tier === "direct").length * 9 - (Math.abs(priceGap) > 80 ? 6 : 0)), 20, 100);
+  const margin = clamp(operatingRoomPercent + 25, 10, 100);
+  const differentiation = clamp(58 + (form.features ? 14 : 0) + (form.photoName ? 8 : 0) + (form.description.length > 90 ? 8 : 0), 20, 100);
+  const readinessItems = listingReadinessItems(form);
+  const readiness = Math.round((readinessItems.filter((item) => item.status === "complete").length / readinessItems.length) * 100);
+  const overall = Math.round(demand * 0.22 + competition * 0.18 + margin * 0.24 + differentiation * 0.2 + readiness * 0.16);
+  const potential = {
+    demand,
+    competition: clamp(competition + 5, 0, 100),
+    margin: clamp(margin + 3, 0, 100),
+    differentiation: clamp(differentiation + 12, 0, 100),
+    readiness: clamp(readiness + 18, 0, 100)
+  };
+  const stockRange = stockRangeFor(demand, competition, readiness, margin);
+  const regions = scoreRegions(form.productType, form.category, price, readiness, form.targetArea);
+  const recommendation = overall >= 78 ? "Launch with focused positioning" : overall >= 62 ? "Proceed after priority fixes" : "Do not launch yet";
+
+  return {
+    recommendation,
+    overall,
+    confidence: competitors.length >= 2 ? "Medium" : "Low",
+    summary: `${form.title} has ${demand >= 80 ? "strong" : "moderate"} demand signals, ${competition < 65 ? "high" : "manageable"} competitor pressure, and ${operatingRoomPercent}% operating room before buying cost.`,
+    price,
+    competitorAveragePrice,
+    competitorMinPrice,
+    competitorMaxPrice,
+    pricePosition: `${priceGap >= 0 ? "Priced above" : "Priced below"} competitor average by ${Math.abs(priceGap).toFixed(0)}%.`,
+    competitors,
+    readinessItems,
+    bestRegion: regions[0],
+    regions,
+    stock: {
+      planned: stock || null,
+      min: stockRange.min,
+      max: stockRange.max,
+      suggested: Math.round((stockRange.min + stockRange.max) / 2)
+    },
+    metricRows: [
+      { label: "Demand", current: demand, potential: potential.demand },
+      { label: "Competition", current: competition, potential: potential.competition },
+      { label: "Cost Room", current: margin, potential: potential.margin },
+      { label: "Differentiation", current: differentiation, potential: potential.differentiation },
+      { label: "Readiness", current: readiness, potential: potential.readiness }
+    ],
+    actions: [
+      differentiationAction(form.productType),
+      `Start with ${Math.round((stockRange.min + stockRange.max) / 2)} units; keep first batch inside ${stockRange.min}-${stockRange.max} units.`,
+      `Target ${regions[0].name} first, then expand based on conversion.`,
+      priceGap > 40 ? "If priced premium, add proof photos, warranty or bundle value before launch." : "Use competitor price range to keep the launch offer clear."
+    ]
+  };
+}
+
+function listingReadinessItems(form: PreForm) {
+  return [
+    readinessItem("Title includes product, model, and key benefit", Boolean(form.title.trim().length >= 18), "Use product type plus key value, e.g. model compatibility, insulation, custom print or strap."),
+    readinessItem("Shopee category is selected", Boolean(form.category.trim()), "Pick the closest Shopee category path so competitor matching is meaningful."),
+    readinessItem("Description explains buyer benefits", form.description.trim().length >= 90, "Add proof points, usage context, and what problem the product solves."),
+    readinessItem("Buyer keywords are present", splitList(form.keywords).length >= 3, "Add at least three buyer search phrases."),
+    readinessItem("Photo is uploaded", Boolean(form.photoName), "Upload a main product photo and add close-up proof photos before launch."),
+    readinessItem("Initial launch stock is planned", numberValue(form.launchStock) > 0, "Add first-batch units so the agent can compare planned stock against market risk."),
+    readinessItem("Operating costs are estimated", numberValue(form.shippingCost) + numberValue(form.packagingCost) + numberValue(form.adCost) > 0, "Add shipping, packaging, and ad cost per order for launch viability.")
+  ];
+}
+
+function readinessItem(label: string, complete: boolean, fix: string) {
+  return {
+    label,
+    status: complete ? "complete" : "missing",
+    fix
+  };
+}
+
+function mockCompetitorsFor(productType: string, category: string) {
+  const text = `${productType} ${category}`.toLowerCase();
+  if (text.includes("shirt") || text.includes("tee")) {
+    return [
+      { title: "Plain Cotton Unisex Basic T-Shirt", price: 10.9, reviews: 2100, tier: "direct" },
+      { title: "Cyberpunk Space Graphic T-Shirt", price: 17.9, reviews: 680, tier: "comparable" },
+      { title: "Custom Name Logo Photo Print T-Shirt", price: 22.9, reviews: 450, tier: "adjacent" }
+    ];
+  }
+  if (text.includes("bottle") || text.includes("tumbler")) {
+    return [
+      { title: "BPA Free Plastic Water Bottle 700ml", price: 7.9, reviews: 760, tier: "adjacent" },
+      { title: "Large Stainless Steel Tumbler with Handle and Straw", price: 28.9, reviews: 980, tier: "direct" },
+      { title: "Thermal Stainless Steel Vacuum Bottle 500ml", price: 16.9, reviews: 1350, tier: "comparable" }
+    ];
+  }
+  return [
+    { title: "Premium iPhone 15 MagSafe Case Purple", price: 29.9, reviews: 620, tier: "direct" },
+    { title: "iPhone 15 Silicone Phone Case with Wrist Strap", price: 15.9, reviews: 950, tier: "comparable" },
+    { title: "Clear iPhone 15 Case with Lanyard Strap", price: 9.9, reviews: 1800, tier: "adjacent" }
+  ];
+}
+
+function competitorMatchScore(competitor: { title: string; price: number; tier: string }, productType: string, category: string, price: number) {
+  const text = `${productType} ${category}`.toLowerCase();
+  const competitorText = competitor.title.toLowerCase();
+  const typeOverlap = text.split(/\W+/).filter((token) => token.length > 3 && competitorText.includes(token)).length;
+  const tierBase = competitor.tier === "direct" ? 72 : competitor.tier === "comparable" ? 58 : 42;
+  const priceScore = price ? Math.max(0, 18 - Math.abs(price - competitor.price) / Math.max(price, 1) * 30) : 8;
+  return clamp(Math.round(tierBase + typeOverlap * 3 + priceScore), 35, 96);
+}
+
+function competitorRisk(competitor: { price: number; reviews: number }, price: number) {
+  if (competitor.reviews > 1200 && competitor.price < price) return "High review moat + cheaper";
+  if (competitor.price < price * 0.6) return "Low-price pressure";
+  if (competitor.reviews > 900) return "Established reviews";
+  return "Manageable";
+}
+
+function applySafePreLaunchChanges(form: PreForm, report: PreReport): PreForm {
+  const stock = String(report.stock.suggested);
+  const keywords = mergeCommaList(form.keywords, suggestedKeywords(form.productType, form.category));
+  const features = mergeCommaList(form.features, suggestedFeatures(form.productType));
+  const description = appendSentence(
+    form.description,
+    proofSentence(form.productType, report.bestRegion.name)
+  );
+
+  return {
+    ...form,
+    launchStock: stock,
+    targetArea: report.bestRegion.name,
+    keywords,
+    features,
+    description,
+    shippingCost: form.shippingCost || "1",
+    packagingCost: form.packagingCost || "0.5",
+    adCost: form.adCost || "1"
+  };
+}
+
+function suggestedKeywords(productType: string, category: string) {
+  const text = `${productType} ${category}`.toLowerCase();
+  if (text.includes("shirt") || text.includes("tee")) return ["size chart", "cotton t shirt", "comfortable tee"];
+  if (text.includes("bottle") || text.includes("tumbler")) return ["leakproof bottle", "thermal bottle", "water bottle singapore"];
+  if (text.includes("case") || text.includes("phone")) return ["iphone case", "phone case with strap", "shockproof phone case"];
+  return ["shopee singapore", "fast delivery", "local seller"];
+}
+
+function suggestedFeatures(productType: string) {
+  const text = productType.toLowerCase();
+  if (text.includes("case")) return ["strap durability proof", "model compatibility", "close-up fit photo"];
+  if (text.includes("bottle") || text.includes("tumbler")) return ["leak test proof", "capacity guide", "temperature retention claim"];
+  if (text.includes("shirt") || text.includes("tee")) return ["size chart", "fabric thickness", "wash care proof"];
+  return ["local delivery", "clear product proof", "buyer use case"];
+}
+
+function proofSentence(productType: string, area: string) {
+  const text = productType.toLowerCase();
+  if (text.includes("case")) return `Add proof for strap attachment, camera-lip protection, and compatibility, then target ${area} first for launch testing.`;
+  if (text.includes("bottle") || text.includes("tumbler")) return `Add leak-test, capacity, and use-case proof, then target ${area} first for launch testing.`;
+  if (text.includes("shirt") || text.includes("tee")) return `Add fit, fabric, size-chart, and wash-care proof, then target ${area} first for launch testing.`;
+  return `Add product proof and local delivery details, then target ${area} first for launch testing.`;
+}
+
+function mergeCommaList(existing: string, additions: string[]) {
+  const values = new Set([...splitList(existing), ...additions].map((item) => item.trim()).filter(Boolean));
+  return [...values].join(", ");
+}
+
+function appendSentence(existing: string, sentence: string) {
+  if (!existing.trim()) return sentence;
+  if (existing.toLowerCase().includes(sentence.toLowerCase())) return existing;
+  return `${existing.trim()} ${sentence}`;
+}
+
+function stockRangeFor(demand: number, competition: number, readiness: number, margin: number) {
+  let min = demand >= 80 ? 50 : demand >= 55 ? 30 : 15;
+  let max = demand >= 80 ? 90 : demand >= 55 ? 60 : 35;
+  if (margin >= 78) max += 20;
+  if (competition < 65) max -= 20;
+  if (readiness < 80) {
+    min = Math.max(10, min - 15);
+    max = Math.max(min + 10, max - 30);
+  }
+  return { min, max };
+}
+
+function scoreRegions(productType: string, category: string, price: number, readiness: number, selectedArea: string) {
+  const text = `${productType} ${category}`.toLowerCase();
+  const regions = [
+    { name: "Central Singapore", score: 72, reason: "strongest for premium, office, lifestyle and fast-delivery positioning" },
+    { name: "East Singapore", score: 68, reason: "good for commuters, families and travel-oriented daily products" },
+    { name: "West Singapore", score: 66, reason: "good for students, value buys, school items and basics" },
+    { name: "North-East Singapore", score: 64, reason: "good for younger households, casual apparel and lifestyle buys" },
+    { name: "North Singapore", score: 60, reason: "better for value-led listings and practical essentials" },
+    { name: "Islandwide Singapore", score: 70, reason: "safest for early test launch before narrowing targeting" }
+  ];
+  for (const region of regions) {
+    if (region.name === selectedArea) region.score += 4;
+    if (text.includes("case") && ["Central Singapore", "North-East Singapore", "Islandwide Singapore"].includes(region.name)) region.score += 8;
+    if (text.includes("bottle") && ["Central Singapore", "East Singapore", "Islandwide Singapore"].includes(region.name)) region.score += 8;
+    if ((text.includes("shirt") || text.includes("tee")) && ["Central Singapore", "North-East Singapore", "Islandwide Singapore"].includes(region.name)) region.score += 8;
+    if (price >= 30 && region.name === "Central Singapore") region.score += 6;
+    if (price <= 15 && ["West Singapore", "North Singapore"].includes(region.name)) region.score += 5;
+    if (readiness < 80 && region.name !== "Islandwide Singapore") region.score -= 4;
+    region.score = clamp(region.score, 0, 100);
+  }
+  return regions.sort((a, b) => b.score - a.score);
+}
+
+function differentiationAction(productType: string) {
+  const text = productType.toLowerCase();
+  if (text.includes("case")) return "Lead with durability proof: show strap attachment, drop protection, and close-up fit photos.";
+  if (text.includes("bottle") || text.includes("tumbler")) return "Show leak test, size comparison, heat/cold retention, and bag/cupholder fit.";
+  if (text.includes("custom")) return "Show proof approval flow, print durability, production lead time, and event-date promise.";
+  if (text.includes("shirt") || text.includes("tee")) return "Show model fit, size chart, fabric thickness, print close-up, and wash guidance.";
+  return "Turn competitor complaints into visible proof points in photos and listing copy.";
+}
+
 function applyTimeframe(input: PostLaunchInput, timeframe: (typeof timeframes)[number]): PostLaunchInput {
   const adjusted = structuredClone(input);
   const base = input.product;
   const product = adjusted.product;
-
   product.views = Math.max(1, Math.round(base.views * timeframe.volumeFactor));
   product.ctr = clamp(base.ctr * timeframe.ctrFactor, 0.005, 0.2);
   product.clicks = Math.max(1, Math.round(product.views * product.ctr));
@@ -368,15 +909,6 @@ function applyTimeframe(input: PostLaunchInput, timeframe: (typeof timeframes)[n
   product.adSpend = roundMoney(base.adSpend * timeframe.adSpendFactor);
   product.netMarginPercent = clamp(base.netMarginPercent + timeframe.marginDelta, 0.03, 0.6);
   product.reviews = Math.max(1, Math.round(base.reviews * timeframe.reviewFactor));
-
-  if (adjusted.communication && input.communication) {
-    adjusted.communication.totalChats = Math.max(1, Math.round(input.communication.totalChats * timeframe.chatFactor));
-    adjusted.communication.averageResponseMinutes = Math.max(1, Math.round(input.communication.averageResponseMinutes * timeframe.responseMinutesFactor));
-    adjusted.communication.responseWithinOneHourPercent = clamp(input.communication.responseWithinOneHourPercent + timeframe.oneHourDelta, 0, 1);
-    adjusted.communication.unansweredRate = clamp(input.communication.unansweredRate + timeframe.unansweredDelta, 0, 1);
-    adjusted.communication.buyerSatisfactionScore = clamp(input.communication.buyerSatisfactionScore + timeframe.csatDelta, 1, 5);
-  }
-
   return adjusted;
 }
 
@@ -387,12 +919,12 @@ function imageKind(title: string): "bottle" | "shirt" | "case" {
 }
 
 function productImageSrc(kind: "bottle" | "shirt" | "case"): string {
-  const svgs = {
-    bottle: `<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="0 0 92 92"><rect width="92" height="92" rx="14" fill="#fff1ec"/><rect x="35" y="13" width="22" height="11" rx="3" fill="#ee4d2d"/><rect x="30" y="24" width="32" height="54" rx="12" fill="#f97316"/><rect x="37" y="32" width="18" height="32" rx="8" fill="#fed7aa"/></svg>`,
-    shirt: `<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="0 0 92 92"><rect width="92" height="92" rx="14" fill="#eff6ff"/><path d="M32 21l10 8h8l10-8 16 12-8 14-8-4v31H32V43l-8 4-8-14 16-12z" fill="#2563eb"/></svg>`,
-    case: `<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="0 0 92 92"><rect width="92" height="92" rx="14" fill="#f5f3ff"/><rect x="28" y="12" width="36" height="68" rx="10" fill="#7c3aed"/><rect x="33" y="18" width="26" height="56" rx="7" fill="#ddd6fe"/></svg>`
+  const photos = {
+    bottle: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=240&q=80",
+    shirt: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=240&q=80",
+    case: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=240&q=80"
   };
-  return `data:image/svg+xml,${encodeURIComponent(svgs[kind])}`;
+  return photos[kind];
 }
 
 function shortProductName(title: string): string {
@@ -400,11 +932,11 @@ function shortProductName(title: string): string {
 }
 
 function currency(value: number): string {
-  return new Intl.NumberFormat("en-SG", { style: "currency", currency: "SGD", maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat("en-SG", { style: "currency", currency: "SGD", maximumFractionDigits: 2 }).format(value || 0);
 }
 
 function percent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
+  return `${((value || 0) * 100).toFixed(1)}%`;
 }
 
 function average(values: number[]): number {
@@ -413,6 +945,14 @@ function average(values: number[]): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function numberValue(value: string): number {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function splitList(value: string): string[] {
+  return value.split(",").map((item) => item.trim()).filter(Boolean);
 }
 
 function roundMoney(value: number): number {
@@ -424,4 +964,48 @@ function healthLabel(value: number): string {
   if (value >= 65) return "Good";
   if (value >= 50) return "Needs action";
   return "High risk";
+}
+
+function trendDemandLabel(views: number, orders: number): string {
+  if (views > 50000 || orders > 1000) return "High";
+  if (views > 15000 || orders > 300) return "Moderate";
+  return "Developing";
+}
+
+function themeRows(reviews: PostLaunchInput["reviews"], totalReviews: number, tone: "positive" | "negative") {
+  const fallback = tone === "positive"
+    ? ["Fast delivery", "Good value", "Nice color"]
+    : ["Leak-proof unclear", "Capacity unclear", "Care instructions missing", "Packaging dents"];
+  const counts = new Map<string, number>();
+  for (const review of reviews) counts.set(titleCase(review.theme), (counts.get(titleCase(review.theme)) || 0) + 1);
+  const rows = [...counts.entries()].map(([label, count]) => ({ label, percent: Math.max(14, Math.round((count / Math.max(totalReviews, 1)) * 100)) }));
+  const filled = rows.length ? rows : fallback.map((label, index) => ({ label, percent: [32, 22, 18, 14][index] || 12 }));
+  return filled.slice(0, 4);
+}
+
+function ThemeBar({ row, negative = false }: { row: { label: string; percent: number }; negative?: boolean }) {
+  return (
+    <div className={negative ? "theme-bar negative" : "theme-bar"}>
+      <span>{row.label}</span>
+      <div><i style={{ width: `${row.percent}%` }} /></div>
+      <strong>{row.percent}%</strong>
+    </div>
+  );
+}
+
+function sentimentCounts(reviews: PostLaunchInput["reviews"]) {
+  return reviews.reduce(
+    (counts, review) => {
+      if (review.sentiment === "positive") counts.positive += 1;
+      else if (review.sentiment === "neutral") counts.neutral += 1;
+      else if (review.sentiment === "negative") counts.negative += 1;
+      else counts.neutral += 1;
+      return counts;
+    },
+    { positive: 0, neutral: 0, negative: 0 }
+  );
+}
+
+function titleCase(value: string) {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
