@@ -4,7 +4,9 @@
   "installCommand": "cd demo-ui && npm install",
   "framework": null,
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://sea-acp-api.fly.dev/api/:path*" },
+    { "source": "/api/health", "destination": "https://sea-acp-api.fly.dev/api/health" },
+    { "source": "/api/demo/:path*", "destination": "https://sea-acp-api.fly.dev/api/demo/:path*" },
+    { "source": "/api/agent/:path*", "destination": "https://sea-acp-api.fly.dev/api/agent/:path*" },
     { "source": "/v1/:path*", "destination": "https://sea-acp-api.fly.dev/v1/:path*" },
     { "source": "/.well-known/:path*", "destination": "https://sea-acp-api.fly.dev/.well-known/:path*" },
     { "source": "/checkout_sessions/:path*", "destination": "https://sea-acp-api.fly.dev/checkout_sessions/:path*" },
