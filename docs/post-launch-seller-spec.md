@@ -10,7 +10,7 @@ Build the post-launch side of AdaptLink Seller Intelligence for Shopee Singapore
 
 ## Integration Note
 
-The branch now includes the shared seller dashboard shell with working Pre-Launch and Post-Launch tabs. Person B still owns the post-launch seller intelligence module.
+The branch now includes the shared seller dashboard shell with working Pre-Launch and Post-Launch tabs. The reference screenshot guides layout only; AdaptLink feature scope is defined by our seller-intelligence logic.
 
 ## Inputs
 
@@ -56,6 +56,19 @@ The report should include:
 - Margin-aware pricing/voucher recommendation
 - Top 3 to 5 actions ranked by priority
 - Source readiness notes
+
+## Post-Launch Features In Scope
+
+- Seller existing product selection
+- Timeframe analysis
+- CTR, conversion, sales, margin, reviews, and stock monitoring
+- Sales funnel and sales trend
+- Product health score and score drivers
+- Review themes and sentiment
+- Buyer question insights
+- Seller response timing and communication experience
+- Competitor benchmark
+- Margin-aware action plan and next improvement areas
 
 ## Official Data Rule
 
