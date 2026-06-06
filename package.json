@@ -1,0 +1,10 @@
+{
+  "name": "sea-x-openai",
+  "private": true,
+  "description": "ACP-SEA Bridge demo — one-command hosted demo.",
+  "scripts": {
+    "demo": "bash acp/demo",
+    "demo:terminal": "bash acp/demo terminal",
+    "demo:check": "bash acp/demo check"
+  }
+}
