@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@adaptlink/post-launch-seller", "@adaptlink/shared-types"]
+  transpilePackages: ["@adaptlink/post-launch-seller", "@adaptlink/shared-data", "@adaptlink/shared-types"]
 };
 
 module.exports = nextConfig;

@@ -8,7 +8,7 @@ export function buildRevenueActionPlan(
   const { product, competitors } = input;
   const competitorAveragePrice =
     competitors.reduce((sum, competitor) => sum + competitor.price, 0) / Math.max(competitors.length, 1);
-  const topQuestionTheme = mostCommon(input.buyerQuestions.map((question) => question.theme));
+  const topQuestionTheme = mostFrequentQuestionTheme(input.buyerQuestions);
   const topReviewTheme = mostCommon(input.reviews.filter((review) => review.sentiment !== "positive").map((review) => review.theme));
 
   if (health.conversion < 60) {
@@ -21,13 +21,16 @@ export function buildRevenueActionPlan(
     });
   }
 
-  if (product.price > competitorAveragePrice * 1.08 && product.netMarginPercent < 0.25) {
+  if (product.netMarginPercent < 0.25) {
     actions.push({
       priority: "High",
       area: "Pricing",
-      action: "Avoid lowering base price. Test a limited new-buyer voucher or bundle discount instead.",
-      revenueLogic: "Protects margin while reducing buyer hesitation against cheaper competitors.",
-      expectedImpact: "Better conversion with less margin leakage"
+      action:
+        product.price > competitorAveragePrice * 1.08
+          ? "Avoid lowering base price. Test a limited new-buyer voucher or bundle discount instead."
+          : "Do not stack broad vouchers. Use bundles, minimum-spend vouchers, or ad spend caps to protect contribution margin.",
+      revenueLogic: "Protects net margin while still giving buyers a reason to convert.",
+      expectedImpact: "Higher revenue quality, not just higher order count"
     });
   }
 
@@ -76,6 +79,20 @@ function mostCommon(values: string[]): string | null {
     if (count > bestCount) {
       best = value;
       bestCount = count;
+    }
+  }
+
+  return best;
+}
+
+function mostFrequentQuestionTheme(questions: PostLaunchInput["buyerQuestions"]): string | null {
+  let best: string | null = null;
+  let bestFrequency = 0;
+
+  for (const question of questions) {
+    if (question.frequency > bestFrequency) {
+      best = question.theme;
+      bestFrequency = question.frequency;
     }
   }
 

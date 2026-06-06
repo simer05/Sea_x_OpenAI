@@ -64,10 +64,11 @@ function calculateProductHealth(input) {
   const ratingPosition = scoreRatio(product.rating, competitorAverageRating - 0.4, competitorAverageRating + 0.1);
   const competitorPosition = Math.round(pricePosition * 0.35 + trustPosition * 0.3 + ratingPosition * 0.35);
 
-  const highFrictionCount = input.buyerQuestions.filter((question) =>
-    ["trust", "size", "delivery", "ingredient", "price"].includes(question.theme)
-  ).length;
-  const customerInteraction = Math.round(100 - clamp((highFrictionCount / input.buyerQuestions.length) * 65, 0, 85));
+  const totalFrequency = input.buyerQuestions.reduce((sum, question) => sum + question.frequency, 0);
+  const highFrictionFrequency = input.buyerQuestions
+    .filter((question) => ["trust", "size", "delivery", "ingredient", "price"].includes(question.theme))
+    .reduce((sum, question) => sum + question.frequency, 0);
+  const customerInteraction = Math.round(100 - clamp((highFrictionFrequency / totalFrequency) * 65, 0, 85));
 
   const overall = Math.round(
     conversion * 0.2 +
@@ -96,7 +97,10 @@ function buildRevenueActionPlan(input, health) {
   const { product, competitors } = input;
   const competitorAveragePrice =
     competitors.reduce((sum, competitor) => sum + competitor.price, 0) / Math.max(competitors.length, 1);
-  const topQuestionTheme = mostCommon(input.buyerQuestions.map((question) => question.theme));
+  const topQuestionTheme = input.buyerQuestions.reduce(
+    (best, question) => (question.frequency > best.frequency ? question : best),
+    input.buyerQuestions[0]
+  )?.theme;
   const topReviewTheme = mostCommon(
     input.reviews.filter((review) => review.sentiment !== "positive").map((review) => review.theme)
   );
@@ -111,13 +115,16 @@ function buildRevenueActionPlan(input, health) {
     });
   }
 
-  if (product.price > competitorAveragePrice * 1.08 && product.netMarginPercent < 0.25) {
+  if (product.netMarginPercent < 0.25) {
     actions.push({
       priority: "High",
       area: "Pricing",
-      action: "Avoid lowering base price. Test a limited new-buyer voucher or bundle discount instead.",
-      revenueLogic: "Protects margin while reducing buyer hesitation against cheaper competitors.",
-      expectedImpact: "Better conversion with less margin leakage"
+      action:
+        product.price > competitorAveragePrice * 1.08
+          ? "Avoid lowering base price. Test a limited new-buyer voucher or bundle discount instead."
+          : "Do not stack broad vouchers. Use bundles, minimum-spend vouchers, or ad spend caps to protect contribution margin.",
+      revenueLogic: "Protects net margin while still giving buyers a reason to convert.",
+      expectedImpact: "Higher revenue quality, not just higher order count"
     });
   }
 

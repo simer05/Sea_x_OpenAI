@@ -47,11 +47,12 @@ function scoreBuyerFriction(questions: PostLaunchInput["buyerQuestions"]): numbe
     return 70;
   }
 
-  const highFrictionCount = questions.filter((question) =>
-    ["trust", "size", "delivery", "ingredient", "price"].includes(question.theme)
-  ).length;
+  const totalFrequency = questions.reduce((sum, question) => sum + question.frequency, 0);
+  const highFrictionFrequency = questions
+    .filter((question) => ["trust", "size", "delivery", "ingredient", "price"].includes(question.theme))
+    .reduce((sum, question) => sum + question.frequency, 0);
 
-  return Math.round(100 - clamp((highFrictionCount / questions.length) * 65, 0, 85));
+  return Math.round(100 - clamp((highFrictionFrequency / totalFrequency) * 65, 0, 85));
 }
 
 function average(values: number[]): number {

@@ -48,3 +48,9 @@ npm run dev:post
 ```
 
 Keep any mocked or estimated field clearly marked with a data quality warning.
+
+For a dependency-free visual check, open:
+
+```text
+apps/post-launch-seller-app/dashboard-preview.html
+```
