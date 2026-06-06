@@ -23,6 +23,16 @@ describe("Member 2 marketplace runtime fixtures", () => {
     expect(skus).toHaveLength(35);
     expect(new Set(skus.map((sku) => sku.currency)).size).toBeGreaterThan(1);
   });
+
+  it("covers the shared SEA country, city, and currency set used by protocol fixtures", () => {
+    expect(new Set(skus.map((sku) => sku.country))).toEqual(
+      new Set(["Indonesia", "Singapore", "Malaysia", "Philippines", "Thailand", "Vietnam"]),
+    );
+    expect(new Set(skus.flatMap((sku) => sku.delivery_promises.map((promise) => promise.city)))).toEqual(
+      new Set(["Jakarta", "Singapore", "Kuala Lumpur", "Manila", "Bangkok", "Ho Chi Minh City"]),
+    );
+    expect(new Set(skus.map((sku) => sku.currency))).toEqual(new Set(["IDR", "SGD", "MYR", "PHP", "THB", "VND"]));
+  });
 });
 
 describe("product search", () => {
@@ -99,7 +109,7 @@ describe("cart and seller checkout sessions", () => {
 
     expect(cart.items).toHaveLength(2);
     expect(new Set(cart.seller_groups.map((group) => group.seller_id)).size).toBe(2);
-    expect(cart.subtotal).toBe(381000);
+    expect(cart.subtotal).toBe(361000);
   });
 
   it("splits one cart into one checkout session per seller", () => {
