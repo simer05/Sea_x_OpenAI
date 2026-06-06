@@ -9,7 +9,15 @@ import {
   type GatewayProductCard,
 } from "./acpGateway.js";
 import { appendTrace, getTrace } from "./acpTrace.js";
-import { normalizeProductCard, normalizeProductCards } from "./normalizeProduct.js";
+import {
+  deliveryReply,
+  orderReply,
+  paymentReply,
+  picksReply,
+  selectReply,
+  trackingReply,
+} from "./demoReplies.js";
+import { normalizeProductCards } from "./normalizeProduct.js";
 import { getOpenAi, isOpenAiAuthError, isOpenAiReady } from "./openaiClient.js";
 import { addToSharedCart, recordSharedOrder } from "./sharedStore.js";
 
@@ -105,41 +113,11 @@ function findSelected(session: SessionState, skuId?: string) {
 }
 
 async function polishReply(
-  session: SessionState,
-  userMessage: string,
+  _session: SessionState,
+  _userMessage: string,
   structured: Record<string, unknown>,
 ): Promise<string> {
-  const fallback = String(
-    structured.fallback ?? "Here are the best Halal noodle options for you.",
-  );
-  const openai = getOpenAi();
-  if (!openai) return fallback;
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.5,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a Singapore marketplace shopping agent using the Shopee ACP protocol. " +
-            "Be concise and explain Halal verification, scoring, payment, and delivery clearly. " +
-            "Never invent products not in context. Ask one clear next-step question.",
-        },
-        ...session.history.slice(-8),
-        { role: "user", content: userMessage },
-        { role: "system", content: `Structured context:\n${JSON.stringify(structured, null, 2)}` },
-      ],
-    });
-
-    return completion.choices[0]?.message?.content?.trim() ?? fallback;
-  } catch (error) {
-    if (isOpenAiAuthError(error)) {
-      console.warn("OpenAI unavailable — using deterministic demo reply.");
-    }
-    return fallback;
-  }
+  return String(structured.fallback ?? "Here are the best Halal noodle options for you.");
 }
 
 function isTrackingQuery(text: string) {
@@ -173,8 +151,8 @@ export async function handleAgentChat(input: {
     return {
       sessionId,
       step: "chat",
-      reply: "Cancelled. Ask anytime for Halal noodles under $10 in Singapore.",
-      suggestions: ["I want to buy a Halal noodles pack under $10"],
+      reply: "Session cleared. Tell me what you'd like to shop for.",
+      suggestions: [],
     };
   }
 
@@ -193,34 +171,42 @@ export async function handleAgentChat(input: {
       reply,
       tracking,
       trace: getTrace(session.acpSessionId),
-      suggestions: ["Track again", "Order more noodles"],
+      suggestions: ["Where is my order?", "Start a new search"],
     };
   }
 
   if (input.action === "select_product" && input.skuId) {
     const pick = findSelected(session, input.skuId);
     if (!pick) {
-      return { sessionId, step: session.step, reply: "Please pick one of the scored cards shown." };
+      return { sessionId, step: session.step, reply: "Please pick one of the cards shown." };
     }
     session.selected = pick;
-    session.step = "confirm";
     addToSharedCart(demoSessionId, pick.product_id, "agent", 1);
-    appendTrace(session.acpSessionId, "payment_options pending product selection complete");
+
+    const delivery = getDeliveryOptions(pick.product_id);
+    appendTrace(session.acpSessionId, "delivery_options called");
+    session.step = "delivery";
 
     const reply = await polishReply(session, text || `I want option ${pick.rank}`, {
-      fallback: `Great choice: ${pick.title} at SGD ${pick.price}. Overall score ${pick.overall_score}/100 (${pick.tier}). Added to your Shopee cart. Shall I show payment and delivery options?`,
-      selected: pick,
+      fallback: selectReply(pick) + " " + deliveryReply(pick.title),
     });
     session.history.push({ role: "user", content: text || pick.title });
     session.history.push({ role: "assistant", content: reply });
     return {
       sessionId,
-      step: "confirm",
+      step: "delivery",
       reply,
       selected: pick,
       cartSynced: true,
-      trace: getTrace(session.acpSessionId),
-      suggestions: ["Yes, continue", "Show delivery options"],
+      deliveryOptions: delivery.options.map((option) => ({
+        id: option.id,
+        label: option.label,
+        fee: option.fee,
+        currency: option.currency,
+        eta: option.eta,
+        reliability_score: option.reliability_score,
+      })),
+      suggestions: [],
     };
   }
 
@@ -229,7 +215,7 @@ export async function handleAgentChat(input: {
       return {
         sessionId,
         step: "chat",
-        reply: 'Try: "I want to buy a Halal noodles pack under $10."',
+        reply: "Tell me what you're looking for — product, budget, Halal preference, and city.",
       };
     }
 
@@ -258,7 +244,7 @@ export async function handleAgentChat(input: {
         reliability_score: option.reliability_score,
       })),
       trace: getTrace(session.acpSessionId),
-      suggestions: ["Use standard delivery", "Use express delivery", "Use economy delivery"],
+      suggestions: [],
     };
   }
 
@@ -281,7 +267,7 @@ export async function handleAgentChat(input: {
       )?.label ?? input.deliveryOptionId;
 
     const reply = await polishReply(session, text || deliveryLabel, {
-      fallback: `Delivery set to ${deliveryLabel}. This seller supports card, ShopeePay wallet, COD, and BNPL where available. Which payment method would you like?`,
+      fallback: `Delivery set to ${deliveryLabel}. ${paymentReply(session.selected.title)}`,
       paymentOptions,
     });
     session.history.push({ role: "user", content: text || deliveryLabel });
@@ -294,7 +280,7 @@ export async function handleAgentChat(input: {
       selected: session.selected,
       paymentOptions,
       trace: getTrace(session.acpSessionId),
-      suggestions: ["Pay with COD", "Pay with card", "Use PayLater"],
+      suggestions: [],
     };
   }
 
@@ -348,7 +334,7 @@ export async function handleAgentChat(input: {
     });
 
     const reply = await polishReply(session, text || `pay with ${input.paymentMethod}`, {
-      fallback: `Order placed successfully. Order ID: ${created.order_id}. Total SGD ${created.summary.total} (${created.summary.product}, ${created.summary.delivery}, ${created.summary.payment}). Halal Status: Verified Halal Certified.`,
+      fallback: orderReply(created.order_id, Number(created.summary.total)),
       order: created,
     });
     session.history.push({ role: "user", content: text || input.paymentMethod });
@@ -366,7 +352,7 @@ export async function handleAgentChat(input: {
       },
       trace: getTrace(session.acpSessionId),
       cartSynced: true,
-      suggestions: ["Where is my order?", "Order more noodles"],
+      suggestions: ["Where is my order?", "Start a new search"],
     };
   }
 
@@ -401,17 +387,23 @@ export async function handleAgentChat(input: {
     });
   }
 
-  const intent = parseShoppingIntent(text || "I want to buy a Halal noodles pack under $10");
+  if (!text) {
+    return {
+      sessionId,
+      step: "chat",
+      reply: "Type your request in the chat — what product, budget, Halal preference, and city?",
+      suggestions: [],
+    };
+  }
+
+  const intent = parseShoppingIntent(text);
   const search = runProductSearch({ ...intent, session_id: session.acpSessionId });
   const products = normalizeProductCards(search.products);
   session.candidates = products;
   session.step = "picks";
 
-  const reply = await polishReply(session, text || "Halal noodles under $10", {
-    fallback:
-      products.length > 0
-        ? `I searched via Shopee ACP and found ${search.total_found} noodle products. After Halal verification and hard filters, ${search.eligible_count} qualified — here are the top ${products.length} explainable picks.`
-        : "No eligible Halal noodles matched your constraints in Singapore.",
+  const reply = await polishReply(session, text, {
+    fallback: picksReply(search.total_found, search.eligible_count, products),
     products,
     filterSummary: {
       total_found: search.total_found,
@@ -420,7 +412,7 @@ export async function handleAgentChat(input: {
     },
   });
 
-  session.history.push({ role: "user", content: text || "Halal noodles under $10" });
+  session.history.push({ role: "user", content: text });
   session.history.push({ role: "assistant", content: reply });
 
   return {
@@ -434,9 +426,7 @@ export async function handleAgentChat(input: {
       rejections: search.rejections.slice(0, 8),
     },
     trace: search.trace,
-    suggestions: products.length
-      ? [`I'll go with option ${products[0]?.rank}`, "Which has the best Halal score?", "Show cheaper options"]
-      : ["I want to buy a Halal noodles pack under $10"],
+    suggestions: [],
   };
 }
 

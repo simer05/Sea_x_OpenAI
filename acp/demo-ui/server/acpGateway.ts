@@ -381,8 +381,8 @@ export function getPaymentOptions(productId: string, location = "Singapore") {
       {
         id: "bnpl",
         label: "Buy Now Pay Later",
-        available: resolution.bnpl_available,
-        note: "Split into installments after terms acceptance",
+        available: product.bnpl_available || resolution.bnpl_available,
+        note: "Split into 3 monthly installments",
       },
     ],
     voucher_eligible: product.discount_pct ? product.discount_pct > 0 : false,
@@ -560,8 +560,16 @@ export function parseShoppingIntent(message: string) {
       ? "Singapore"
       : "Singapore";
 
+  const query = /noodle|mie|laksa|instant/i.test(lower)
+    ? "noodles"
+    : /serum|beauty|skincare/i.test(lower)
+      ? "serum"
+      : /phone|case|charger/i.test(lower)
+        ? "phone"
+        : "noodles";
+
   return {
-    query: "noodles",
+    query,
     max_price: maxPrice,
     currency,
     category: "groceries",
