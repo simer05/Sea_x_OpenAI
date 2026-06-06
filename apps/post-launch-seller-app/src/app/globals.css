@@ -136,8 +136,12 @@ select {
 .product-picker {
   display: grid;
   gap: 6px;
-  min-width: 260px;
+  min-width: 240px;
   padding: 10px 12px;
+}
+
+.timeframe-picker {
+  min-width: 180px;
 }
 
 .product-picker span,
@@ -169,6 +173,46 @@ select {
   color: #111827;
   font-size: 20px;
   font-weight: 800;
+}
+
+.lifecycle-tabs {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lifecycle-tab {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-height: 74px;
+  padding: 13px 14px;
+  text-align: left;
+}
+
+.lifecycle-tab strong,
+.lifecycle-tab span {
+  display: block;
+}
+
+.lifecycle-tab span {
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.lifecycle-tab.active {
+  border-color: #ee4d2d;
+  box-shadow: inset 4px 0 0 #ee4d2d;
+}
+
+.lifecycle-tab.active strong {
+  color: #ee4d2d;
+}
+
+.lifecycle-tab.muted {
+  background: #f9fafb;
+  color: #6b7280;
 }
 
 .status-panel {
@@ -315,6 +359,10 @@ h2 {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.seller-product-panel {
+  padding-bottom: 14px;
 }
 
 .product-tab {
@@ -775,6 +823,10 @@ td span {
 
   .topbar-actions {
     display: grid;
+  }
+
+  .lifecycle-tabs {
+    grid-template-columns: 1fr;
   }
 
   .summary-band {

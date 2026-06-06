@@ -55,6 +55,13 @@ For a dependency-free visual check, open:
 apps/post-launch-seller-app/dashboard-preview.html
 ```
 
+The preview includes:
+
+- Pre-launch/Post-launch mode switch, with Post-launch selected for this branch
+- Seller existing product list
+- Timeframe selector for last 30 days, last 3 months, and last 6 months
+- Mock recalculation of revenue, funnel, communication, and health metrics by selected timeframe
+
 OpenAI usage plan:
 
 ```text
