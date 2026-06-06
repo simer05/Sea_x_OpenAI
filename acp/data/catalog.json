@@ -22,7 +22,9 @@
     "bpom_expires_at": "2028-04-30",
     "cod_available": true,
     "cod_max_amount": 500000,
-    "cod_supported_cities": ["Jakarta"],
+    "cod_supported_cities": [
+      "Jakarta"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": true,
     "bnpl_provider": "SEA PayLater Stub",
@@ -51,7 +53,9 @@
     "bpom_expires_at": "2028-05-31",
     "cod_available": true,
     "cod_max_amount": 500000,
-    "cod_supported_cities": ["Jakarta"],
+    "cod_supported_cities": [
+      "Jakarta"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -80,7 +84,9 @@
     "bpom_expires_at": "2028-03-15",
     "cod_available": true,
     "cod_max_amount": 500000,
-    "cod_supported_cities": ["Jakarta"],
+    "cod_supported_cities": [
+      "Jakarta"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": true,
     "bnpl_provider": "SEA PayLater Stub",
@@ -167,7 +173,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 250000,
-    "cod_supported_cities": ["Jakarta"],
+    "cod_supported_cities": [
+      "Jakarta"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -196,7 +204,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 250000,
-    "cod_supported_cities": ["Jakarta"],
+    "cod_supported_cities": [
+      "Jakarta"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -206,16 +216,16 @@
     "product_id": "prod_008",
     "variant_id": "variant_008",
     "seller_id": "seller_002",
-    "title": "Singapore Vitamin C Mask",
-    "description": "Sheet mask pack for brightening routines.",
+    "title": "Jakarta-Ready Vitamin C Mask",
+    "description": "Singapore seller mask inventory fulfilled from a Jakarta marketplace warehouse.",
     "category": "beauty",
-    "price": 18.9,
-    "currency": "SGD",
+    "price": 99000,
+    "currency": "IDR",
     "availability": "in_stock",
-    "country": "Singapore",
-    "city": "Singapore",
-    "delivery_starts_at": "2026-06-07T10:00:00+08:00",
-    "delivery_ends_at": "2026-06-08T20:00:00+08:00",
+    "country": "Indonesia",
+    "city": "Jakarta",
+    "delivery_starts_at": "2026-06-08T09:00:00+07:00",
+    "delivery_ends_at": "2026-06-12T18:00:00+07:00",
     "halal_status": "unknown",
     "halal_certifier": null,
     "halal_certificate_id": null,
@@ -399,7 +409,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 300,
-    "cod_supported_cities": ["Kuala Lumpur"],
+    "cod_supported_cities": [
+      "Kuala Lumpur"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": true,
     "bnpl_provider": "SEA PayLater Stub",
@@ -428,7 +440,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 300,
-    "cod_supported_cities": ["Kuala Lumpur"],
+    "cod_supported_cities": [
+      "Kuala Lumpur"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -486,7 +500,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 300,
-    "cod_supported_cities": ["Kuala Lumpur"],
+    "cod_supported_cities": [
+      "Kuala Lumpur"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -515,7 +531,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 300,
-    "cod_supported_cities": ["Kuala Lumpur"],
+    "cod_supported_cities": [
+      "Kuala Lumpur"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -544,7 +562,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 300,
-    "cod_supported_cities": ["Kuala Lumpur"],
+    "cod_supported_cities": [
+      "Kuala Lumpur"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -573,7 +593,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 3000,
-    "cod_supported_cities": ["Manila"],
+    "cod_supported_cities": [
+      "Manila"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": true,
     "bnpl_provider": "SEA PayLater Stub",
@@ -602,7 +624,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 3000,
-    "cod_supported_cities": ["Manila"],
+    "cod_supported_cities": [
+      "Manila"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": true,
     "bnpl_provider": "SEA PayLater Stub",
@@ -631,7 +655,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 3000,
-    "cod_supported_cities": ["Manila"],
+    "cod_supported_cities": [
+      "Manila"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -660,7 +686,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 3000,
-    "cod_supported_cities": ["Manila"],
+    "cod_supported_cities": [
+      "Manila"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -718,7 +746,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 2000,
-    "cod_supported_cities": ["Bangkok"],
+    "cod_supported_cities": [
+      "Bangkok"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -747,7 +777,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 2000,
-    "cod_supported_cities": ["Bangkok"],
+    "cod_supported_cities": [
+      "Bangkok"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -805,7 +837,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 2000,
-    "cod_supported_cities": ["Bangkok"],
+    "cod_supported_cities": [
+      "Bangkok"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": true,
     "bnpl_provider": "SEA PayLater Stub",
@@ -834,7 +868,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 2000,
-    "cod_supported_cities": ["Bangkok"],
+    "cod_supported_cities": [
+      "Bangkok"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -863,7 +899,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 2000,
-    "cod_supported_cities": ["Bangkok"],
+    "cod_supported_cities": [
+      "Bangkok"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -892,7 +930,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 1000000,
-    "cod_supported_cities": ["Ho Chi Minh City"],
+    "cod_supported_cities": [
+      "Ho Chi Minh City"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -921,7 +961,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 1000000,
-    "cod_supported_cities": ["Ho Chi Minh City"],
+    "cod_supported_cities": [
+      "Ho Chi Minh City"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -979,7 +1021,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 1000000,
-    "cod_supported_cities": ["Ho Chi Minh City"],
+    "cod_supported_cities": [
+      "Ho Chi Minh City"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,
@@ -1008,7 +1052,9 @@
     "bpom_expires_at": null,
     "cod_available": true,
     "cod_max_amount": 1000000,
-    "cod_supported_cities": ["Ho Chi Minh City"],
+    "cod_supported_cities": [
+      "Ho Chi Minh City"
+    ],
     "cod_requires_buyer_confirmation": true,
     "bnpl_available": false,
     "bnpl_provider": null,

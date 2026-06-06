@@ -18,9 +18,9 @@ if (!lowRiskJakartaBuyer || !blockedManilaBuyer) {
 }
 
 describe("Member 2 marketplace runtime fixtures", () => {
-  it("has independent fixtures with 5 sellers and 35 SKUs", () => {
+  it("loads shared catalog fixtures with 5 sellers and 36 SKUs", () => {
     expect(sellers).toHaveLength(5);
-    expect(skus).toHaveLength(35);
+    expect(skus).toHaveLength(36);
     expect(new Set(skus.map((sku) => sku.currency)).size).toBeGreaterThan(1);
   });
 
@@ -39,7 +39,7 @@ describe("product search", () => {
   it("returns products across multiple sellers", () => {
     const service = new MarketplaceRuntimeService();
     const results = service.searchProducts({
-      keyword: "serum",
+      category: "beauty",
       stock_available: true,
     });
 
@@ -102,14 +102,14 @@ describe("cart and seller checkout sessions", () => {
     const cart = service.createMarketplaceCart(
       [
         { sku_id: "sku_001", quantity: 1 },
-        { sku_id: "sku_009", quantity: 2 },
+        { sku_id: "sku_008", quantity: 1 },
       ],
       "Jakarta",
     );
 
     expect(cart.items).toHaveLength(2);
     expect(new Set(cart.seller_groups.map((group) => group.seller_id)).size).toBe(2);
-    expect(cart.subtotal).toBe(361000);
+    expect(cart.subtotal).toBe(224000);
   });
 
   it("splits one cart into one checkout session per seller", () => {
@@ -117,7 +117,7 @@ describe("cart and seller checkout sessions", () => {
     const cart = service.createMarketplaceCart(
       [
         { sku_id: "sku_001", quantity: 1 },
-        { sku_id: "sku_009", quantity: 1 },
+        { sku_id: "sku_008", quantity: 1 },
       ],
       "Jakarta",
     );
@@ -132,14 +132,14 @@ describe("cart and seller checkout sessions", () => {
 describe("payment capability and COD handling", () => {
   it("rejects COD when seller or SKU disallows COD", () => {
     const service = new MarketplaceRuntimeService();
-    const cart = service.createMarketplaceCart([{ sku_id: "sku_009", quantity: 1 }], "Jakarta");
+    const cart = service.createMarketplaceCart([{ sku_id: "sku_008", quantity: 1 }], "Jakarta");
     const [session] = service.splitSellerCheckoutSessions(cart.marketplace_cart_id, lowRiskJakartaBuyer);
 
     const resolution = service.resolvePaymentCapability(session.checkout_session_id, lowRiskJakartaBuyer);
 
     expect(resolution.cod_available).toBe(false);
     expect(resolution.rejection_reasons).toContain("seller_cod_disabled");
-    expect(resolution.rejection_reasons).toContain("sku_cod_not_available:sku_009");
+    expect(resolution.rejection_reasons).toContain("sku_cod_not_available:sku_008");
   });
 
   it("generates a COD commitment token and sets settlement_status to pending_cash", () => {
