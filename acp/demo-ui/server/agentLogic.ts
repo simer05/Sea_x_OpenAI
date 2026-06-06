@@ -159,15 +159,46 @@ function matchProductFromText(
   );
 }
 
+function isGreetingOrSmallTalk(text: string) {
+  const normalized = text
+    .trim()
+    .toLowerCase()
+    .replace(/[.!?,]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return true;
+  if (
+    /^(hi|hello|hey|yo|howdy|good morning|good afternoon|good evening|thanks|thank you|ok|okay|yes|no|test|testing)(\s+(hi|hello|hey))*$/.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+  const tokens = normalized.split(" ").filter(Boolean);
+  if (tokens.length <= 4 && tokens.every((t) => /^(hi|hello|hey|yo|test|testing)$/.test(t))) {
+    return true;
+  }
+  return false;
+}
+
+function shouldRunProductSearch(text: string) {
+  if (isGreetingOrSmallTalk(text)) return false;
+  return (
+    /(buy|shop|purchase|order|want|need|looking for|search for|show me|find me|get me)/i.test(
+      text,
+    ) ||
+    /(halal|noodle|noodles|snack|food|grocery|serum|phone|mie|laksa)/i.test(text) ||
+    /(under|below|less than|max|budget|\$|sgd)\s*\d/i.test(text) ||
+    /singapore|jakarta/i.test(text)
+  );
+}
+
 function isShoppingQuery(text: string, session: SessionState) {
   if (isTrackingQuery(text) || isNewSearchRequest(text)) return false;
   if (/^(i'?ll take|use |pay with)/i.test(text.trim())) return false;
   if (parseDeliveryId(text) && session.selected) return false;
   if (matchProductFromText(session, text)) return false;
-  return (
-    /(buy|want|need|looking for|search for|show me|find me)/i.test(text) ||
-    (/(under|below|\$|sgd)\s*\d/i.test(text) && /(halal|noodle|snack|food|grocery)/i.test(text))
-  );
+  return shouldRunProductSearch(text);
 }
 
 function resetCheckoutState(session: SessionState, preserveOrderId = false) {
@@ -514,6 +545,22 @@ export async function handleAgentChat(input: {
     if (isShoppingQuery(text, session)) {
       resetCheckoutState(session, true);
     }
+  }
+
+  if (!shouldRunProductSearch(text)) {
+    const reply = isGreetingOrSmallTalk(text)
+      ? "Hi! Tell me what you'd like to shop for — product, Halal preference, budget, and city."
+      : "I can help you find Halal products on Shopee. What are you looking for, and what's your budget?";
+    session.history.push({ role: "user", content: text });
+    session.history.push({ role: "assistant", content: reply });
+    const keepPicks = session.step === "picks" && session.candidates.length > 0;
+    return {
+      sessionId,
+      step: keepPicks ? "picks" : "chat",
+      reply,
+      products: keepPicks ? session.candidates : undefined,
+      suggestions: [],
+    };
   }
 
   const intent = parseShoppingIntent(text);

@@ -5,6 +5,7 @@
   "scripts": {
     "demo": "bash acp/demo",
     "demo:terminal": "bash acp/demo terminal",
-    "demo:check": "bash acp/demo check"
+    "demo:check": "bash acp/demo check",
+    "shop": "bash acp/demo terminal"
   }
 }
