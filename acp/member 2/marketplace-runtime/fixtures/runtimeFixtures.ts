@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type {
   BPOMStatus,
@@ -127,7 +128,7 @@ const stockByProductId: Record<string, number> = {
   prod_025: 14,
   prod_026: 50,
   prod_027: 90,
-  prod_028: 6,
+  prod_028: 0,
   prod_029: 20,
   prod_030: 48,
   prod_031: 100,
@@ -139,8 +140,17 @@ const stockByProductId: Record<string, number> = {
 };
 
 function readSharedJson<T>(relativePathFromAcp: string): T {
-  const dataUrl = new URL(`../../../data/${relativePathFromAcp}`, import.meta.url);
-  return JSON.parse(readFileSync(fileURLToPath(dataUrl), "utf8")) as T;
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+
+  for (let depth = 0; depth < 8; depth += 1) {
+    const candidate = path.join(dir, "data", relativePathFromAcp);
+    if (existsSync(candidate)) {
+      return JSON.parse(readFileSync(candidate, "utf8")) as T;
+    }
+    dir = path.dirname(dir);
+  }
+
+  throw new Error(`Unable to locate shared data file: data/${relativePathFromAcp}`);
 }
 
 function delivery(city: City, min_days: number, max_days: number): DeliveryPromise {
