@@ -16,6 +16,13 @@ import {
 } from "lucide-react";
 import catalog from "../../data/catalog.json";
 import sellers from "../../data/sellers.json";
+import {
+  addToSharedCart,
+  fetchSharedCart,
+  removeFromSharedCart,
+  subscribeCartSync,
+  type SharedCartItem,
+} from "./shared/demoSession";
 import "./styles.css";
 
 type Seller = {
@@ -51,33 +58,35 @@ type Product = {
   discount_pct?: number;
 };
 
-type CartItem = Product & { quantity: number };
+type CartItem = Product & { quantity: number; added_by?: string };
 
 const typedCatalog = catalog as Product[];
 const typedSellers = sellers as Seller[];
 const sellerById = new Map(typedSellers.map((s) => [s.seller_id, s]));
 
 const SHOPEE_CATEGORIES: Record<string, { label: string; icon: string }> = {
-  bottle: { label: "Bottle", icon: "🧴" },
-  tshirt: { label: "T-Shirt", icon: "👕" },
-  phone_case: { label: "Phone Case", icon: "📱" },
-  food_groceries: { label: "Food & Groceries", icon: "🛒" },
-  beauty_personal_care: { label: "Beauty & Care", icon: "💄" },
+  beauty: { label: "Beauty", icon: "💄" },
+  groceries: { label: "Groceries", icon: "🛒" },
+  electronics: { label: "Electronics", icon: "📱" },
+  fashion: { label: "Fashion", icon: "👕" },
+  home: { label: "Home", icon: "🏠" },
+  baby: { label: "Baby", icon: "🍼" },
 };
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  bottle: "/images/products/bottle.jpg",
-  tshirt: "/images/products/tshirt.jpg",
-  phone_case: "/images/products/phone_case.jpg",
-  food_groceries: "/images/products/food_groceries.jpg",
-  beauty_personal_care: "/images/products/beauty_personal_care.jpg",
+  beauty: "/images/products/beauty_personal_care.jpg",
+  groceries: "/images/products/food_groceries.jpg",
+  electronics: "/images/products/phone_case.jpg",
+  fashion: "/images/products/tshirt.jpg",
+  home: "/images/products/bottle.jpg",
+  baby: "/images/products/beauty_personal_care.jpg",
 };
 
 const HOT_SEARCHES = [
-  "Water Bottle",
-  "Chicken Nuggets",
-  "Lipstick",
-  "iPhone Case",
+  "Halal Noodles",
+  "Mi Goreng",
+  "Serum",
+  "Phone Case",
   "Instant Noodles",
 ];
 
@@ -102,10 +111,39 @@ function stableSoldCount(productId: string, fallback: number) {
 }
 
 function productImage(product: Product) {
-  return product.image_url ?? CATEGORY_IMAGES[product.category] ?? CATEGORY_IMAGES.bottle;
+  return product.image_url ?? CATEGORY_IMAGES[product.category] ?? CATEGORY_IMAGES.groceries;
 }
 
-function App() {
+function mapSharedItem(item: SharedCartItem): CartItem {
+  return {
+    product_id: item.product_id,
+    variant_id: item.product_id.replace("prod_", "variant_"),
+    seller_id: item.seller_id,
+    title: item.title,
+    description: item.description,
+    category: item.category,
+    price: item.price,
+    currency: item.currency,
+    availability: item.availability as Product["availability"],
+    country: item.country,
+    city: item.city,
+    delivery_starts_at: item.delivery_starts_at,
+    delivery_ends_at: item.delivery_ends_at,
+    halal_status: item.halal_status as Product["halal_status"],
+    bpom_status: item.bpom_status as Product["bpom_status"],
+    cod_available: item.cod_available,
+    bnpl_available: item.bnpl_available,
+    return_window_days: item.return_window_days,
+    image_url: item.image_url,
+    rating: item.rating,
+    sold_count: item.sold_count,
+    discount_pct: item.discount_pct,
+    quantity: item.quantity,
+    added_by: item.added_by,
+  };
+}
+
+function ShopApp() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [city, setCity] = useState("all");
@@ -114,7 +152,35 @@ function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [sessionPreview, setSessionPreview] = useState(false);
+  const [apiOnline, setApiOnline] = useState(true);
   const productGridRef = useRef<HTMLDivElement>(null);
+
+  const syncCartFromServer = async () => {
+    try {
+      const data = await fetchSharedCart();
+      setCart(data.items.map(mapSharedItem));
+      setApiOnline(true);
+      if (data.toast) {
+        setToast(data.toast);
+      }
+    } catch {
+      setApiOnline(false);
+    }
+  };
+
+  useEffect(() => {
+    void syncCartFromServer();
+    const unsubscribe = subscribeCartSync(() => {
+      void syncCartFromServer();
+    });
+    const timer = window.setInterval(() => {
+      void syncCartFromServer();
+    }, 2000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -185,26 +251,34 @@ function App() {
     setCodOnly(false);
   };
 
-  const addToCart = (product: Product) => {
-    setCart((current) => {
-      const existing = current.find((item) => item.product_id === product.product_id);
-      if (existing) {
-        return current.map((item) =>
-          item.product_id === product.product_id ? { ...item, quantity: item.quantity + 1 } : item,
-        );
-      }
-      return [...current, { ...product, quantity: 1 }];
-    });
-    setToast(`Added “${product.title}” to cart`);
-    setCartOpen(true);
+  const addToCart = async (product: Product) => {
+    try {
+      const data = await addToSharedCart(product.product_id, "shop", 1);
+      setCart(data.items.map(mapSharedItem));
+      setApiOnline(true);
+      setToast(`Added “${product.title}” to cart`);
+      setCartOpen(true);
+    } catch {
+      setApiOnline(false);
+      setToast("Cart API offline — run pnpm dev from acp/demo-ui");
+    }
   };
 
   const selectCategory = (next: string) => {
     setCategory((current) => (current === next ? "all" : next));
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((current) => current.filter((item) => item.product_id !== productId));
+  const removeFromCart = async (productId: string) => {
+    try {
+      const data = await removeFromSharedCart(productId);
+      setCart(data.items.map(mapSharedItem));
+    } catch {
+      setCart((current) => current.filter((item) => item.product_id !== productId));
+    }
+  };
+
+  const openAgentWindow = () => {
+    window.open("/agent.html", "acp-shopping-agent", "width=1100,height=860");
   };
 
   return (
@@ -243,6 +317,10 @@ function App() {
               </button>
             </div>
 
+            <button type="button" className="agent-launch-btn" onClick={openAgentWindow}>
+              AI Agent
+            </button>
+
             <button className="cart-btn" onClick={() => setCartOpen(true)} aria-label="Open cart">
               <ShoppingCart size={26} />
               {cart.length > 0 && <span className="cart-badge">{cart.length}</span>}
@@ -260,6 +338,11 @@ function App() {
       </header>
 
       <div className="page-body">
+        {!apiOnline && (
+          <div className="shop-api-banner">
+            Shared cart API offline. Start everything with <code>cd acp/demo-ui && pnpm dev</code>
+          </div>
+        )}
         <section className="hero-row">
           <div className="hero-main">
             <img src="/images/banners/sale-1.jpg" alt="6.6 Mega Sale" />
@@ -482,7 +565,12 @@ function App() {
                     <div className="cart-line" key={item.product_id}>
                       <img src={productImage(item)} alt={item.title} />
                       <div className="cart-line-info">
-                        <div className="cart-line-title">{item.title}</div>
+                        <div className="cart-line-title">
+                        {item.title}
+                        {item.added_by === "agent" && (
+                          <span className="cart-agent-tag">via agent</span>
+                        )}
+                      </div>
                         <div className="cart-line-price">
                           {price.symbol}
                           {price.amount} × {item.quantity}
@@ -613,4 +701,4 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (product: Pr
   );
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<ShopApp />);
