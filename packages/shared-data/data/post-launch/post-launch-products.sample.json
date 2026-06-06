@@ -1,0 +1,292 @@
+[
+  {
+    "product": {
+      "productId": "P-SG-001",
+      "title": "Halal Vitamin C Serum",
+      "category": "Beauty > Skincare",
+      "price": 19.9,
+      "cost": 7.8,
+      "stock": 420,
+      "views": 18400,
+      "clicks": 920,
+      "orders": 62,
+      "revenue": 1233.8,
+      "adSpend": 155.5,
+      "rating": 4.55,
+      "reviews": 126,
+      "refundRate": 0.035,
+      "cancellationRate": 0.018,
+      "netMarginPercent": 0.21,
+      "conversionRate": 0.0674,
+      "ctr": 0.05
+    },
+    "context": {
+      "segment": "Beauty and skincare",
+      "trustSignals": [
+        {
+          "label": "Halal certification",
+          "applies": true,
+          "evidence": "Repeated buyer questions ask whether this serum is halal certified.",
+          "action": "Show the halal badge only if certification is verified."
+        },
+        {
+          "label": "Sensitive-skin suitability",
+          "applies": true,
+          "evidence": "Ingredient questions appear often in chat and reviews.",
+          "action": "Add ingredient image, patch-test guidance, and sensitive-skin FAQ."
+        },
+        {
+          "label": "Delivery expectation",
+          "applies": true,
+          "evidence": "Delivery is the main negative review theme.",
+          "action": "Clarify ship-out timing and avoid overpromising."
+        }
+      ],
+      "nonApplicableSignals": [
+        "Halal is shown because this skincare product has buyer trust questions about it. It should not appear as a universal filter for all products."
+      ],
+      "listingFocus": ["Certification proof", "Ingredient clarity", "Delivery promise", "Bundle margin protection"]
+    },
+    "communication": {
+      "totalChats": 64,
+      "averageResponseMinutes": 118,
+      "responseWithinOneHourPercent": 0.52,
+      "unansweredRate": 0.09,
+      "buyerSatisfactionScore": 3.7
+    },
+    "competitors": [
+      {
+        "competitorId": "C-SG-101",
+        "title": "Vitamin C Brightening Serum 30ml",
+        "price": 17.8,
+        "rating": 4.82,
+        "reviews": 1240,
+        "estimatedSales": 3100,
+        "shippingDays": 2,
+        "voucherPercent": 10,
+        "keyStrength": "Lower price and stronger review count",
+        "keyWeakness": "Complaints about sticky texture"
+      },
+      {
+        "competitorId": "C-SG-102",
+        "title": "Halal Glow Serum Sensitive Skin",
+        "price": 21.5,
+        "rating": 4.76,
+        "reviews": 860,
+        "estimatedSales": 1800,
+        "shippingDays": 1,
+        "voucherPercent": 8,
+        "keyStrength": "Clear halal trust signal",
+        "keyWeakness": "Higher price"
+      },
+      {
+        "competitorId": "C-SG-103",
+        "title": "Brightening Face Serum Bundle",
+        "price": 18.9,
+        "rating": 4.68,
+        "reviews": 540,
+        "estimatedSales": 980,
+        "shippingDays": 3,
+        "voucherPercent": 12,
+        "keyStrength": "Bundle value",
+        "keyWeakness": "Mixed reviews on packaging"
+      }
+    ],
+    "reviews": [
+      {
+        "reviewId": "R-001",
+        "rating": 5,
+        "text": "Nice glow and feels light on skin.",
+        "sentiment": "positive",
+        "theme": "product quality"
+      },
+      {
+        "reviewId": "R-002",
+        "rating": 3,
+        "text": "Works okay but delivery took longer than expected.",
+        "sentiment": "mixed",
+        "theme": "delivery"
+      },
+      {
+        "reviewId": "R-003",
+        "rating": 3,
+        "text": "I wanted clearer ingredient details for sensitive skin.",
+        "sentiment": "negative",
+        "theme": "ingredient"
+      }
+    ],
+    "buyerQuestions": [
+      {
+        "questionId": "Q-001",
+        "text": "Is this halal certified?",
+        "theme": "trust",
+        "frequency": 18
+      },
+      {
+        "questionId": "Q-002",
+        "text": "Can sensitive skin use this?",
+        "theme": "ingredient",
+        "frequency": 14
+      },
+      {
+        "questionId": "Q-003",
+        "text": "When can ship?",
+        "theme": "delivery",
+        "frequency": 9
+      }
+    ],
+    "dataQualityWarnings": [
+      "Competitor sales are estimated for demo mode.",
+      "Shopee Ads data is mocked until API credentials are connected.",
+      "Buyer questions are sample themes, not live chat exports."
+    ]
+  },
+  {
+    "product": {
+      "productId": "P-SG-002",
+      "title": "Wireless Bluetooth Earbuds Pro",
+      "category": "Electronics > Audio",
+      "price": 29.9,
+      "cost": 13.5,
+      "stock": 280,
+      "views": 32000,
+      "clicks": 1150,
+      "orders": 48,
+      "revenue": 1435.2,
+      "adSpend": 280,
+      "rating": 4.32,
+      "reviews": 74,
+      "refundRate": 0.052,
+      "cancellationRate": 0.011,
+      "netMarginPercent": 0.18,
+      "conversionRate": 0.0417,
+      "ctr": 0.0359
+    },
+    "context": {
+      "segment": "Electronics accessories",
+      "trustSignals": [
+        {
+          "label": "Warranty clarity",
+          "applies": true,
+          "evidence": "Buyers ask about warranty and authenticity before checkout.",
+          "action": "Add warranty duration, return window, and support terms near the top of the listing."
+        },
+        {
+          "label": "Compatibility proof",
+          "applies": true,
+          "evidence": "Compatibility questions are the highest-frequency buyer friction.",
+          "action": "Add compatible phone models, Bluetooth version, and pairing instructions."
+        },
+        {
+          "label": "Battery claim evidence",
+          "applies": true,
+          "evidence": "Negative reviews mention battery drain.",
+          "action": "Show tested battery range and charging-case capacity without exaggeration."
+        }
+      ],
+      "nonApplicableSignals": [
+        "Halal certification is not relevant for this electronics product and should not be shown as a filter."
+      ],
+      "listingFocus": ["Compatibility table", "Warranty proof", "Battery expectation", "Bundle and ad spend control"]
+    },
+    "communication": {
+      "totalChats": 89,
+      "averageResponseMinutes": 46,
+      "responseWithinOneHourPercent": 0.76,
+      "unansweredRate": 0.04,
+      "buyerSatisfactionScore": 4.1
+    },
+    "competitors": [
+      {
+        "competitorId": "C-SG-201",
+        "title": "TWS Earbuds Noise Cancelling",
+        "price": 24.9,
+        "rating": 4.75,
+        "reviews": 1820,
+        "estimatedSales": 4200,
+        "shippingDays": 2,
+        "voucherPercent": 12,
+        "keyStrength": "Cheaper with strong review base",
+        "keyWeakness": "Battery life complaints"
+      },
+      {
+        "competitorId": "C-SG-202",
+        "title": "Bluetooth 5.3 Gaming Earbuds",
+        "price": 31.5,
+        "rating": 4.61,
+        "reviews": 920,
+        "estimatedSales": 1650,
+        "shippingDays": 1,
+        "voucherPercent": 8,
+        "keyStrength": "Clear low-latency positioning",
+        "keyWeakness": "Higher return concerns"
+      },
+      {
+        "competitorId": "C-SG-203",
+        "title": "Wireless Earbuds With Charging Case",
+        "price": 27.9,
+        "rating": 4.5,
+        "reviews": 610,
+        "estimatedSales": 1100,
+        "shippingDays": 3,
+        "voucherPercent": 15,
+        "keyStrength": "Aggressive voucher",
+        "keyWeakness": "Weak warranty detail"
+      }
+    ],
+    "reviews": [
+      {
+        "reviewId": "R-201",
+        "rating": 4,
+        "text": "Sound is good for the price but battery is shorter than expected.",
+        "sentiment": "mixed",
+        "theme": "battery"
+      },
+      {
+        "reviewId": "R-202",
+        "rating": 3,
+        "text": "Had to ask seller whether it works with iPhone.",
+        "sentiment": "negative",
+        "theme": "compatibility"
+      },
+      {
+        "reviewId": "R-203",
+        "rating": 5,
+        "text": "Fast delivery and easy pairing.",
+        "sentiment": "positive",
+        "theme": "setup"
+      }
+    ],
+    "buyerQuestions": [
+      {
+        "questionId": "Q-201",
+        "text": "Can use with iPhone and Samsung?",
+        "theme": "compatibility",
+        "frequency": 22
+      },
+      {
+        "questionId": "Q-202",
+        "text": "How many hours can the battery last?",
+        "theme": "battery",
+        "frequency": 17
+      },
+      {
+        "questionId": "Q-203",
+        "text": "Is there warranty?",
+        "theme": "warranty",
+        "frequency": 11
+      },
+      {
+        "questionId": "Q-204",
+        "text": "Can ship today?",
+        "theme": "delivery",
+        "frequency": 7
+      }
+    ],
+    "dataQualityWarnings": [
+      "Competitor sales are estimated for demo mode.",
+      "Compatibility questions are sample chat themes until Shopee chat access is connected.",
+      "Ad spend is mocked until Shopee marketing data is connected."
+    ]
+  }
+]

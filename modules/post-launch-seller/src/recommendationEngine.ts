@@ -44,6 +44,16 @@ export function buildRevenueActionPlan(
     });
   }
 
+  if (input.communication && input.communication.responseWithinOneHourPercent < 0.7) {
+    actions.push({
+      priority: "High",
+      area: "Seller Response",
+      action: "Set quick-reply templates for the top buyer questions and target replies within one hour.",
+      revenueLogic: "Slow replies can turn product-page interest into abandoned purchases, especially when questions involve trust, compatibility, delivery, or warranty.",
+      expectedImpact: "Higher buyer confidence and fewer lost chats"
+    });
+  }
+
   if (topReviewTheme) {
     actions.push({
       priority: "Medium",

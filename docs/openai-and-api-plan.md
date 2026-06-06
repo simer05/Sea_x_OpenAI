@@ -28,6 +28,7 @@ Use the higher-capability model for final analysis and judging tradeoffs. Use th
 - Function calling/tools later when the model needs to call internal analysis functions or Shopee-backed data fetchers
 - Vision input later if we add listing-image quality checks
 - Batch processing later for nightly product portfolio analysis
+- Agents SDK/tool-calling workflow later for multi-step fetch, normalize, analyze, and recommend flows
 
 ## API Keys Needed
 
