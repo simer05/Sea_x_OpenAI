@@ -187,8 +187,7 @@ function renderPre() {
           <button class="primary-button" type="submit">Run Pre-Launch Analysis</button>
         </form>
       </article>
-      ${state.preDraft ? renderPreDraftReview() : ""}
-      ${hasReport && !state.preDraft ? renderPreResults() : hasReport ? "" : renderEmptyPre()}
+      ${state.preDraft ? renderPreDraftReview() : hasReport ? renderPreResults() : renderEmptyPre()}
     </section>`;
 
   bindPreForm();
@@ -524,9 +523,90 @@ function cancelPreLaunchProduct() {
   state.aiInsight = null;
   state.pendingSafeChanges = [];
   state.aiFilledFields = [];
+  state.preDraft = null;
   state.photoDataUrl = "";
   state.photoName = "";
   renderPre();
+}
+
+function addPreListingToPostLaunch() {
+  if (!state.preReport) return;
+  if (!window.confirm("Add this validated product as a new seller listing in the post-launch dashboard?")) return;
+  const listing = createPostLaunchListing(state.preForm, state.preReport, products.length + 1);
+  products.push(listing);
+  state.mode = "post";
+  state.productIndex = products.length - 1;
+  state.aiInsight = null;
+  render();
+}
+
+function createPostLaunchListing(form, report, index) {
+  const price = numberValue(form.price);
+  const stock = report.stock.suggested || numberValue(form.launchStock) || 30;
+  const clicks = Math.max(16, Math.round(report.overall * 8));
+  const conversionRate = clamp(report.overall / 1250, 0.025, 0.095);
+  const orders = Math.max(3, Math.round(clicks * conversionRate));
+  const views = Math.max(600, Math.round(clicks / 0.048));
+  const competitors = report.competitors.slice(0, 3).map((competitor, competitorIndex) => ({
+    competitorId: `AI-C-${index}-${competitorIndex + 1}`,
+    title: competitor.title,
+    price: competitor.price,
+    rating: competitor.reviews > 1000 ? 4.7 : 4.45,
+    reviews: competitor.reviews,
+    estimatedSales: Math.round(competitor.reviews * 1.8),
+    shippingDays: competitorIndex + 1,
+    voucherPercent: competitorIndex === 0 ? 12 : 8,
+    keyStrength: competitor.risk,
+    keyWeakness: competitor.tier === "direct" ? "Needs proof gap comparison" : "Less direct product match"
+  }));
+
+  return {
+    product: {
+      productId: `PRE-SG-${String(index).padStart(3, "0")}`,
+      title: form.title,
+      category: form.category,
+      price,
+      cost: 0,
+      stock,
+      views,
+      clicks,
+      orders,
+      revenue: roundMoney(price * orders),
+      adSpend: roundMoney(numberValue(form.adCost) * Math.max(orders, 1)),
+      rating: 4.5,
+      reviews: 0,
+      refundRate: 0.01,
+      cancellationRate: 0.01,
+      netMarginPercent: clamp((price - numberValue(form.shippingCost) - numberValue(form.packagingCost) - numberValue(form.adCost)) / Math.max(price, 1), 0.05, 0.5),
+      conversionRate,
+      ctr: clicks / Math.max(views, 1)
+    },
+    context: {
+      segment: form.productType || "Seller listing",
+      trustSignals: [
+        { label: "Pre-launch proof", applies: Boolean(form.photoName), evidence: form.photoName ? "Seller uploaded a product photo." : "No product photo uploaded.", action: "Add close-up proof images before scaling." },
+        { label: "Keyword coverage", applies: splitList(form.keywords).length >= 3, evidence: form.keywords || "No keywords provided.", action: "Keep buyer search terms visible in listing copy." }
+      ],
+      nonApplicableSignals: ["Live order metrics are estimated until the listing has real Shopee activity."],
+      listingFocus: report.actions.slice(0, 4)
+    },
+    communication: {
+      totalChats: 0,
+      averageResponseMinutes: 90,
+      responseWithinOneHourPercent: 0.55,
+      unansweredRate: 0.05,
+      buyerSatisfactionScore: 4
+    },
+    competitors,
+    reviews: [
+      { reviewId: `PRE-R-${index}-1`, rating: 4, text: "New seller listing added from pre-launch validation.", sentiment: "neutral", theme: "new listing" }
+    ],
+    buyerQuestions: [
+      { questionId: `PRE-Q-${index}-1`, text: "Can you show more proof photos?", theme: "proof", frequency: 6 },
+      { questionId: `PRE-Q-${index}-2`, text: "Is local delivery available?", theme: "delivery", frequency: 4 }
+    ],
+    dataQualityWarnings: ["Listing was added from pre-launch mock evaluation; live Shopee metrics are not connected yet."]
+  };
 }
 
 async function requestSellerAi(mode, productInput, computedReport, photoDataUrl) {
@@ -539,16 +619,38 @@ async function requestSellerAi(mode, productInput, computedReport, photoDataUrl)
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mode, productInput, computedReport, photoDataUrl: photoDataUrl || undefined })
     });
+    if (!response.ok) throw new Error("Seller AI request failed");
     state.aiInsight = await response.json();
     return state.aiInsight;
   } catch {
-    state.aiInsight = null;
-    return null;
+    state.aiInsight = mode === "post" ? localPostFallbackInsight(productInput, computedReport) : null;
+    return state.aiInsight;
   } finally {
     state.aiLoading = false;
     if (mode === "pre") renderPre();
     else renderPost();
   }
+}
+
+function localPostFallbackInsight(productInput, computedReport) {
+  const report = computedReport || {};
+  const product = productInput.product || productInput;
+  const title = product.title || "this listing";
+  const overall = report.health?.overall ?? 0;
+  const actions = (report.actions || []).map((a) => a.action || String(a));
+  return {
+    modeUsed: "fallback",
+    summary: `${title} is ${overall >= 78 ? "performing well" : overall >= 62 ? "promising but needs fixes" : "under pressure"} post-launch. Focus on ${actions[0] || "listing proof and conversion improvements"} first.`,
+    imageUnderstanding: "No product photo in post-launch mode. Upload a product photo in pre-launch to include visual understanding.",
+    safeChanges: [],
+    blockedChanges: [],
+    actionPlan: actions.slice(0, 4).map((action, index) => ({
+      title: index === 0 ? "Fix highest-impact listing gap" : `Seller action ${index + 1}`,
+      severity: index === 0 ? "High" : "Medium",
+      expectedImpact: index === 0 ? "Improves buyer trust and conversion readiness." : "Improves post-launch optimization.",
+      sellerStep: action
+    }))
+  };
 }
 
 function renderAiSummaryPanel() {
