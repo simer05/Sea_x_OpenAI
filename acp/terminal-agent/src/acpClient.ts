@@ -81,20 +81,29 @@ export async function checkHealth(): Promise<HealthResponse> {
   return request<HealthResponse>("/api/health");
 }
 
-export async function searchHalalNoodles(): Promise<SearchResponse> {
+export async function searchProducts(input?: {
+  query?: string;
+  max_price?: number;
+  halal_required?: boolean;
+  location?: string;
+}): Promise<SearchResponse> {
   return request<SearchResponse>("/v1/products/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: "noodles",
-      max_price: 10,
+      query: input?.query ?? "noodles",
+      max_price: input?.max_price ?? 10,
       currency: "SGD",
       category: "groceries",
-      halal_required: true,
-      location: "Singapore",
+      halal_required: input?.halal_required !== false,
+      location: input?.location ?? "Singapore",
       session_id: sessionId(),
     }),
   });
+}
+
+export async function searchHalalNoodles(): Promise<SearchResponse> {
+  return searchProducts({ query: "noodles", max_price: 10, halal_required: true });
 }
 
 export async function getDeliveryOptions(productId: string): Promise<DeliveryOption[]> {

@@ -45,8 +45,13 @@ import { registerAcpRoutes } from "./acpRoutes.js";
 import { registerUcpRoutes } from "./ucpRoutes.js";
 
 const app = express();
-const port = Number(process.env.AGENT_API_PORT ?? 8787);
-const baseUrl = process.env.ACP_BASE_URL ?? `http://127.0.0.1:${port}`;
+const port = Number(process.env.PORT ?? process.env.AGENT_API_PORT ?? 8787);
+const host = process.env.HOST ?? "0.0.0.0";
+const baseUrl =
+  process.env.ACP_BASE_URL ??
+  (process.env.FLY_APP_NAME
+    ? `https://${process.env.FLY_APP_NAME}.fly.dev`
+    : `http://127.0.0.1:${port}`);
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
@@ -266,9 +271,10 @@ app.post("/api/agent/tts", async (req, res) => {
   }
 });
 
-app.listen(port, "127.0.0.1", () => {
-  console.log(`Shopee ACP Gateway listening on http://127.0.0.1:${port}`);
-  console.log(`Capability discovery: http://127.0.0.1:${port}/.well-known/shopee-acp.json`);
-  console.log(`ACP bridge: http://127.0.0.1:${port}/.well-known/acp.json`);
-  console.log(`UCP bridge: http://127.0.0.1:${port}/.well-known/ucp`);
+app.listen(port, host, () => {
+  console.log(`Shopee ACP Gateway listening on http://${host}:${port}`);
+  console.log(`Public base URL: ${baseUrl}`);
+  console.log(`Capability discovery: ${baseUrl}/.well-known/shopee-acp.json`);
+  console.log(`ACP bridge: ${baseUrl}/.well-known/acp.json`);
+  console.log(`UCP bridge: ${baseUrl}/.well-known/ucp`);
 });
