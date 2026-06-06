@@ -1,0 +1,17 @@
+{
+  "name": "@acp-sea/member-2-marketplace-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "From-scratch ACP-SEA marketplace runtime for Member 2.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "check": "pnpm build && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}
