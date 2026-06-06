@@ -18,6 +18,10 @@
   ],
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/agent", "dest": "/agent.html" }
+    { "src": "/agent", "dest": "/agent.html" },
+    { "src": "/pre-product", "dest": "/pre-product/index.html" },
+    { "src": "/pre-product/(.*)", "dest": "/pre-product/$1" },
+    { "src": "/seller-dashboard", "dest": "/seller-dashboard/index.html" },
+    { "src": "/seller-dashboard/(.*)", "dest": "/seller-dashboard/$1" }
   ]
 }

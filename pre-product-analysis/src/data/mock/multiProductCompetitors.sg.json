@@ -1,0 +1,535 @@
+[
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00",
+      "source_endpoints": [
+        "mock.shopee.search.item",
+        "mock.shopee.product.get_item_base_info",
+        "mock.shopee.product.get_comment"
+      ],
+      "raw_snapshot_id": "raw_mock_bottle_cmp_plastic_001",
+      "is_live_data": false
+    },
+    "product_identity": {
+      "item_id": "bottle_cmp_001",
+      "shop_id": "mock_bottle_shop_001",
+      "product_url": "mock://shopee.sg/bottle_cmp_001",
+      "item_status": "NORMAL"
+    },
+    "shop_identity": {
+      "shop_id": "mock_bottle_shop_001",
+      "shop_name": "HydrateNow SG",
+      "seller_type": "local_seller",
+      "is_preferred_seller": true,
+      "region": "SG",
+      "response_rate": 0.93,
+      "response_time_hours": 2
+    },
+    "text_content": {
+      "name": "BPA Free Plastic Water Bottle 700ml",
+      "description": "Lightweight plastic water bottle for school and sports.",
+      "bullet_features": [
+        "BPA-free plastic",
+        "700ml capacity",
+        "Lightweight",
+        "School bottle"
+      ],
+      "keywords": [
+        "plastic water bottle",
+        "bpa free bottle",
+        "school bottle"
+      ]
+    },
+    "visual_content": {
+      "image_count": 6,
+      "vision_tags": [
+        "water bottle",
+        "plastic bottle",
+        "school bottle"
+      ],
+      "image_quality_score": 78
+    },
+    "taxonomy": {
+      "category_id": 102010,
+      "category_path": [
+        "Home & Living",
+        "Kitchenware",
+        "Water Bottles"
+      ],
+      "product_type": "water_bottle"
+    },
+    "attributes": {
+      "material": "plastic",
+      "capacity_ml": 700,
+      "insulation": "none",
+      "certifications": [
+        "BPA-free"
+      ],
+      "size": "700ml"
+    },
+    "commerce": {
+      "listing_price": 7.9,
+      "currency": "SGD",
+      "cod_available": true,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "estimated_delivery_days": 2
+    },
+    "trust_and_reviews": {
+      "rating": 4.6,
+      "review_count": 760,
+      "review_pain_points": [
+        "cap leaks",
+        "plastic scratches easily"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 390,
+      "campaign_visibility": "high"
+    },
+    "agent_processing": {
+      "target_use_case": "lightweight plastic water bottle for school gym and daily use"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "bottle_cmp_002",
+      "item_status": "NORMAL"
+    },
+    "shop_identity": {
+      "shop_name": "CupTrend SG",
+      "seller_type": "local_seller",
+      "is_preferred_seller": true,
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Large Stainless Steel Tumbler with Handle and Straw 1180ml",
+      "description": "Large handled tumbler with straw for office and gym.",
+      "bullet_features": [
+        "Stainless steel body",
+        "Handle",
+        "Straw",
+        "Large capacity"
+      ],
+      "keywords": [
+        "large tumbler",
+        "stainless steel tumbler",
+        "handle cup"
+      ]
+    },
+    "visual_content": {
+      "image_count": 8,
+      "vision_tags": [
+        "tumbler",
+        "stainless steel bottle",
+        "handle cup",
+        "straw cup"
+      ],
+      "image_quality_score": 85
+    },
+    "taxonomy": {
+      "category_id": 102010,
+      "category_path": [
+        "Home & Living",
+        "Kitchenware",
+        "Water Bottles"
+      ],
+      "product_type": "tumbler"
+    },
+    "attributes": {
+      "material": "stainless steel",
+      "capacity_ml": 1180,
+      "insulation": "double-wall",
+      "includes": [
+        "straw",
+        "handle",
+        "lid"
+      ],
+      "size": "1180ml"
+    },
+    "commerce": {
+      "listing_price": 28.9,
+      "currency": "SGD",
+      "cod_available": true,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "estimated_delivery_days": 2
+    },
+    "trust_and_reviews": {
+      "rating": 4.8,
+      "review_count": 980,
+      "review_pain_points": [
+        "lid spills when tilted",
+        "too large for some cup holders"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 470,
+      "campaign_visibility": "high"
+    },
+    "agent_processing": {
+      "target_use_case": "large stainless steel tumbler with handle straw for office gym commute"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "bottle_cmp_003",
+      "item_status": "NORMAL"
+    },
+    "shop_identity": {
+      "shop_name": "ThermoDaily",
+      "seller_type": "overseas_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Thermal Stainless Steel Vacuum Bottle 500ml",
+      "description": "Vacuum insulated bottle for hot and cold drinks.",
+      "bullet_features": [
+        "Vacuum insulation",
+        "500ml capacity",
+        "Leakproof lid",
+        "Stainless steel"
+      ],
+      "keywords": [
+        "thermal bottle",
+        "vacuum flask",
+        "stainless steel bottle"
+      ]
+    },
+    "visual_content": {
+      "image_count": 7,
+      "vision_tags": [
+        "thermal bottle",
+        "stainless steel bottle",
+        "leakproof bottle"
+      ],
+      "image_quality_score": 80
+    },
+    "taxonomy": {
+      "category_id": 102010,
+      "category_path": [
+        "Home & Living",
+        "Kitchenware",
+        "Water Bottles"
+      ],
+      "product_type": "thermal_bottle"
+    },
+    "attributes": {
+      "material": "stainless steel",
+      "capacity_ml": 500,
+      "insulation": "thermal-coated",
+      "size": "500ml"
+    },
+    "commerce": {
+      "listing_price": 16.9,
+      "currency": "SGD",
+      "cod_available": false,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "CN",
+      "target_region": "SG",
+      "estimated_delivery_days": 7
+    },
+    "trust_and_reviews": {
+      "rating": 4.5,
+      "review_count": 1350,
+      "review_pain_points": [
+        "slow delivery",
+        "heat retention lower than stated"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 520,
+      "campaign_visibility": "high"
+    },
+    "agent_processing": {
+      "target_use_case": "thermal leakproof stainless steel water bottle for office travel school"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "tshirt_cmp_001",
+      "item_status": "NORMAL"
+    },
+    "shop_identity": {
+      "shop_name": "BasicWear SG",
+      "seller_type": "local_seller",
+      "is_preferred_seller": true,
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Plain Cotton Unisex Basic T-Shirt",
+      "description": "Basic plain cotton T-shirt in multiple colors.",
+      "bullet_features": [
+        "Plain cotton tee",
+        "Unisex fit",
+        "Multiple colors",
+        "Basic wear"
+      ],
+      "keywords": [
+        "plain tshirt",
+        "basic tee",
+        "cotton t shirt"
+      ]
+    },
+    "visual_content": {
+      "image_count": 7,
+      "vision_tags": [
+        "plain tshirt",
+        "cotton tee",
+        "apparel"
+      ],
+      "image_quality_score": 79
+    },
+    "taxonomy": {
+      "category_id": 103020,
+      "category_path": [
+        "Men Clothes",
+        "Tops",
+        "T-Shirts"
+      ],
+      "product_type": "tshirt"
+    },
+    "attributes": {
+      "material": "cotton",
+      "fit": "regular",
+      "design": "plain",
+      "size": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    "commerce": {
+      "listing_price": 10.9,
+      "currency": "SGD",
+      "cod_available": true,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "estimated_delivery_days": 2
+    },
+    "trust_and_reviews": {
+      "rating": 4.6,
+      "review_count": 2100,
+      "review_pain_points": [
+        "thin fabric",
+        "size runs small"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 880,
+      "campaign_visibility": "high"
+    },
+    "agent_processing": {
+      "target_use_case": "plain cotton unisex tshirt for casual bulk daily wear"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "tshirt_cmp_002",
+      "item_status": "NORMAL"
+    },
+    "shop_identity": {
+      "shop_name": "GraphicZone SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Cyberpunk Space Graphic T-Shirt",
+      "description": "Sci-fi and cyberpunk graphic tee for casual wear.",
+      "bullet_features": [
+        "Cyberpunk print",
+        "Space theme",
+        "Graphic tee",
+        "Multiple sizes"
+      ],
+      "keywords": [
+        "sci fi tshirt",
+        "graphic tee",
+        "cyberpunk shirt"
+      ]
+    },
+    "visual_content": {
+      "image_count": 6,
+      "vision_tags": [
+        "graphic tshirt",
+        "sci fi shirt",
+        "cyberpunk print"
+      ],
+      "image_quality_score": 82
+    },
+    "taxonomy": {
+      "category_id": 103020,
+      "category_path": [
+        "Men Clothes",
+        "Tops",
+        "T-Shirts"
+      ],
+      "product_type": "graphic_tshirt"
+    },
+    "attributes": {
+      "material": "cotton blend",
+      "fit": "regular",
+      "design": "sci-fi graphic",
+      "size": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    "commerce": {
+      "listing_price": 17.9,
+      "currency": "SGD",
+      "cod_available": true,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "estimated_delivery_days": 2
+    },
+    "trust_and_reviews": {
+      "rating": 4.7,
+      "review_count": 680,
+      "review_pain_points": [
+        "print fades after washing",
+        "limited color choices"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 240,
+      "campaign_visibility": "medium"
+    },
+    "agent_processing": {
+      "target_use_case": "sci fi cyberpunk graphic tshirt for fans casual wear"
+    }
+  },
+  {
+    "source": {
+      "region": "SG",
+      "data_mode": "mock",
+      "fetched_at": "2026-06-06T12:00:00+08:00"
+    },
+    "product_identity": {
+      "item_id": "tshirt_cmp_003",
+      "item_status": "NORMAL"
+    },
+    "shop_identity": {
+      "shop_name": "PrintMyTee SG",
+      "seller_type": "local_seller",
+      "region": "SG"
+    },
+    "text_content": {
+      "name": "Custom Name Logo Photo Print T-Shirt",
+      "description": "Personalized T-shirt printing for events and teams.",
+      "bullet_features": [
+        "Custom logo",
+        "Photo print",
+        "Event shirt",
+        "Proof before printing"
+      ],
+      "keywords": [
+        "custom tshirt",
+        "personalized t shirt",
+        "logo print"
+      ]
+    },
+    "visual_content": {
+      "image_count": 8,
+      "vision_tags": [
+        "custom tshirt",
+        "printed shirt",
+        "logo print"
+      ],
+      "image_quality_score": 84
+    },
+    "taxonomy": {
+      "category_id": 103020,
+      "category_path": [
+        "Men Clothes",
+        "Tops",
+        "T-Shirts"
+      ],
+      "product_type": "custom_tshirt"
+    },
+    "attributes": {
+      "material": "cotton blend",
+      "fit": "regular",
+      "design": "customizable",
+      "size": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "custom_attributes": {
+        "customization_type": [
+          "name",
+          "logo",
+          "photo"
+        ]
+      }
+    },
+    "commerce": {
+      "listing_price": 22.9,
+      "currency": "SGD",
+      "cod_available": false,
+      "bnpl_available": true
+    },
+    "fulfillment": {
+      "ships_from_region": "SG",
+      "target_region": "SG",
+      "estimated_delivery_days": 5
+    },
+    "trust_and_reviews": {
+      "rating": 4.8,
+      "review_count": 450,
+      "review_pain_points": [
+        "late for event date",
+        "artwork proof unclear"
+      ]
+    },
+    "performance": {
+      "estimated_monthly_sales": 180,
+      "campaign_visibility": "medium"
+    },
+    "agent_processing": {
+      "target_use_case": "custom personalized tshirt for events teams birthdays logos photos"
+    }
+  }
+]

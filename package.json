@@ -1,11 +1,26 @@
 {
-  "name": "sea-x-openai",
+  "name": "adaptlink-seller-intelligence",
   "private": true,
-  "description": "ACP-SEA Bridge demo — one-command hosted demo.",
+  "version": "0.1.0",
+  "description": "AdaptLink seller intelligence + ACP-SEA Bridge consumer agent demo.",
+  "packageManager": "npm@11.6.1",
+  "workspaces": [
+    "apps/*",
+    "modules/*",
+    "packages/*"
+  ],
   "scripts": {
+    "dev:post": "npm --workspace post-launch-seller-app run dev",
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.json --noEmit",
+    "demo:post": "node scripts/runPostLaunchDemo.mjs",
     "demo": "bash acp/demo",
     "demo:terminal": "bash acp/demo terminal",
     "demo:check": "bash acp/demo check",
-    "shop": "bash acp/demo terminal"
+    "shop": "bash acp/demo terminal",
+    "dashboard:pre": "npm --prefix pre-product-analysis run dashboard"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
   }
 }

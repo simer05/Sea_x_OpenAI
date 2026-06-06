@@ -1,0 +1,14 @@
+{
+  "name": "adaptlink-pre-product-analysis",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Person 1 Pre-Product Analysis module for AdaptLink Seller Intelligence.",
+  "type": "commonjs",
+  "scripts": {
+    "demo": "node src/cli/preProductReport.js",
+    "demo:phone-case-sg": "node src/cli/phoneCaseSgReport.js",
+    "demo:multi-products-sg": "node src/cli/multiProductSgReport.js",
+    "dashboard": "node src/server/dashboardServer.js",
+    "test": "node --test"
+  }
+}
