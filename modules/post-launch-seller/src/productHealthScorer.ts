@@ -18,7 +18,7 @@ export function calculateProductHealth(input: PostLaunchInput): ProductHealthBre
   const ratingPosition = scoreRatio(product.rating, competitorAverageRating - 0.4, competitorAverageRating + 0.1);
   const competitorPosition = Math.round(pricePosition * 0.35 + trustPosition * 0.3 + ratingPosition * 0.35);
 
-  const customerInteraction = scoreBuyerFriction(input.buyerQuestions);
+  const customerInteraction = scoreCustomerInteraction(input);
 
   const overall = Math.round(
     conversion * 0.2 +
@@ -42,14 +42,44 @@ export function calculateProductHealth(input: PostLaunchInput): ProductHealthBre
   };
 }
 
+function scoreCustomerInteraction(input: PostLaunchInput): number {
+  const buyerFriction = scoreBuyerFriction(input.buyerQuestions);
+  const communication = input.communication;
+
+  if (!communication) {
+    return buyerFriction;
+  }
+
+  const responseSpeed = scoreRatio(communication.averageResponseMinutes, 180, 15);
+  const oneHourRate = scoreRatio(communication.responseWithinOneHourPercent, 0.35, 0.9);
+  const unanswered = scoreRatio(1 - communication.unansweredRate, 0.8, 1);
+  const satisfaction = scoreRatio(communication.buyerSatisfactionScore, 3.2, 4.8);
+
+  return Math.round(
+    buyerFriction * 0.45 +
+      responseSpeed * 0.2 +
+      oneHourRate * 0.15 +
+      unanswered * 0.1 +
+      satisfaction * 0.1
+  );
+}
+
 function scoreBuyerFriction(questions: PostLaunchInput["buyerQuestions"]): number {
   if (questions.length === 0) {
     return 70;
   }
 
   const totalFrequency = questions.reduce((sum, question) => sum + question.frequency, 0);
+  if (totalFrequency <= 0) {
+    return 70;
+  }
+
   const highFrictionFrequency = questions
-    .filter((question) => ["trust", "size", "delivery", "ingredient", "price"].includes(question.theme))
+    .filter((question) =>
+      ["trust", "size", "delivery", "ingredient", "price", "compatibility", "battery", "warranty"].includes(
+        question.theme
+      )
+    )
     .reduce((sum, question) => sum + question.frequency, 0);
 
   return Math.round(100 - clamp((highFrictionFrequency / totalFrequency) * 65, 0, 85));

@@ -52,10 +52,34 @@ export interface BuyerQuestionInsight {
 
 export interface PostLaunchInput {
   product: LiveProductStats;
+  context?: ProductContext;
+  communication?: SellerCommunicationStats;
   competitors: CompetitorSnapshot[];
   reviews: ReviewInsight[];
   buyerQuestions: BuyerQuestionInsight[];
   dataQualityWarnings: string[];
+}
+
+export interface SellerCommunicationStats {
+  totalChats: number;
+  averageResponseMinutes: number;
+  responseWithinOneHourPercent: number;
+  unansweredRate: number;
+  buyerSatisfactionScore: number;
+}
+
+export interface ProductContext {
+  segment: string;
+  trustSignals: ProductTrustSignal[];
+  nonApplicableSignals: string[];
+  listingFocus: string[];
+}
+
+export interface ProductTrustSignal {
+  label: string;
+  applies: boolean;
+  evidence: string;
+  action: string;
 }
 
 export interface ProductHealthBreakdown {

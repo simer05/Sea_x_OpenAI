@@ -7,132 +7,203 @@
     <link rel="stylesheet" href="./src/app/globals.css" />
   </head>
   <body>
-    <main class="dashboard-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Post-launch seller intelligence</p>
-          <h1>Halal Vitamin C Serum</h1>
-          <p class="subhead">
-            Live-product health, revenue leakage, competitor pressure, and next actions for Shopee Singapore sellers.
-          </p>
-        </div>
-        <div class="status-panel" aria-label="Current data status">
-          <span class="status-dot"></span>
+    <div class="seller-frame">
+      <aside class="seller-sidebar" aria-label="Seller navigation">
+        <div class="seller-brand">
+          <span class="seller-bag">S</span>
           <div>
-            <strong>Mock mode</strong>
-            <span>Ready to switch to Shopee API data</span>
+            <strong>Shopee Seller</strong>
+            <small>AdaptLink Lab</small>
           </div>
         </div>
-      </header>
+        <nav>
+          <a class="active" href="#">Business Insights</a>
+          <a href="#">Products</a>
+          <a href="#">Marketing Centre</a>
+          <a href="#">Customer Service</a>
+          <a href="#">Shop Health</a>
+        </nav>
+      </aside>
 
-      <section class="summary-band" aria-label="Product summary">
-        <div class="health-meter">
-          <span class="meter-label">Product Health</span>
-          <strong>53</strong>
-          <span class="meter-caption">Needs action</span>
-        </div>
-        <div class="diagnosis">
-          <h2>Diagnosis</h2>
-          <p>
-            Halal Vitamin C Serum needs action on margin, competitor position, buyer confusion, and fulfillment.
-            Focus on changes that raise conversion while protecting net margin.
-          </p>
-        </div>
-        <div class="primary-action">
-          <span>Top revenue move</span>
-          <strong>Pricing</strong>
-          <p>Higher revenue quality, not just higher order count.</p>
-        </div>
-      </section>
-
-      <section class="metric-grid" aria-label="Key metrics">
-        <article class="metric-card"><span>Revenue</span><strong>S$1,233.80</strong><small>62 orders</small></article>
-        <article class="metric-card"><span>CTR</span><strong>5.0%</strong><small>920 clicks</small></article>
-        <article class="metric-card"><span>Click-to-order</span><strong>6.7%</strong><small>orders divided by clicks</small></article>
-        <article class="metric-card"><span>Net margin</span><strong>21.0%</strong><small>ROAS 7.9x</small></article>
-        <article class="metric-card"><span>Rating</span><strong>4.55</strong><small>126 reviews</small></article>
-        <article class="metric-card"><span>Stock</span><strong>420</strong><small>units available</small></article>
-      </section>
-
-      <section class="two-column">
-        <div class="panel">
-          <div class="panel-heading"><span>Score Breakdown</span><strong>53/100</strong></div>
-          <div class="score-list">
-            <div class="score-row"><div class="score-label"><span>Conversion</span><strong>71</strong></div><div class="bar-track"><div class="bar-fill strong" style="width: 71%"></div></div></div>
-            <div class="score-row"><div class="score-label"><span>Margin</span><strong>30</strong></div><div class="bar-track"><div class="bar-fill weak" style="width: 30%"></div></div></div>
-            <div class="score-row"><div class="score-label"><span>Reviews</span><strong>68</strong></div><div class="bar-track"><div class="bar-fill watch" style="width: 68%"></div></div></div>
-            <div class="score-row"><div class="score-label"><span>Competition</span><strong>46</strong></div><div class="bar-track"><div class="bar-fill weak" style="width: 46%"></div></div></div>
-            <div class="score-row"><div class="score-label"><span>Traffic</span><strong>58</strong></div><div class="bar-track"><div class="bar-fill watch" style="width: 58%"></div></div></div>
-            <div class="score-row"><div class="score-label"><span>Buyer clarity</span><strong>35</strong></div><div class="bar-track"><div class="bar-fill weak" style="width: 35%"></div></div></div>
-            <div class="score-row"><div class="score-label"><span>Fulfilment</span><strong>61</strong></div><div class="bar-track"><div class="bar-fill watch" style="width: 61%"></div></div></div>
+      <main class="dashboard-shell">
+        <header class="seller-topbar">
+          <div>
+            <p class="eyebrow">Post-launch seller intelligence</p>
+            <h1 id="product-title">Product dashboard</h1>
+            <p class="subhead" id="product-subhead">
+              Select a live product to inspect revenue leakage, competitor pressure, customer friction, and next actions.
+            </p>
           </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-heading"><span>Funnel</span><strong>Beauty &gt; Skincare</strong></div>
-          <div class="funnel">
-            <div class="funnel-step"><span>Visibility</span><strong>18,400</strong><small>listing impressions/views</small></div>
-            <div class="funnel-step"><span>Clicks</span><strong>920</strong><small>5.0%</small></div>
-            <div class="funnel-step"><span>Orders</span><strong>62</strong><small>6.7%</small></div>
+          <div class="topbar-actions">
+            <label class="product-picker">
+              <span>Product</span>
+              <select id="product-select" aria-label="Select product"></select>
+            </label>
+            <div class="openai-badge" aria-label="Powered by OpenAI">
+              <span class="openai-mark">OpenAI</span>
+              <strong>AI routed</strong>
+            </div>
           </div>
-          <p class="panel-note">
-            Conversion is treated as click-to-order for this mock dataset. When Shopee data is connected, this should
-            map to the exact seller metric returned by the API/export.
-          </p>
-        </div>
-      </section>
+        </header>
 
-      <section class="panel">
-        <div class="panel-heading"><span>Competitor Benchmark</span><strong>Avg S$19.40 | 4.75 rating | 880 reviews</strong></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Competitor</th><th>Price</th><th>Rating</th><th>Reviews</th><th>Voucher</th><th>Gap to watch</th></tr></thead>
-            <tbody>
-              <tr><td><strong>Vitamin C Brightening Serum 30ml</strong><span>Lower price and stronger review count</span></td><td>S$17.80</td><td>4.82</td><td>1,240</td><td>10%</td><td>Complaints about sticky texture</td></tr>
-              <tr><td><strong>Halal Glow Serum Sensitive Skin</strong><span>Clear halal trust signal</span></td><td>S$21.50</td><td>4.76</td><td>860</td><td>8%</td><td>Higher price</td></tr>
-              <tr><td><strong>Brightening Face Serum Bundle</strong><span>Bundle value</span></td><td>S$18.90</td><td>4.68</td><td>540</td><td>12%</td><td>Mixed reviews on packaging</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="two-column">
-        <div class="panel">
-          <div class="panel-heading"><span>Buyer Questions</span><strong>41 signals</strong></div>
-          <div class="signal-list">
-            <div class="signal-row"><div><strong>trust</strong><span>Is this halal certified?</span></div><b>18</b></div>
-            <div class="signal-row"><div><strong>ingredient</strong><span>Can sensitive skin use this?</span></div><b>14</b></div>
-            <div class="signal-row"><div><strong>delivery</strong><span>When can ship?</span></div><b>9</b></div>
+        <section class="summary-band" aria-label="Product summary">
+          <div class="health-meter">
+            <span class="meter-label">Product Health</span>
+            <strong id="health-score">--</strong>
+            <span class="meter-caption" id="health-label">--</span>
           </div>
-        </div>
-        <div class="panel">
-          <div class="panel-heading"><span>Review Themes</span><strong>3 samples</strong></div>
-          <div class="review-list">
-            <article class="review-row positive"><div><strong>product quality</strong><span>Nice glow and feels light on skin.</span></div><b>5/5</b></article>
-            <article class="review-row mixed"><div><strong>delivery</strong><span>Works okay but delivery took longer than expected.</span></div><b>3/5</b></article>
-            <article class="review-row negative"><div><strong>ingredient</strong><span>I wanted clearer ingredient details for sensitive skin.</span></div><b>3/5</b></article>
+          <div class="diagnosis">
+            <h2>Diagnosis</h2>
+            <p id="diagnosis-text">Select a product to load the analysis.</p>
           </div>
-        </div>
-      </section>
+          <div class="primary-action">
+            <span>Top revenue move</span>
+            <strong id="top-action-area">--</strong>
+            <p id="top-action-impact">--</p>
+          </div>
+        </section>
 
-      <section class="panel">
-        <div class="panel-heading"><span>Revenue Action Plan</span><strong>4 priorities</strong></div>
-        <div class="action-grid">
-          <article class="action-card"><div class="action-index">1</div><div><div class="action-title"><span class="priority high">High</span><strong>Pricing</strong></div><p>Do not stack broad vouchers. Use bundles, minimum-spend vouchers, or ad spend caps to protect contribution margin.</p><small>Protects net margin while still giving buyers a reason to convert.</small></div></article>
-          <article class="action-card"><div class="action-index">2</div><div><div class="action-title"><span class="priority high">High</span><strong>Buyer Questions</strong></div><p>Add a visible FAQ block and product image callout for repeated trust questions.</p><small>Reduces unanswered objections before checkout.</small></div></article>
-          <article class="action-card"><div class="action-index">3</div><div><div class="action-title"><span class="priority medium">Medium</span><strong>Reviews</strong></div><p>Address the recurring delivery issue in listing copy, packaging notes, or operations.</p><small>Improves future rating quality and closes trust gaps against competitors.</small></div></article>
-          <article class="action-card"><div class="action-index">4</div><div><div class="action-title"><span class="priority medium">Medium</span><strong>Fulfillment</strong></div><p>Check cancellation, stock, and delivery timing. Add realistic delivery promise if operations cannot improve immediately.</p><small>Avoids rating damage and revenue loss from cancellations/refunds.</small></div></article>
-        </div>
-      </section>
+        <section class="metric-grid" aria-label="Key metrics">
+          <article class="metric-card"><span>Revenue</span><strong id="metric-revenue">--</strong><small id="metric-orders">--</small></article>
+          <article class="metric-card"><span>CTR</span><strong id="metric-ctr">--</strong><small id="metric-clicks">--</small></article>
+          <article class="metric-card"><span>Click-to-order</span><strong id="metric-conversion">--</strong><small>orders divided by clicks</small></article>
+          <article class="metric-card"><span>Net margin</span><strong id="metric-margin">--</strong><small id="metric-roas">--</small></article>
+          <article class="metric-card"><span>Rating</span><strong id="metric-rating">--</strong><small id="metric-reviews">--</small></article>
+          <article class="metric-card"><span>Stock</span><strong id="metric-stock">--</strong><small>units available</small></article>
+        </section>
 
-      <section class="warning-band" aria-label="Data quality warnings">
-        <div><span>Data quality</span><strong>Use this for demo logic, not final live claims yet.</strong></div>
-        <ul>
-          <li>Competitor sales are estimated for demo mode.</li>
-          <li>Shopee Ads data is mocked until API credentials are connected.</li>
-          <li>Buyer questions are sample themes, not live chat exports.</li>
-        </ul>
-      </section>
-    </main>
+        <section class="selector-strip" aria-label="Product selector cards" id="product-tabs"></section>
+
+        <section class="two-column">
+          <div class="panel">
+            <div class="panel-heading">
+              <span>Score Breakdown</span>
+              <strong id="score-breakdown-total">--</strong>
+            </div>
+            <div class="score-list" id="score-list"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-heading">
+              <span>Funnel</span>
+              <strong id="funnel-category">--</strong>
+            </div>
+            <div class="funnel" id="funnel-list"></div>
+            <p class="panel-note">
+              Conversion is treated as click-to-order for mock data. With Shopee APIs, this should map to the exact
+              seller metric returned by the authorized endpoint/export.
+            </p>
+          </div>
+        </section>
+
+        <section class="two-column">
+          <div class="panel">
+            <div class="panel-heading">
+              <span>Health Graph</span>
+              <strong>Weak spots first</strong>
+            </div>
+            <div class="mini-chart" id="health-chart"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-heading">
+              <span>Communication Experience</span>
+              <strong id="communication-summary">--</strong>
+            </div>
+            <div class="communication-grid">
+              <article><span>Avg response</span><strong id="comm-response">--</strong></article>
+              <article><span>Within 1h</span><strong id="comm-one-hour">--</strong></article>
+              <article><span>Unanswered</span><strong id="comm-unanswered">--</strong></article>
+              <article><span>CSAT</span><strong id="comm-csat">--</strong></article>
+            </div>
+            <p class="panel-note">
+              CTR means click-through rate: clicks divided by product views or impressions. Response timing shows whether
+              seller communication may be hurting conversion after shoppers already show interest.
+            </p>
+          </div>
+        </section>
+
+        <section class="two-column">
+          <div class="panel">
+            <div class="panel-heading">
+              <span>Category-Specific Trust Signals</span>
+              <strong id="trust-segment">--</strong>
+            </div>
+            <div class="trust-list" id="trust-list"></div>
+            <p class="panel-note" id="non-applicable-note"></p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-heading">
+              <span>OpenAI Usage Plan</span>
+              <strong>Efficient routing</strong>
+            </div>
+            <div class="ai-route-list">
+              <div><b>Agent workflow</b><span>Coordinator routes product data to specialist agents, then merges one seller-safe action plan.</span></div>
+              <div><b>gpt-5.4-mini</b><span>Extract review themes, chat themes, and data-quality flags.</span></div>
+              <div><b>gpt-5.5</b><span>Deep revenue diagnosis and tradeoff reasoning.</span></div>
+              <div><b>Structured outputs</b><span>Return stable JSON for dashboard cards and actions.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <span>Competitor Benchmark</span>
+            <strong id="competitor-summary">--</strong>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Competitor</th>
+                  <th>Price</th>
+                  <th>Rating</th>
+                  <th>Reviews</th>
+                  <th>Voucher</th>
+                  <th>Gap to watch</th>
+                </tr>
+              </thead>
+              <tbody id="competitor-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="two-column">
+          <div class="panel">
+            <div class="panel-heading">
+              <span>Buyer Questions</span>
+              <strong id="question-count">--</strong>
+            </div>
+            <div class="signal-list" id="buyer-questions"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-heading">
+              <span>Review Themes</span>
+              <strong id="review-count">--</strong>
+            </div>
+            <div class="review-list" id="review-list"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <span>Revenue Action Plan</span>
+            <strong id="action-count">--</strong>
+          </div>
+          <div class="action-grid" id="action-grid"></div>
+        </section>
+
+        <section class="warning-band" aria-label="Data quality warnings">
+          <div>
+            <span>Data quality</span>
+            <strong>Mock mode is for demo logic. Do not claim live Shopee accuracy until API credentials are connected.</strong>
+          </div>
+          <ul id="warning-list"></ul>
+        </section>
+      </main>
+    </div>
+    <script src="./dashboard-preview.js"></script>
   </body>
 </html>

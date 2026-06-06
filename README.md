@@ -54,3 +54,9 @@ For a dependency-free visual check, open:
 ```text
 apps/post-launch-seller-app/dashboard-preview.html
 ```
+
+OpenAI usage plan:
+
+```text
+docs/openai-agent-strategy.md
+```

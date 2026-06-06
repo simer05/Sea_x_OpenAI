@@ -19,6 +19,13 @@
     "conversionRate": 0.0674,
     "ctr": 0.05
   },
+  "communication": {
+    "totalChats": 64,
+    "averageResponseMinutes": 118,
+    "responseWithinOneHourPercent": 0.52,
+    "unansweredRate": 0.09,
+    "buyerSatisfactionScore": 3.7
+  },
   "competitors": [
     {
       "competitorId": "C-SG-101",

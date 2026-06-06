@@ -68,7 +68,17 @@ function calculateProductHealth(input) {
   const highFrictionFrequency = input.buyerQuestions
     .filter((question) => ["trust", "size", "delivery", "ingredient", "price"].includes(question.theme))
     .reduce((sum, question) => sum + question.frequency, 0);
-  const customerInteraction = Math.round(100 - clamp((highFrictionFrequency / totalFrequency) * 65, 0, 85));
+  const buyerFriction = Math.round(100 - clamp((highFrictionFrequency / totalFrequency) * 65, 0, 85));
+  const communication = input.communication;
+  const customerInteraction = communication
+    ? Math.round(
+        buyerFriction * 0.45 +
+          scoreRatio(communication.averageResponseMinutes, 180, 15) * 0.2 +
+          scoreRatio(communication.responseWithinOneHourPercent, 0.35, 0.9) * 0.15 +
+          scoreRatio(1 - communication.unansweredRate, 0.8, 1) * 0.1 +
+          scoreRatio(communication.buyerSatisfactionScore, 3.2, 4.8) * 0.1
+      )
+    : buyerFriction;
 
   const overall = Math.round(
     conversion * 0.2 +
@@ -135,6 +145,16 @@ function buildRevenueActionPlan(input, health) {
       action: `Add a visible FAQ block and product image callout for repeated '${topQuestionTheme}' questions.`,
       revenueLogic: "Reduces unanswered objections before checkout.",
       expectedImpact: "Lower chat load and better conversion"
+    });
+  }
+
+  if (input.communication && input.communication.responseWithinOneHourPercent < 0.7) {
+    actions.push({
+      priority: "High",
+      area: "Seller Response",
+      action: "Set quick-reply templates for the top buyer questions and target replies within one hour.",
+      revenueLogic: "Slow replies can turn product-page interest into abandoned purchases, especially when questions involve trust, compatibility, delivery, or warranty.",
+      expectedImpact: "Higher buyer confidence and fewer lost chats"
     });
   }
 
