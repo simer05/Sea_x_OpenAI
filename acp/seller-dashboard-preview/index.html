@@ -228,7 +228,10 @@
               <article class="panel pre-input-panel">
                 <div class="panel-heading">
                   <h2>New Product Details</h2>
-                  <span>Editable seller review</span>
+                  <div class="panel-heading-actions">
+                    <span>Editable seller review</span>
+                    <button class="panel-action-button secondary hidden" id="pre-change-product-header" type="button">Change Product</button>
+                  </div>
                 </div>
                 <form id="pre-form" class="pre-form live-pre-form">
                   <label>
@@ -379,6 +382,18 @@
                   <span id="pre-action-count">--</span>
                 </div>
                 <div id="pre-actions" class="action-plan"></div>
+              </article>
+
+              <article class="panel listing-publish-panel hidden pre-result-panel" id="pre-approval-panel">
+                <div class="panel-heading">
+                  <h2>Seller Approval</h2>
+                  <span>Human in loop</span>
+                </div>
+                <p class="panel-note">If the seller is satisfied with the analysis and editable listing details, launch this product into the live post-launch dashboard for monitoring.</p>
+                <div class="approval-actions">
+                  <button class="cancel-product-button" id="pre-change-product-footer" type="button">Change Product</button>
+                  <button class="primary-cta" type="button" disabled title="Launch is disabled for this demo.">Launch Product</button>
+                </div>
               </article>
             </section>
           </section>

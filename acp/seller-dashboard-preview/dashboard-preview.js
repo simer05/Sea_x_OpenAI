@@ -324,6 +324,13 @@ function init() {
     });
   }
 
+  ["pre-change-product-header", "pre-change-product-footer"].forEach((id) => {
+    const button = byId(id);
+    if (button) button.addEventListener("click", cancelPreProduct);
+  });
+
+  byId("pre-form").addEventListener("input", updatePreChangeProductButton);
+
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   });
@@ -606,7 +613,38 @@ function togglePrePanels(showResults) {
     if (panel.id === "pre-ai-panel") return;
     panel.classList.toggle("hidden", !showResults);
   });
-  renderAiSummary();
+  updatePreChangeProductButton();
+}
+
+function hasPreProductDraft() {
+  const form = readPreForm();
+  return Boolean(
+    state.photoDataUrl ||
+      state.preAnalyzed ||
+      form.title ||
+      form.category ||
+      form.productType ||
+      form.description ||
+      form.features
+  );
+}
+
+function updatePreChangeProductButton() {
+  const show = hasPreProductDraft();
+  const headerButton = byId("pre-change-product-header");
+  if (headerButton) headerButton.classList.toggle("hidden", !show);
+}
+
+function cancelPreProduct() {
+  state.preAnalyzed = false;
+  state.aiInsight = null;
+  state.aiLoading = false;
+  state.photoDataUrl = "";
+  state.photoName = "";
+  clearPreForm();
+  resetPreUploadUi();
+  togglePrePanels(false);
+  updatePreChangeProductButton();
 }
 
 function renderPre() {
@@ -662,7 +700,6 @@ function renderPre() {
       .map((action, index) => `<div class="action-item"><span class="action-number">${index + 1}</span><p>${escapeHtml(action)}</p><b class="${index === 0 ? "high" : "medium"}">${index === 0 ? "High" : "Medium"}</b></div>`)
       .join("")
   );
-  renderAiSummary();
   togglePrePanels(true);
 }
 
@@ -922,8 +959,8 @@ function setPreUploadUi(fileName, loading, errorMessage) {
 function renderAiSummary() {
   const panel = byId("pre-ai-panel");
   if (!panel) return;
+  panel.classList.add("hidden");
   const insight = state.aiInsight;
-  panel.classList.toggle("hidden", !state.preAnalyzed || (!insight && !state.aiLoading));
   text("pre-ai-mode", state.aiLoading ? "Generating" : insight ? `${insight.modeUsed === "openai" ? "OpenAI" : "Fallback"} mode` : "Waiting");
   text("pre-ai-summary", state.aiLoading
     ? "Reading seller metrics, listing details, and uploaded product evidence..."
