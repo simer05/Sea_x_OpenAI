@@ -120,6 +120,54 @@ const products = [
   }
 ];
 
+const timeframes = [
+  {
+    id: "last_30_days",
+    label: "Last 30 days",
+    volumeFactor: 0.34,
+    ctrFactor: 0.98,
+    conversionFactor: 0.92,
+    adSpendFactor: 0.42,
+    reviewFactor: 0.28,
+    marginDelta: -0.02,
+    chatFactor: 0.36,
+    responseMinutesFactor: 1.12,
+    oneHourDelta: -0.06,
+    unansweredDelta: 0.03,
+    csatDelta: -0.1
+  },
+  {
+    id: "last_3_months",
+    label: "Last 3 months",
+    volumeFactor: 1,
+    ctrFactor: 1,
+    conversionFactor: 1,
+    adSpendFactor: 1,
+    reviewFactor: 1,
+    marginDelta: 0,
+    chatFactor: 1,
+    responseMinutesFactor: 1,
+    oneHourDelta: 0,
+    unansweredDelta: 0,
+    csatDelta: 0
+  },
+  {
+    id: "last_6_months",
+    label: "Last 6 months",
+    volumeFactor: 1.92,
+    ctrFactor: 1.04,
+    conversionFactor: 1.06,
+    adSpendFactor: 1.78,
+    reviewFactor: 1.72,
+    marginDelta: 0.01,
+    chatFactor: 1.85,
+    responseMinutesFactor: 0.9,
+    oneHourDelta: 0.05,
+    unansweredDelta: -0.02,
+    csatDelta: 0.12
+  }
+];
+
 const scoreLabels = [
   ["conversion", "Conversion"],
   ["margin", "Margin"],
@@ -145,6 +193,43 @@ function scoreInverseGap(value, benchmark, maxGapPercent) {
 
 function average(values) {
   return values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
+}
+
+function applyTimeframe(input, timeframe) {
+  const adjusted = JSON.parse(JSON.stringify(input));
+  const base = input.product;
+  const product = adjusted.product;
+
+  product.views = Math.max(1, Math.round(base.views * timeframe.volumeFactor));
+  product.ctr = clamp(base.ctr * timeframe.ctrFactor, 0.005, 0.2);
+  product.clicks = Math.max(1, Math.round(product.views * product.ctr));
+  product.conversionRate = clamp(base.conversionRate * timeframe.conversionFactor, 0.005, 0.2);
+  product.orders = Math.max(1, Math.round(product.clicks * product.conversionRate));
+  product.revenue = roundMoney(product.orders * product.price);
+  product.adSpend = roundMoney(base.adSpend * timeframe.adSpendFactor);
+  product.netMarginPercent = clamp(base.netMarginPercent + timeframe.marginDelta, 0.03, 0.6);
+  product.reviews = Math.max(1, Math.round(base.reviews * timeframe.reviewFactor));
+  product.rating = clamp(base.rating + timeframe.csatDelta * 0.25, 1, 5);
+
+  adjusted.communication.totalChats = Math.max(1, Math.round(input.communication.totalChats * timeframe.chatFactor));
+  adjusted.communication.averageResponseMinutes = Math.max(
+    1,
+    Math.round(input.communication.averageResponseMinutes * timeframe.responseMinutesFactor)
+  );
+  adjusted.communication.responseWithinOneHourPercent = clamp(
+    input.communication.responseWithinOneHourPercent + timeframe.oneHourDelta,
+    0,
+    1
+  );
+  adjusted.communication.unansweredRate = clamp(input.communication.unansweredRate + timeframe.unansweredDelta, 0, 1);
+  adjusted.communication.buyerSatisfactionScore = clamp(input.communication.buyerSatisfactionScore + timeframe.csatDelta, 1, 5);
+
+  adjusted.warnings = [
+    ...input.warnings,
+    `Mock timeframe selected: ${timeframe.label}. Live mode should use Shopee data filtered by the same date range.`
+  ];
+
+  return adjusted;
 }
 
 function analyze(input) {
@@ -252,8 +337,9 @@ function buildActions(input, health, avgPrice) {
   return actions.slice(0, 5);
 }
 
-function render(productIndex) {
-  const input = products[productIndex];
+function render(productIndex, timeframeIndex = Number(document.getElementById("timeframe-select")?.value || 1)) {
+  const timeframe = timeframes[timeframeIndex] || timeframes[1];
+  const input = applyTimeframe(products[productIndex], timeframe);
   const product = input.product;
   const report = analyze(input);
   const avgPrice = average(input.competitors.map((item) => item[1]));
@@ -262,7 +348,7 @@ function render(productIndex) {
   const roas = product.adSpend > 0 ? product.revenue / product.adSpend : 0;
 
   text("product-title", product.title);
-  text("product-subhead", `${input.context.segment} | ${product.category} | ${product.productId}`);
+  text("product-subhead", `${input.context.segment} | ${product.category} | ${product.productId} | ${timeframe.label}`);
   text("health-score", report.health.overall);
   text("health-label", healthLabel(report.health.overall));
   text("diagnosis-text", report.diagnosis);
@@ -278,6 +364,7 @@ function render(productIndex) {
   text("metric-rating", product.rating.toFixed(2));
   text("metric-reviews", `${product.reviews} reviews`);
   text("metric-stock", product.stock.toLocaleString());
+  text("product-count", `${products.length} active listings`);
   text("score-breakdown-total", `${report.health.overall}/100`);
   text("funnel-category", product.category);
   text("trust-segment", input.context.segment);
@@ -313,8 +400,13 @@ function render(productIndex) {
 
 function init() {
   const select = document.getElementById("product-select");
+  const timeframeSelect = document.getElementById("timeframe-select");
   select.innerHTML = products.map((item, index) => `<option value="${index}">${escapeHtml(item.product.title)}</option>`).join("");
-  select.addEventListener("change", () => render(Number(select.value)));
+  timeframeSelect.innerHTML = timeframes
+    .map((timeframe, index) => `<option value="${index}" ${index === 1 ? "selected" : ""}>${escapeHtml(timeframe.label)}</option>`)
+    .join("");
+  select.addEventListener("change", () => render(Number(select.value), Number(timeframeSelect.value)));
+  timeframeSelect.addEventListener("change", () => render(Number(select.value), Number(timeframeSelect.value)));
   html(
     "product-tabs",
     products
@@ -327,10 +419,10 @@ function init() {
   document.querySelectorAll(".product-tab").forEach((button) => {
     button.addEventListener("click", () => {
       select.value = button.dataset.index;
-      render(Number(button.dataset.index));
+      render(Number(button.dataset.index), Number(timeframeSelect.value));
     });
   });
-  render(0);
+  render(0, 1);
 }
 
 function text(id, value) {
@@ -381,6 +473,10 @@ function currency(value) {
 
 function percent(value) {
   return `${(value * 100).toFixed(1)}%`;
+}
+
+function roundMoney(value) {
+  return Math.round(value * 100) / 100;
 }
 
 function healthLabel(value) {

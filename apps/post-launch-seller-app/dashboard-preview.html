@@ -39,12 +39,27 @@
               <span>Product</span>
               <select id="product-select" aria-label="Select product"></select>
             </label>
+            <label class="product-picker timeframe-picker">
+              <span>Timeframe</span>
+              <select id="timeframe-select" aria-label="Select analysis timeframe"></select>
+            </label>
             <div class="openai-badge" aria-label="Powered by OpenAI">
               <span class="openai-mark">OpenAI</span>
               <strong>AI routed</strong>
             </div>
           </div>
         </header>
+
+        <section class="lifecycle-tabs" aria-label="Analysis mode">
+          <button class="lifecycle-tab muted" type="button" aria-disabled="true">
+            <strong>Pre-launch</strong>
+            <span>Person A will plug this in later</span>
+          </button>
+          <button class="lifecycle-tab active" type="button">
+            <strong>Post-launch</strong>
+            <span>Live product improvement selected</span>
+          </button>
+        </section>
 
         <section class="summary-band" aria-label="Product summary">
           <div class="health-meter">
@@ -72,7 +87,13 @@
           <article class="metric-card"><span>Stock</span><strong id="metric-stock">--</strong><small>units available</small></article>
         </section>
 
-        <section class="selector-strip" aria-label="Product selector cards" id="product-tabs"></section>
+        <section class="panel seller-product-panel" aria-label="Seller existing products">
+          <div class="panel-heading">
+            <span>Seller Existing Products</span>
+            <strong id="product-count">--</strong>
+          </div>
+          <div class="selector-strip" id="product-tabs"></div>
+        </section>
 
         <section class="two-column">
           <div class="panel">
@@ -90,8 +111,8 @@
             </div>
             <div class="funnel" id="funnel-list"></div>
             <p class="panel-note">
-              Conversion is treated as click-to-order for mock data. With Shopee APIs, this should map to the exact
-              seller metric returned by the authorized endpoint/export.
+              Metrics are recalculated for the selected timeframe. Conversion is treated as click-to-order for mock
+              data. With Shopee APIs, this should map to the exact seller metric returned by the authorized endpoint/export.
             </p>
           </div>
         </section>
