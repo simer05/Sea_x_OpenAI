@@ -136,6 +136,32 @@ const form = document.querySelector("#productForm");
 const photoInput = document.querySelector("#photo");
 const productTypeInput = document.querySelector("#productType");
 const categoryInput = document.querySelector("#category");
+const emptyStatePanel = document.querySelector("#emptyStatePanel");
+const resultsPanel = document.querySelector("#resultsPanel");
+const aiDraftPanel = document.querySelector("#aiDraftPanel");
+const changeProductButton = document.querySelector("#changeProductButton");
+const cancelProductButton = document.querySelector("#cancelProductButton");
+const draftChangeProductButton = document.querySelector("#draftChangeProductButton");
+const confirmDraftButton = document.querySelector("#confirmDraftButton");
+const updateDraftButton = document.querySelector("#updateDraftButton");
+const aiDraftMode = document.querySelector("#aiDraftMode");
+const aiDraftReason = document.querySelector("#aiDraftReason");
+const aiFieldIds = [
+  "name",
+  "category",
+  "productType",
+  "price",
+  "region",
+  "targetArea",
+  "colors",
+  "features",
+  "description",
+  "keywords",
+  "launchStock",
+  "shippingCost",
+  "packagingCost",
+  "adCost"
+];
 let uploadedImageDataUrl = "";
 let uploadedImageName = "";
 
@@ -156,21 +182,46 @@ photoInput.addEventListener("change", () => {
   if (!file) return;
 
   uploadedImageName = file.name;
+  document.querySelector("#uploadActionLabel").textContent = "Reading product image...";
+  document.querySelector("#uploadStatus").textContent = "Asking OpenAI for product details.";
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     uploadedImageDataUrl = reader.result;
-    document.querySelector("#photoPreview").innerHTML = `<img src="${uploadedImageDataUrl}" alt="Uploaded product preview">`;
+    showDraftLoading(file.name);
+    try {
+      const draft = await requestPrelaunchDraft(file.name, uploadedImageDataUrl);
+      applyOpenAiDraft(draft);
+    } catch {
+      applyOpenAiDraft(exampleDraft(inferProductKey(file.name), "fallback"));
+    }
   };
   reader.readAsDataURL(file);
 });
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  runAnalysis();
 });
 
-setExample("phone_case");
-runAnalysis();
+form.addEventListener("input", (event) => {
+  const field = event.target?.id;
+  if (aiFieldIds.includes(field)) {
+    markFieldHumanEdited(field);
+  }
+});
+
+changeProductButton.addEventListener("click", resetWorkspace);
+cancelProductButton.addEventListener("click", resetWorkspace);
+draftChangeProductButton.addEventListener("click", resetWorkspace);
+confirmDraftButton.addEventListener("click", () => {
+  if (!form.reportValidity()) return;
+  aiDraftPanel.classList.add("hidden");
+  runAnalysis();
+});
+updateDraftButton.addEventListener("click", () => {
+  aiDraftReason.textContent = "Fields remain editable. Update any seller-specific details, then confirm the draft when ready.";
+  document.querySelector("#name").focus();
+});
+setInitialState();
 
 function setExample(type) {
   const example = examples[type];
@@ -192,9 +243,142 @@ function setExample(type) {
   updatePreview();
 }
 
+function setInitialState() {
+  hideResults();
+  document.querySelector("#region").value = "SG";
+  document.querySelector("#targetArea").value = "Islandwide Singapore";
+}
+
+function resetWorkspace() {
+  uploadedImageDataUrl = "";
+  uploadedImageName = "";
+  form.reset();
+  document.querySelector("#region").value = "SG";
+  document.querySelector("#targetArea").value = "Islandwide Singapore";
+  document.querySelector("#uploadActionLabel").textContent = "Upload Product Photo";
+  document.querySelector("#uploadStatus").textContent = "No image added yet";
+  clearAiFieldHighlights();
+  hideResults();
+}
+
+function showResults() {
+  emptyStatePanel.classList.add("hidden");
+  aiDraftPanel.classList.add("hidden");
+  resultsPanel.classList.remove("hidden");
+  changeProductButton.classList.remove("hidden");
+}
+
+function hideResults() {
+  emptyStatePanel.classList.remove("hidden");
+  aiDraftPanel.classList.add("hidden");
+  resultsPanel.classList.add("hidden");
+  changeProductButton.classList.add("hidden");
+}
+
+function showDraftLoading(fileName) {
+  emptyStatePanel.classList.add("hidden");
+  resultsPanel.classList.add("hidden");
+  aiDraftPanel.classList.remove("hidden");
+  changeProductButton.classList.remove("hidden");
+  aiDraftMode.textContent = "Generating";
+  aiDraftReason.textContent = `Reading ${fileName} and preparing editable seller-review fields.`;
+  confirmDraftButton.disabled = true;
+}
+
+async function requestPrelaunchDraft(photoName, photoDataUrl) {
+  const response = await fetch("/api/prelaunch-draft", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ photoName, photoDataUrl })
+  });
+
+  if (!response.ok) throw new Error(`Draft failed: ${response.status}`);
+  return response.json();
+}
+
+function applyOpenAiDraft(draft) {
+  const fieldValues = {
+    name: draft.title,
+    category: draft.category,
+    productType: draft.productType,
+    price: draft.price,
+    region: draft.targetRegion || "SG",
+    targetArea: draft.targetArea,
+    colors: draft.colors,
+    features: draft.features,
+    description: draft.description,
+    keywords: draft.keywords,
+    launchStock: draft.launchStock,
+    shippingCost: draft.shippingCost,
+    packagingCost: draft.packagingCost,
+    adCost: draft.adCost
+  };
+
+  clearAiFieldHighlights();
+  for (const [field, value] of Object.entries(fieldValues)) {
+    const node = document.querySelector(`#${field}`);
+    if (!node || value === undefined || value === null) continue;
+    node.value = value;
+    markFieldAiFilled(field);
+  }
+
+  emptyStatePanel.classList.add("hidden");
+  resultsPanel.classList.add("hidden");
+  aiDraftPanel.classList.remove("hidden");
+  changeProductButton.classList.remove("hidden");
+  aiDraftMode.textContent = draft.modeUsed === "openai" ? "OpenAI suggestions" : "Fallback suggestions";
+  aiDraftReason.textContent = draft.reasoning || "Review the suggested product details, update anything needed, then confirm to run analysis.";
+  document.querySelector("#uploadActionLabel").textContent = draft.modeUsed === "openai" ? "OpenAI Draft Ready" : "Draft Ready";
+  document.querySelector("#uploadStatus").textContent = uploadedImageName || "Product image loaded";
+  confirmDraftButton.disabled = false;
+  updatePreview();
+}
+
+function markFieldAiFilled(field) {
+  const node = document.querySelector(`#${field}`);
+  const label = node?.closest("label");
+  label?.classList.add("ai-filled-field");
+}
+
+function markFieldHumanEdited(field) {
+  const node = document.querySelector(`#${field}`);
+  const label = node?.closest("label");
+  label?.classList.remove("ai-filled-field");
+}
+
+function clearAiFieldHighlights() {
+  for (const field of aiFieldIds) {
+    markFieldHumanEdited(field);
+  }
+}
+
+function exampleDraft(type, modeUsed) {
+  const example = examples[type] || examples.phone_case;
+  const config = categoryMap[type] || categoryMap.phone_case;
+  return {
+    modeUsed,
+    title: example.name,
+    category: config.categoryPath.join(" > "),
+    productType: productTypeLabel(type),
+    price: String(example.price),
+    targetRegion: "SG",
+    targetArea: example.targetArea,
+    colors: example.colors,
+    features: example.features,
+    description: example.description,
+    keywords: example.keywords,
+    launchStock: String(example.launchStock),
+    shippingCost: String(example.shippingCost),
+    packagingCost: String(example.packagingCost),
+    adCost: String(example.adCost),
+    reasoning: "Fallback recommendations are shown because OpenAI is not configured or unavailable. Seller should confirm all image-specific details."
+  };
+}
+
 async function runAnalysis() {
   updatePreview();
   setLoadingState();
+  showResults();
 
   const productIdea = buildProductIdea();
   const response = await fetch("/api/analyze", {
@@ -367,7 +551,7 @@ function renderReadiness(items) {
   for (const item of items) {
     const li = document.createElement("li");
     li.className = item.status;
-    li.textContent = `${item.status === "complete" ? "Complete" : "Missing"}: ${item.label}`;
+    li.innerHTML = `<strong>${item.status === "complete" ? "Complete" : "Missing"}</strong><span>${escapeHtml(item.label)}</span><p>${escapeHtml(item.fix || "Ready for seller review.")}</p>`;
     list.append(li);
   }
 }
@@ -376,14 +560,15 @@ function renderCompetitors(matches) {
   const body = document.querySelector("#competitorRows");
   body.innerHTML = "";
   for (const match of matches) {
-    const row = document.createElement("tr");
+    const row = document.createElement("div");
+    row.className = "competitor-row";
     row.innerHTML = `
-      <td>${escapeHtml(match.name)}</td>
-      <td>${escapeHtml(match.tier)}</td>
-      <td>${match.price ? money(match.price, match.currency) : "Unknown"}</td>
-      <td>${match.review_count ?? "Unknown"}</td>
-      <td>${escapeHtml(match.ships_from_region || "Unknown")}</td>
-      <td>${match.score}/100</td>
+      <span>${escapeHtml(match.name)}</span>
+      <strong>${escapeHtml(match.tier)}</strong>
+      <span>${match.price ? money(match.price, match.currency) : "Unknown"}</span>
+      <span>${match.review_count ?? "Unknown"}</span>
+      <span>${escapeHtml(match.ships_from_region || "Unknown")}</span>
+      <em>${match.score}/100</em>
     `;
     body.append(row);
   }
@@ -465,14 +650,11 @@ function renderList(selector, items) {
 }
 
 function updatePreview() {
-  const name = document.querySelector("#name").value || "Product draft";
-  const price = Number(document.querySelector("#price").value || 0);
-  const region = document.querySelector("#region").value;
-  const targetArea = document.querySelector("#targetArea").value || "Islandwide Singapore";
-  const categoryLabel = categoryInput.value.split(">").pop()?.trim() || "Custom category";
-
-  document.querySelector("#previewTitle").textContent = name;
-  document.querySelector("#previewMeta").textContent = `SGD ${price.toFixed(2)} · ${region} · ${targetArea} · ${categoryLabel}`;
+  const hasDraft = Boolean(document.querySelector("#name").value || uploadedImageName);
+  if (hasDraft) {
+    document.querySelector("#uploadActionLabel").textContent = uploadedImageName ? "Photo Added" : "Draft Ready";
+    document.querySelector("#uploadStatus").textContent = uploadedImageName || "Seller details entered manually";
+  }
 }
 
 function setLoadingState() {
