@@ -284,6 +284,14 @@
                     </label>
                   </div>
                   <label>
+                    Target region
+                    <select id="pre-target-region">
+                      <option value="SG">Singapore</option>
+                      <option value="MY">Malaysia</option>
+                      <option value="ID">Indonesia</option>
+                    </select>
+                  </label>
+                  <label>
                     Colors
                     <input id="pre-colors" placeholder="purple, black, white" />
                   </label>
@@ -299,8 +307,7 @@
                     Keywords
                     <input id="pre-keywords" placeholder="Comma-separated buyer search keywords" />
                   </label>
-                  <div class="edit-hint">Upload a photo in the panel on the right to let OpenAI fill this form. Every field remains editable for seller review.</div>
-                  <button class="primary-button" type="submit">Run Pre-Launch Analysis</button>
+                  <div class="edit-hint">Upload a photo in the panel on the right. OpenAI will fill this editable form, then the seller confirms or updates the details before analysis.</div>
                 </form>
               </article>
 
@@ -315,6 +322,19 @@
                     <span id="pre-upload-status">No image added yet</span>
                   </span>
                 </label>
+              </article>
+
+              <article class="panel pre-ai-draft-panel hidden" id="pre-ai-draft-panel">
+                <div class="panel-heading">
+                  <h2>OpenAI Product Draft</h2>
+                  <span id="pre-draft-mode">Waiting</span>
+                </div>
+                <p id="pre-draft-reason">OpenAI recommendations will appear after image upload.</p>
+                <div class="draft-actions">
+                  <button class="primary-cta purple" id="pre-confirm-draft" type="button">Confirm AI Draft & Analyze</button>
+                  <button class="manual-entry-button" id="pre-update-draft" type="button">Update Manually</button>
+                  <button class="cancel-product-button" id="pre-change-product-draft" type="button">Change Product</button>
+                </div>
               </article>
 
               <article class="panel ai-summary-panel hidden pre-result-panel" id="pre-ai-panel">

@@ -304,6 +304,23 @@ const state = {
   }
 };
 
+const PRE_AI_FIELD_IDS = [
+  "pre-title",
+  "pre-category",
+  "pre-product-type",
+  "pre-price",
+  "pre-stock",
+  "pre-shipping",
+  "pre-packaging",
+  "pre-ad-cost",
+  "pre-target-area",
+  "pre-target-region",
+  "pre-colors",
+  "pre-features",
+  "pre-description",
+  "pre-keywords"
+];
+
 function init() {
   html("timeframe-select", timeframes.map((timeframe, index) => `<option value="${index}">${escapeHtml(timeframe.label)}</option>`).join(""));
   byId("timeframe-select").value = String(state.timeframeIndex);
@@ -314,7 +331,6 @@ function init() {
 
   byId("pre-form").addEventListener("submit", (event) => {
     event.preventDefault();
-    void runPreAnalysis();
   });
 
   const photoInput = byId("prelaunch-photo-upload");
@@ -324,12 +340,33 @@ function init() {
     });
   }
 
-  ["pre-change-product-header", "pre-change-product-footer"].forEach((id) => {
+  ["pre-change-product-header", "pre-change-product-footer", "pre-change-product-draft"].forEach((id) => {
     const button = byId(id);
     if (button) button.addEventListener("click", cancelPreProduct);
   });
 
-  byId("pre-form").addEventListener("input", updatePreChangeProductButton);
+  const confirmDraftButton = byId("pre-confirm-draft");
+  if (confirmDraftButton) {
+    confirmDraftButton.addEventListener("click", () => {
+      if (!byId("pre-form").reportValidity()) return;
+      byId("pre-ai-draft-panel").classList.add("hidden");
+      void runPreAnalysis();
+    });
+  }
+
+  const updateDraftButton = byId("pre-update-draft");
+  if (updateDraftButton) {
+    updateDraftButton.addEventListener("click", () => {
+      text("pre-draft-reason", "Fields remain editable. Update any seller-specific details, then confirm the draft when ready.");
+      byId("pre-title").focus();
+    });
+  }
+
+  byId("pre-form").addEventListener("input", (event) => {
+    const field = event.target?.id;
+    if (PRE_AI_FIELD_IDS.includes(field)) markPreFieldHumanEdited(field);
+    updatePreChangeProductButton();
+  });
 
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
@@ -607,7 +644,9 @@ function renderImprovementAreas(input, health, actions) {
 }
 
 function togglePrePanels(showResults) {
-  byId("pre-empty-panel").classList.toggle("hidden", showResults || state.aiLoading);
+  const draftPanel = byId("pre-ai-draft-panel");
+  const isDraftVisible = draftPanel && !draftPanel.classList.contains("hidden");
+  byId("pre-empty-panel").classList.toggle("hidden", showResults || state.aiLoading || isDraftVisible);
   byId("pre-decision-panel").classList.toggle("hidden", !showResults);
   document.querySelectorAll(".pre-result-panel").forEach((panel) => {
     if (panel.id === "pre-ai-panel") return;
@@ -642,6 +681,8 @@ function cancelPreProduct() {
   state.photoDataUrl = "";
   state.photoName = "";
   clearPreForm();
+  clearPreAiHighlights();
+  byId("pre-ai-draft-panel").classList.add("hidden");
   resetPreUploadUi();
   togglePrePanels(false);
   updatePreChangeProductButton();
@@ -732,31 +773,131 @@ async function handlePrePhoto(file) {
   state.preAnalyzed = false;
   state.aiInsight = null;
   setPreUploadUi(file.name, true);
+  showPreDraftLoading(file.name);
   togglePrePanels(false);
 
   try {
     state.photoDataUrl = await preparePhotoDataUrl(file);
     state.photoName = file.name;
-    const imageOnlyForm = emptyPrePayload(state.photoName, state.photoDataUrl);
-    const insight = await requestSellerAi("pre", imageOnlyForm, {}, state.photoDataUrl);
-    const draftForm = buildPreDraftForm(imageOnlyForm, insight || localPhotoFallbackInsight());
-    applyPreDraftToDom(draftForm);
-    state.preAnalyzed = true;
-    state.aiInsight = insight || localPhotoFallbackInsight();
-    renderPre();
-    setPreUploadUi(file.name, false);
+    const draft = await requestPrelaunchDraft(state.photoName, state.photoDataUrl);
+    applyPreLaunchDraft(draft);
   } catch (error) {
-    const draftForm = buildPreDraftForm(emptyPrePayload(file.name, ""), localPhotoFallbackInsight());
-    applyPreDraftToDom(draftForm);
-    state.preAnalyzed = true;
-    state.aiInsight = localPhotoFallbackInsight();
-    renderPre();
-    setPreUploadUi(file.name, false, error instanceof Error ? error.message : "Could not read image. Try PNG or JPG.");
+    applyPreLaunchDraft(localPrelaunchDraft(file.name));
+    setPreUploadUi(file.name, false);
   } finally {
     state.aiLoading = false;
-    renderAiSummary();
-    togglePrePanels(state.preAnalyzed);
+    togglePrePanels(false);
   }
+}
+
+async function requestPrelaunchDraft(photoName, photoDataUrl) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+  try {
+    const response = await fetch("/api/pre-product/draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({ photoName, photoDataUrl })
+    });
+    if (!response.ok) throw new Error("Pre-launch draft request failed");
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function showPreDraftLoading(fileName) {
+  byId("pre-empty-panel").classList.add("hidden");
+  byId("pre-ai-draft-panel").classList.remove("hidden");
+  byId("pre-decision-panel").classList.add("hidden");
+  document.querySelectorAll(".pre-result-panel").forEach((panel) => panel.classList.add("hidden"));
+  text("pre-draft-mode", "Generating");
+  text("pre-draft-reason", `Reading ${fileName} and preparing editable seller-review fields.`);
+  const confirmButton = byId("pre-confirm-draft");
+  if (confirmButton) confirmButton.disabled = true;
+  updatePreChangeProductButton();
+}
+
+function applyPreLaunchDraft(draft) {
+  const formDraft = {
+    title: draft.title,
+    category: draft.category,
+    productType: draft.productType,
+    price: draft.price,
+    launchStock: draft.launchStock,
+    shippingCost: draft.shippingCost,
+    packagingCost: draft.packagingCost,
+    adCost: draft.adCost,
+    targetArea: draft.targetArea,
+    targetRegion: draft.targetRegion || "SG",
+    colors: draft.colors,
+    features: draft.features,
+    description: draft.description,
+    keywords: draft.keywords
+  };
+
+  applyPreDraftToDom(formDraft);
+  state.preAnalyzed = false;
+  state.aiInsight = {
+    modeUsed: draft.modeUsed || "fallback",
+    summary: "Review the OpenAI-filled draft, update anything needed, then confirm to run pre-launch analysis.",
+    imageUnderstanding: draft.reasoning || "Product photo received and converted into editable listing fields.",
+    safeChanges: [],
+    blockedChanges: [],
+    actionPlan: []
+  };
+  byId("pre-empty-panel").classList.add("hidden");
+  byId("pre-ai-draft-panel").classList.remove("hidden");
+  text("pre-draft-mode", draft.modeUsed === "openai" ? "OpenAI suggestions" : "Fallback suggestions");
+  text("pre-draft-reason", draft.reasoning || "Review the suggested product details, update anything needed, then confirm to run analysis.");
+  text("pre-upload-label", draft.modeUsed === "openai" ? "OpenAI Draft Ready" : "Draft Ready");
+  text("pre-upload-status", state.photoName || "Product image loaded");
+  const confirmButton = byId("pre-confirm-draft");
+  if (confirmButton) confirmButton.disabled = false;
+  updatePreChangeProductButton();
+}
+
+function localPrelaunchDraft(photoName) {
+  const lower = String(photoName || "").toLowerCase();
+  if (lower.includes("bottle") || lower.includes("tumbler") || lower.includes("cup")) {
+    return {
+      modeUsed: "fallback",
+      title: "Reusable Water Bottle for School Gym and Office",
+      category: "Home & Living > Kitchenware > Water Bottles",
+      productType: "water bottle",
+      price: "12.9",
+      targetRegion: "SG",
+      targetArea: "West Singapore",
+      colors: "blue, black, pink",
+      features: "Reusable bottle, lightweight carry, daily hydration, school and gym use",
+      description: "Reusable water bottle for school, gym, office, and daily Singapore use. Add capacity, leakproof proof, material details, and lifestyle photos before launch.",
+      keywords: "water bottle singapore, reusable bottle, gym bottle, school water bottle",
+      launchStock: "80",
+      shippingCost: "0.8",
+      packagingCost: "0.5",
+      adCost: "1",
+      reasoning: "Fallback recommendations are shown because OpenAI is not configured or unavailable. Seller should confirm all image-specific details."
+    };
+  }
+  return {
+    modeUsed: "fallback",
+    title: "Protective Phone Case with Strap",
+    category: "Mobile & Gadgets > Mobile Accessories > Cases Covers & Skins",
+    productType: "phone case",
+    price: "19.9",
+    targetRegion: "SG",
+    targetArea: "Central Singapore",
+    colors: "clear, purple, black",
+    features: "Shock protection, strap-ready grip, slim fit, lightweight daily use",
+    description: "Protective phone case for daily use with a strap-friendly design, lightweight feel, and scratch protection. Add model compatibility, close-up photos, and durability proof before launch.",
+    keywords: "phone case singapore, protective phone case, phone case with strap, shopee phone accessories",
+    launchStock: "50",
+    shippingCost: "1.2",
+    packagingCost: "0.6",
+    adCost: "1.5",
+    reasoning: "Fallback recommendations are shown because OpenAI is not configured or unavailable. Seller should confirm all image-specific details."
+  };
 }
 
 async function requestSellerAi(mode, productInput, computedReport, photoDataUrlOverride) {
@@ -898,19 +1039,30 @@ function buildPreDraftForm(base, insight) {
 }
 
 function applyPreDraftToDom(draft) {
-  byId("pre-title").value = draft.title;
-  byId("pre-category").value = draft.category;
-  byId("pre-product-type").value = draft.productType;
-  byId("pre-price").value = draft.price;
-  byId("pre-stock").value = draft.launchStock;
-  byId("pre-shipping").value = draft.shippingCost;
-  byId("pre-packaging").value = draft.packagingCost;
-  byId("pre-ad-cost").value = draft.adCost;
-  byId("pre-target-area").value = draft.targetArea;
-  byId("pre-colors").value = draft.colors || "";
-  byId("pre-features").value = draft.features;
-  byId("pre-description").value = draft.description;
-  byId("pre-keywords").value = draft.keywords;
+  const values = {
+    "pre-title": draft.title,
+    "pre-category": draft.category,
+    "pre-product-type": draft.productType,
+    "pre-price": draft.price,
+    "pre-stock": draft.launchStock,
+    "pre-shipping": draft.shippingCost,
+    "pre-packaging": draft.packagingCost,
+    "pre-ad-cost": draft.adCost,
+    "pre-target-area": draft.targetArea,
+    "pre-target-region": draft.targetRegion || "SG",
+    "pre-colors": draft.colors || "",
+    "pre-features": draft.features,
+    "pre-description": draft.description,
+    "pre-keywords": draft.keywords
+  };
+
+  clearPreAiHighlights();
+  for (const [id, value] of Object.entries(values)) {
+    const node = byId(id);
+    if (!node || value === undefined || value === null) continue;
+    node.value = value;
+    markPreFieldAiFilled(id);
+  }
 }
 
 function readPreFormPayload(includePhoto = false) {
@@ -925,6 +1077,7 @@ function readPreFormPayload(includePhoto = false) {
     packagingCost: String(idea.packagingCost),
     adCost: String(idea.adCost),
     targetArea: idea.targetArea,
+    targetRegion: idea.targetRegion,
     colors: idea.colors,
     features: idea.features,
     description: idea.description,
@@ -979,6 +1132,7 @@ function clearPreForm() {
     "pre-packaging": "0.5",
     "pre-ad-cost": "1",
     "pre-target-area": "Islandwide Singapore",
+    "pre-target-region": "SG",
     "pre-colors": "",
     "pre-features": "",
     "pre-description": "",
@@ -988,6 +1142,18 @@ function clearPreForm() {
     const field = byId(id);
     if (field) field.value = value;
   }
+}
+
+function markPreFieldAiFilled(id) {
+  byId(id)?.closest("label")?.classList.add("ai-filled-field");
+}
+
+function markPreFieldHumanEdited(id) {
+  byId(id)?.closest("label")?.classList.remove("ai-filled-field");
+}
+
+function clearPreAiHighlights() {
+  for (const id of PRE_AI_FIELD_IDS) markPreFieldHumanEdited(id);
 }
 
 function pickPreContext(form) {
@@ -1008,6 +1174,7 @@ function readPreForm() {
     packagingCost: Number(byId("pre-packaging").value) || 0.5,
     adCost: Number(byId("pre-ad-cost").value) || 1,
     targetArea: byId("pre-target-area").value.trim() || "Islandwide Singapore",
+    targetRegion: byId("pre-target-region").value || "SG",
     colors: byId("pre-colors").value.trim(),
     features: byId("pre-features").value.trim(),
     description: byId("pre-description").value.trim(),

@@ -1811,6 +1811,7 @@ select {
 }
 
 .live-pre-form label.ai-filled-field input,
+.live-pre-form label.ai-filled-field select,
 .live-pre-form label.ai-filled-field textarea {
   background: #ffffff;
   border-color: #c4b5fd;
@@ -1829,6 +1830,36 @@ select {
   display: grid;
   gap: 18px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pre-ai-draft-panel {
+  align-self: start;
+  background: linear-gradient(135deg, #4c1d95, #7c3aed);
+  border: 0;
+  color: #ffffff;
+  min-height: 260px;
+}
+
+.pre-ai-draft-panel .panel-heading span {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  color: #ffffff;
+  padding: 6px 10px;
+}
+
+.pre-ai-draft-panel p {
+  color: #f5f3ff;
+  line-height: 1.55;
+  margin: 0 0 18px;
+}
+
+.pre-ai-draft-panel .cancel-product-button {
+  background: #ffffff;
+  color: #4c1d95;
+}
+
+.primary-cta.purple {
+  background: #7c3aed;
 }
 
 .pre-results .comparison-panel,
@@ -3099,6 +3130,10 @@ body {
 .pre-form textarea {
   border-color: var(--seller-border);
   border-radius: 2px;
+}
+
+.primary-cta.purple {
+  background: #7c3aed;
 }
 
 @media (max-width: 900px) {
