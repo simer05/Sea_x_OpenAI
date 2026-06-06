@@ -34,7 +34,7 @@ metadata live in `dev.acpsea.postpurchase`.
 
 ## Fixtures
 
-Local fixtures live under `fixtures/` and are independent from Member 2:
+Shared mock catalog fixtures live under `../../data` and are mapped by `fixtures/load-fixtures.ts`:
 
 - 5 sellers
 - 36 SKU rows
